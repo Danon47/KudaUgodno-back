@@ -22,9 +22,7 @@ INSTALLED_APPS = [
     "tours",
     "flights",
     "hotels",
-
-
-
+    "applications",
 ]
 
 MIDDLEWARE = [

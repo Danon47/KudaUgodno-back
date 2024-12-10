@@ -25,4 +25,5 @@ urlpatterns = [
     path('tours/', include("tours.urls", namespace="tours")),
     path('flights/', include("flights.urls", namespace="flights")),
     path('hotels/', include("hotels.urls", namespace="hotels")),
+    path('applications/', include("applications.urls", namespace="applications")),
 ]
