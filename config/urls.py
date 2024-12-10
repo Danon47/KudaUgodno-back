@@ -22,5 +22,6 @@ urlpatterns = [
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('users/', include("users.urls", namespace="users")),
-    path('tours/', include("tours.urls", namespace="tours"))
+    path('tours/', include("tours.urls", namespace="tours")),
+    path('flights/', include("flights.urls", namespace="flights")),
 ]

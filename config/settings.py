@@ -20,6 +20,8 @@ INSTALLED_APPS = [
 
     "users",
     "tours",
+    "flights",
+
 
 ]
 
