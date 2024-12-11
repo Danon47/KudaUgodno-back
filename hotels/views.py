@@ -21,7 +21,7 @@ class HotelRoomListCreateView(generics.ListCreateAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное получение списка номеров",
-                schema=HotelSerializer(many=True),
+                schema=HotelRoomSerializer(many=True),
             ),
             400: "Ошибка запроса",
         },
@@ -32,11 +32,11 @@ class HotelRoomListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Создание нового номера",
         operation_summary="Добавление номера",
-        request_body=HotelSerializer,
+        request_body=HotelRoomSerializer,
         tags=["1. Номер"],
         responses={
             201: openapi.Response(
-                description="Отель успешно номера", schema=HotelSerializer()
+                description="Отель успешно номера", schema=HotelRoomSerializer()
             ),
             400: "Ошибка валидации",
         },
@@ -77,10 +77,10 @@ class HotelRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Полное обновление информации о номере",
         operation_description="Обновляет все поля номера целиком",
         tags=["1. Номер"],
-        request_body=HotelSerializer,
+        request_body=HotelRoomSerializer,
         responses={
             200: openapi.Response(
-                description="Номер успешно обновлен", schema=HotelSerializer()
+                description="Номер успешно обновлен", schema=HotelRoomSerializer()
             ),
             400: "Ошибка валидации",
             404: "Номер не найден",
@@ -93,10 +93,10 @@ class HotelRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Частичное обновление информации о номере",
         operation_description="Обновляет указанные поля номера",
         tags=["1. Номер"],
-        request_body=HotelSerializer,
+        request_body=HotelRoomSerializer,
         responses={
             200: openapi.Response(
-                description="Номер успешно обновлен", schema=HotelSerializer()
+                description="Номер успешно обновлен", schema=HotelRoomSerializer()
             ),
             400: "Ошибка валидации",
             404: "Номер не найден",
@@ -126,7 +126,7 @@ class AmenityRoomListCreateView(generics.ListCreateAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное получение списка удобств в номере",
-                schema=HotelSerializer(many=True),
+                schema=AmenityRoomSerializer(many=True),
             ),
             400: "Ошибка запроса",
         },
@@ -137,11 +137,11 @@ class AmenityRoomListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Создание нового удобства в номере",
         operation_summary="Добавление удобства в номере",
-        request_body=HotelSerializer,
+        request_body=AmenityRoomSerializer,
         tags=["1.1 Удобства в номере"],
         responses={
             201: openapi.Response(
-                description="Удобство в номере успешно создан", schema=HotelSerializer()
+                description="Удобство в номере успешно создан", schema=AmenityRoomSerializer()
             ),
             400: "Ошибка валидации",
         },
@@ -182,7 +182,7 @@ class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Полное обновление информации удобства в номере",
         operation_description="Обновляет все поля удовства в номере целиком",
         tags=["1.1 Удобства в номере"],
-        request_body=HotelSerializer,
+        request_body=AmenityRoomSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -195,7 +195,7 @@ class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Удобство в номере успешно обновлен",
-                schema=HotelSerializer(),
+                schema=AmenityRoomSerializer(),
             ),
             400: "Ошибка валидации",
             404: "Удобство в номере не найдено",
@@ -208,7 +208,7 @@ class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Частичное обновление информации удобства в номере",
         operation_description="Обновляет указанные поля удобства в номере",
         tags=["1.1 Удобства в номере"],
-        request_body=HotelSerializer,
+        request_body=AmenityRoomSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -221,7 +221,7 @@ class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Удоства в номере успешно обновлен",
-                schema=HotelSerializer(),
+                schema=AmenityRoomSerializer(),
             ),
             400: "Ошибка валидации",
             404: "Удобство в номере не найдено",
@@ -368,7 +368,7 @@ class AmenityHotelListCreateView(generics.ListCreateAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное получение списка удобств в отеле",
-                schema=HotelSerializer(many=True),
+                schema=AmenityHotelSerializer(many=True),
             ),
             400: "Ошибка запроса",
         },
@@ -379,11 +379,11 @@ class AmenityHotelListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Создание нового удобства в отеле",
         operation_summary="Добавление удобства в отеле",
-        request_body=HotelSerializer,
+        request_body=AmenityHotelSerializer,
         tags=["2.1 Удобства в отеле"],
         responses={
             201: openapi.Response(
-                description="Удобство в отеле успешно создано", schema=HotelSerializer()
+                description="Удобство в отеле успешно создано", schema=AmenityHotelSerializer()
             ),
             400: "Ошибка валидации",
         },
@@ -412,7 +412,7 @@ class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное получение информации удобства в отеле",
-                schema=HotelSerializer(),
+                schema=AmenityHotelSerializer(),
             ),
             404: "Удобство в отеле не найдено",
         },
@@ -424,7 +424,7 @@ class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Полное обновление информации удобства в отеле",
         operation_description="Обновляет все поля удобства в отеле целиком",
         tags=["2.1 Удобства в отеле"],
-        request_body=HotelSerializer,
+        request_body=AmenityHotelSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -437,7 +437,7 @@ class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Удобство в отеле успешно обновлено",
-                schema=HotelSerializer(),
+                schema=AmenityHotelSerializer(),
             ),
             400: "Ошибка валидации",
             404: "Удобство в отеле не найдено",
@@ -450,7 +450,7 @@ class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="Частичное обновление информации удобства в отеле",
         operation_description="Обновляет указанные поля удобства в отеле",
         tags=["2.1 Удобства в отеле"],
-        request_body=HotelSerializer,
+        request_body=AmenityHotelSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -463,7 +463,7 @@ class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Удобство в отеле успешно обновлено",
-                schema=HotelSerializer(),
+                schema=AmenityHotelSerializer(),
             ),
             400: "Ошибка валидации",
             404: "Удобство в отеле не найдено",
