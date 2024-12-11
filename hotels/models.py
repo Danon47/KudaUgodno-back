@@ -30,10 +30,11 @@ class Choices:
     def food(cls):
         return [
             ("No meals", "Без питания"),
-            ("Breakfast included", "Завтрак включён"),
-            ("Breakfast and lunch included", "Завтрак и обед включён"),
-            ("Breakfast and dinner included", "Завтрак и ужин включён"),
-            ("All inclusive", "Всё включено"),
+            ("Ultra all inclusive", "Ultra all inclusive"),
+            ("All inclusive", "All inclusive"),
+            ("Full board", "Полный пансион"),
+            ("Half board", "Полупансион"),
+            ("Only breakfast", "Только завтраки"),
         ]
 
     @classmethod
@@ -67,6 +68,15 @@ class Choices:
             ("Apartments", "Апартаменты"),
             ("Guest house", "Гостевой дом"),
             ("Inn", "Гостиница"),
+        ]
+
+    @classmethod
+    def type_of_holiday(cls):
+        return [
+            ("Beach", "Пляжный"),
+            ("City", "Городской"),
+            ("With children", "С детьми"),
+            ("With animals", "С животными"),
         ]
 
     @classmethod
@@ -125,6 +135,14 @@ class HotelRoom(models.Model):
         verbose_name="Тип питания",
         help_text="Выберите тип питания",
     )
+    # Тип отдыха
+    type_of_holiday = models.CharField(
+        max_length=15,
+        choices=Choices.type_of_holiday(),
+        default="Beach",
+        verbose_name="Тип отдыха",
+        help_text="Выберите тип отдыха",
+    )
     # Курение
     smoking = models.CharField(
         max_length=20,
@@ -174,8 +192,8 @@ class HotelRoom(models.Model):
         verbose_name="Кровать",
         help_text="Выберите кровать",
     )
-    # Стоимость за один день
-    price = models.PositiveIntegerField(
+    # Цена за ночь
+    nightly_price = models.PositiveIntegerField(
         verbose_name="Цена",
         help_text="Введите цену",
     )
