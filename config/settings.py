@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from drf_yasg import openapi
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +22,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_yasg",
-
     "users",
     "tours",
     "flights",
@@ -98,3 +98,23 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": openapi.Info(
+        title="API бронирования туров или отелей",
+        default_version="v1.0.1",
+        description='API сервис для веб-сайта "Куда Угодно"',
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@snippets.local"),
+        license=openapi.License(name="BSD License"),
+    ),
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "LANGUAGE_CODE": "ru",
+    "TAGS_SORTER": "alpha",
+}
