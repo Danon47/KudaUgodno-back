@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import time
 
 
 NULLABLE = {"blank": True, "null": True}
@@ -82,35 +83,35 @@ class Choices:
     @classmethod
     def in_time(cls):
         return [
-            ("14:00", "14:00"),
-            ("15:00", "15:00"),
-            ("16:00", "16:00"),
-            ("17:00", "17:00"),
-            ("18:00", "18:00"),
-            ("19:00", "19:00"),
-            ("20:00", "20:00"),
-            ("21:00", "21:00"),
-            ("22:00", "22:00"),
-            ("23:00", "23:00"),
-            ("00:00", "00:00"),
+            (time(14,0), "14:00"),
+            (time(15,0), "15:00"),
+            (time(16,0), "16:00"),
+            (time(17,0), "17:00"),
+            (time(18,0), "18:00"),
+            (time(19,0), "19:00"),
+            (time(20,0), "20:00"),
+            (time(21,0), "21:00"),
+            (time(22,0), "22:00"),
+            (time(23,0), "23:00"),
+            (time(00,0), "00:00"),
         ]
 
     @classmethod
     def out_time(cls):
         return [
-            ("00:00", "00:00"),
-            ("01:00", "01:00"),
-            ("02:00", "02:00"),
-            ("03:00", "03:00"),
-            ("04:00", "04:00"),
-            ("05:00", "05:00"),
-            ("06:00", "06:00"),
-            ("07:00", "07:00"),
-            ("08:00", "08:00"),
-            ("09:00", "09:00"),
-            ("10:00", "10:00"),
-            ("11:00", "11:00"),
-            ("12:00", "12:00"),
+            (time(0,0), "00:00"),
+            (time(1,0), "01:00"),
+            (time(2,0), "02:00"),
+            (time(3,0), "03:00"),
+            (time(4,0), "04:00"),
+            (time(5,0), "05:00"),
+            (time(6,0), "06:00"),
+            (time(7,0), "07:00"),
+            (time(8,0), "08:00"),
+            (time(9,0), "09:00"),
+            (time(10,0), "10:00"),
+            (time(11,0), "11:00"),
+            (time(12,0), "12:00"),
         ]
 
 
@@ -178,6 +179,7 @@ class HotelRoom(models.Model):
         upload_to="hotels/rooms/",
         verbose_name="Фотография",
         help_text="Загрузите фотографию номера",
+        **NULLABLE
     )
     # Количество проживающих людей
     capacity = models.PositiveIntegerField(
@@ -214,8 +216,8 @@ class HotelRoom(models.Model):
         return f"{self.id} {self.category}"
 
     class Meta:
-        verbose_name = "Класс номера"
-        verbose_name_plural = "Классы номеров"
+        verbose_name = "Номер"
+        verbose_name_plural = "Номера"
         ordering = ["category"]
 
 
@@ -284,11 +286,11 @@ class Hotel(models.Model):
         upload_to="hotels/",
         verbose_name="Фотография",
         help_text="Загрузите фотографию отеля",
+        **NULLABLE
     )
     # Номера в отеле
-    hotel_room = models.ForeignKey(
+    hotel_room = models.ManyToManyField(
         HotelRoom,
-        on_delete=models.CASCADE,
         related_name="rooms",
         verbose_name="Номера в отеле",
     )
@@ -304,18 +306,19 @@ class Hotel(models.Model):
         max_length=255,
         verbose_name="Пользовательская оценка",
         help_text="Введите оценку",
+        **NULLABLE
     )
     # Время заселения
     check_in_time = models.TimeField(
-        max_length=5,
+        max_length=8,
         choices=Choices.in_time(),
         default="14:00",
         verbose_name="Время заезда",
         help_text="Выберите время заезда",
     )
     # Время выезда
-    check_out_time = models.CharField(
-        max_length=5,
+    check_out_time = models.TimeField(
+        max_length=8,
         choices=Choices.out_time(),
         default="12:00",
         verbose_name="Время выезда",
