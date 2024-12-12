@@ -1,118 +1,7 @@
-from django.db import models
-from datetime import time
+from .choices import *
 
 
 NULLABLE = {"blank": True, "null": True}
-
-
-class Choices:
-    """
-    Вспомогательный класс для создания choices
-    """
-
-    @classmethod
-    def pets(cls):
-        return [("Authorized", "Разрешено"), ("Forbidden", "Запрещено")]
-
-    @classmethod
-    def smoking(cls):
-        return [("Authorized", "Разрешено"), ("Forbidden", "Запрещено")]
-
-    @classmethod
-    def category(cls):
-        return [
-            ("Standard", "Стандарт"),
-            ("Comfort", "Комфорт"),
-            ("Family", "Семейный"),
-            ("Lux", "Люкс"),
-        ]
-
-    @classmethod
-    def food(cls):
-        return [
-            ("No meals", "Без питания"),
-            ("Ultra all inclusive", "Ultra all inclusive"),
-            ("All inclusive", "All inclusive"),
-            ("Full board", "Полный пансион"),
-            ("Half board", "Полупансион"),
-            ("Only breakfast", "Только завтраки"),
-        ]
-
-    @classmethod
-    def bed(cls):
-        return [
-            ("1 Single", "1 Односпальная"),
-            ("1 Double", "1 Двуспальная"),
-            ("1 Single and 1 Double", "1 Односпальная и 1 Двуспальная"),
-            ("2 Singles and 1 Double", "2 Односпальные и 1 Двуспальная"),
-            ("2 Singles", "2 Односпальные"),
-            ("2 Doubles", "2 Двуспальные"),
-            ("2 Singles and 2 Doubles", "2 Односпальные и 2 Двуспальные"),
-        ]
-
-    @classmethod
-    def stars(cls):
-        return [
-            ("1 Star", "1 Звезда"),
-            ("2 Stars", "2 Звезды"),
-            ("3 Stars", "3 Звезды"),
-            ("4 Stars", "4 Звезды"),
-            ("5 Stars", "5 Звезд"),
-        ]
-
-    @classmethod
-    def type(cls):
-        return [
-            ("Hotel", "Отель"),
-            ("Hostel", "Хостел"),
-            ("Villa", "Вилла"),
-            ("Apartments", "Апартаменты"),
-            ("Guest house", "Гостевой дом"),
-            ("Inn", "Гостиница"),
-        ]
-
-    @classmethod
-    def type_of_holiday(cls):
-        return [
-            ("Beach", "Пляжный"),
-            ("City", "Городской"),
-            ("With children", "С детьми"),
-            ("With animals", "С животными"),
-        ]
-
-    @classmethod
-    def in_time(cls):
-        return [
-            (time(14,0), "14:00"),
-            (time(15,0), "15:00"),
-            (time(16,0), "16:00"),
-            (time(17,0), "17:00"),
-            (time(18,0), "18:00"),
-            (time(19,0), "19:00"),
-            (time(20,0), "20:00"),
-            (time(21,0), "21:00"),
-            (time(22,0), "22:00"),
-            (time(23,0), "23:00"),
-            (time(00,0), "00:00"),
-        ]
-
-    @classmethod
-    def out_time(cls):
-        return [
-            (time(0,0), "00:00"),
-            (time(1,0), "01:00"),
-            (time(2,0), "02:00"),
-            (time(3,0), "03:00"),
-            (time(4,0), "04:00"),
-            (time(5,0), "05:00"),
-            (time(6,0), "06:00"),
-            (time(7,0), "07:00"),
-            (time(8,0), "08:00"),
-            (time(9,0), "09:00"),
-            (time(10,0), "10:00"),
-            (time(11,0), "11:00"),
-            (time(12,0), "12:00"),
-        ]
 
 
 class HotelRoom(models.Model):
@@ -123,40 +12,40 @@ class HotelRoom(models.Model):
     # Категория номера
     category = models.CharField(
         max_length=20,
-        choices=Choices.category(),
-        default="Standard",
+        choices=CategoryChoices.choices,
+        default=CategoryChoices.Standard,
         verbose_name="Категория номера",
         help_text="Выберите категорию номера",
     )
     # Тип питания
     food = models.CharField(
         max_length=30,
-        choices=Choices.food(),
-        default="No meals",
+        choices=FoodChoices.choices,
+        default=FoodChoices.Only_breakfast,
         verbose_name="Тип питания",
         help_text="Выберите тип питания",
     )
     # Тип отдыха
     type_of_holiday = models.CharField(
         max_length=15,
-        choices=Choices.type_of_holiday(),
-        default="Beach",
+        choices=TypeOfHolidayChoices.choices,
+        default=TypeOfHolidayChoices.Beach,
         verbose_name="Тип отдыха",
         help_text="Выберите тип отдыха",
     )
     # Курение
     smoking = models.CharField(
         max_length=20,
-        choices=Choices.smoking(),
-        default="Forbidden",
+        choices=SmokingChoices.choices,
+        default=SmokingChoices.Forbidden,
         verbose_name="Курение",
         help_text="Выберите курение",
     )
     # С животными можно?
     pet = models.CharField(
         max_length=20,
-        choices=Choices.pets(),
-        default="Forbidden",
+        choices=PetChoices.choices,
+        default=PetChoices.Authorized,
         verbose_name="С животными можно?",
         help_text="Выберите с животными можно?",
     )
@@ -179,7 +68,7 @@ class HotelRoom(models.Model):
         upload_to="hotels/rooms/",
         verbose_name="Фотография",
         help_text="Загрузите фотографию номера",
-        **NULLABLE
+        **NULLABLE,
     )
     # Количество проживающих людей
     capacity = models.PositiveIntegerField(
@@ -189,8 +78,8 @@ class HotelRoom(models.Model):
     # Кровать
     bed = models.CharField(
         max_length=35,
-        choices=Choices.bed(),
-        default="1 Single",
+        choices=BedChoices.choices,
+        default=BedChoices.Single_1,
         verbose_name="Кровать",
         help_text="Выберите кровать",
     )
@@ -235,16 +124,15 @@ class Hotel(models.Model):
     # Категория отеля в звёздах
     category = models.CharField(
         max_length=20,
-        choices=Choices.stars(),
-        default="1 Star",
+        choices=StarsChoices.choices,
+        default=StarsChoices.Five_stars,
         verbose_name="Категория отеля",
         help_text="Выберите категорию отеля",
     )
     # Тип размещения
-    place = models.CharField(
-        max_length=15,
-        choices=Choices.type(),
-        default="Hotel",
+    place = models.ManyToManyField(
+        "PlaceHotel",
+        related_name="places",
         verbose_name="Тип размещения",
         help_text="Выберите тип размещения",
     )
@@ -286,13 +174,14 @@ class Hotel(models.Model):
         upload_to="hotels/",
         verbose_name="Фотография",
         help_text="Загрузите фотографию отеля",
-        **NULLABLE
+        **NULLABLE,
     )
     # Номера в отеле
     hotel_room = models.ManyToManyField(
         HotelRoom,
         related_name="rooms",
         verbose_name="Номера в отеле",
+        blank=True,
     )
     # Удобства в номере
     amenities = models.ManyToManyField(
@@ -306,21 +195,21 @@ class Hotel(models.Model):
         max_length=255,
         verbose_name="Пользовательская оценка",
         help_text="Введите оценку",
-        **NULLABLE
+        **NULLABLE,
     )
     # Время заселения
     check_in_time = models.TimeField(
         max_length=8,
-        choices=Choices.in_time(),
-        default="14:00",
+        choices=InTimeChoices.choices,
+        default=InTimeChoices.IN_14,
         verbose_name="Время заезда",
         help_text="Выберите время заезда",
     )
     # Время выезда
     check_out_time = models.TimeField(
         max_length=8,
-        choices=Choices.out_time(),
-        default="12:00",
+        choices=OutTimeChoices.choices,
+        default=OutTimeChoices.OUT_12,
         verbose_name="Время выезда",
         help_text="Выберите время выезда",
     )
@@ -353,14 +242,10 @@ class AmenityRoom(models.Model):
         verbose_name_plural = "Удобства в номерах"
 
 
-class AmenityHotel(models.Model):
+class AmenityHotel(AmenityRoom):
     """
     Удобства в отеле
     """
-
-    name = models.CharField(
-        max_length=50, verbose_name="Удобство", help_text="Введите удобство"
-    )
 
     def __str__(self):
         return self.name
@@ -368,3 +253,23 @@ class AmenityHotel(models.Model):
     class Meta:
         verbose_name = "Удобство в отеле"
         verbose_name_plural = "Удобства в отеле"
+
+
+class PlaceHotel(models.Model):
+    """
+    Тип размещения
+    """
+
+    name = models.CharField(
+        max_length=15,
+        verbose_name="Тип размещения",
+        help_text="Выберите тип размещения",
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Тип размещения"
+        verbose_name_plural = "Типы размещения"
+        ordering = ["name"]
