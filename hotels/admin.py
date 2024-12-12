@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from hotels.models import Hotel, HotelRoom, AmenityHotel, AmenityRoom
+from hotels.models import Hotel, HotelRoom, AmenityHotel, AmenityRoom, PlaceHotel
 
 
 @admin.register(Hotel)
@@ -12,7 +12,14 @@ class HotelAdmin(admin.ModelAdmin):
 
 @admin.register(HotelRoom)
 class HotelRoomAdmin(admin.ModelAdmin):
-    list_display = ("id", "category", "type_of_holiday", "nightly_price", "start_date", "end_date")
+    list_display = (
+        "id",
+        "category",
+        "type_of_holiday",
+        "nightly_price",
+        "start_date",
+        "end_date",
+    )
     list_display_links = ("id", "category")
     # search_fields = ("category", "type_of_holiday")
 
@@ -24,4 +31,9 @@ class AmenityHotelAdmin(admin.ModelAdmin):
 
 @admin.register(AmenityRoom)
 class AmenityRoomAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
+
+@admin.register(PlaceHotel)
+class PlaceHotelAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
