@@ -130,11 +130,13 @@ class Hotel(models.Model):
         help_text="Выберите категорию отеля",
     )
     # Тип размещения
-    place = models.ManyToManyField(
+    place = models.ForeignKey(
         "PlaceHotel",
-        related_name="places",
+        related_name="hotels",
+        on_delete=models.CASCADE,
         verbose_name="Тип размещения",
         help_text="Выберите тип размещения",
+        null=True,
     )
     # Страна отеля
     country = models.CharField(
