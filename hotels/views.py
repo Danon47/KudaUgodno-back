@@ -2,6 +2,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from .models import Hotel, HotelRoom, AmenityRoom, AmenityHotel
+from .pagination import MyPagination
 from .serializers import (
     HotelSerializer,
     HotelRoomSerializer,
@@ -13,6 +14,7 @@ from .serializers import (
 class HotelRoomListCreateView(generics.ListCreateAPIView):
     queryset = HotelRoom.objects.all()
     serializer_class = HotelRoomSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех номеров",
@@ -48,6 +50,7 @@ class HotelRoomListCreateView(generics.ListCreateAPIView):
 class HotelRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = HotelRoom.objects.all()
     serializer_class = HotelRoomSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации о номере",
@@ -118,6 +121,7 @@ class HotelRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AmenityRoomListCreateView(generics.ListCreateAPIView):
     queryset = AmenityRoom.objects.all()
     serializer_class = AmenityRoomSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех удобств в номере",
@@ -153,6 +157,7 @@ class AmenityRoomListCreateView(generics.ListCreateAPIView):
 class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AmenityRoom.objects.all()
     serializer_class = AmenityRoomSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации о удобстве в номере",
@@ -255,6 +260,7 @@ class AmenityRoomDetailView(generics.RetrieveUpdateDestroyAPIView):
 class HotelListCreateView(generics.ListCreateAPIView):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех отелей",
@@ -290,6 +296,7 @@ class HotelListCreateView(generics.ListCreateAPIView):
 class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации об отеле",
@@ -360,6 +367,7 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AmenityHotelListCreateView(generics.ListCreateAPIView):
     queryset = AmenityHotel.objects.all()
     serializer_class = AmenityHotelSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех удобств в отеле",
@@ -395,6 +403,7 @@ class AmenityHotelListCreateView(generics.ListCreateAPIView):
 class AmenityHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AmenityHotel.objects.all()
     serializer_class = AmenityHotelSerializer
+    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации удобств в отеле",
