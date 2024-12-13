@@ -203,7 +203,7 @@ class Hotel(models.Model):
     check_in_time = models.TimeField(
         max_length=8,
         choices=TimeChoices.in_time(),
-        default="14:00",
+        default=time(14, 0),
         verbose_name="Время заезда",
         help_text="Выберите время заезда",
     )
@@ -211,7 +211,7 @@ class Hotel(models.Model):
     check_out_time = models.TimeField(
         max_length=8,
         choices=TimeChoices.out_time(),
-        default="11:00",
+        default=time(12, 0),
         verbose_name="Время выезда",
         help_text="Выберите время выезда",
     )
