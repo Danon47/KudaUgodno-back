@@ -26,41 +26,6 @@ class FoodChoices(models.TextChoices):
     ONLY_BREAKFAST = "Только завтраки", "Только завтраки"
 
 
-class BedChoices(models.TextChoices):
-    """
-    Тип кровати
-    """
-
-    SINGLE_1 = "1 Односпальная", "1 Односпальная"
-    DOUBLE_1 = "1 Двуспальная", "1 Двуспальная"
-    SINGLES_2 = "2 Односпальные", "2 Односпальные"
-    DOUBLES_2 = "2 Двуспальные", "2 Двуспальные"
-    SINGLE_AND_DOUBLE_1 = (
-        "1 Односпальная и 1 Двуспальная",
-        "1 Односпальная и 1 Двуспальная",
-    )
-    SINGLES_AND_DOUBLE_1 = (
-        "2 Односпальные и 1 Двуспальная",
-        "2 Односпальные и 1 Двуспальная",
-    )
-    SINGLES_AND_DOUBLES_2 = (
-        "2 Односпальные и 2 Двуспальные",
-        "2 Односпальные и 2 Двуспальные",
-    )
-
-
-class StarsChoices(models.TextChoices):
-    """
-    Количество звезд
-    """
-
-    ONE_STAR = "1 Звезда", "1 Звезда"
-    TWO_STARS = "2 Звезды", "2 Звезды"
-    THREE_STARS = "3 Звезды", "3 Звезды"
-    FOUR_STARS = "4 Звезды", "4 Звезды"
-    FIVE_STARS = "5 Звезд", "5 Звезд"
-
-
 class TypeOfHolidayChoices(models.TextChoices):
     """
     Тип отдыха

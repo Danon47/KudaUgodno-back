@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from .choices import *
 
 
@@ -35,9 +36,9 @@ class HotelRoom(models.Model):
     )
     # Курение
     smoking = models.BooleanField(
+        default=False,
         verbose_name="Курение разрешено?",
         help_text="Да/Нет",
-        default=False
     )
     # С животными можно?
     pet = models.BooleanField(
@@ -49,6 +50,10 @@ class HotelRoom(models.Model):
     area = models.PositiveIntegerField(
         verbose_name="Площадь номера",
         help_text="Введите площадь номера",
+        validators= [
+            MinValueValidator(1),
+            MaxValueValidator(1000),
+        ],
     )
     # Количество номеров ?
 
@@ -71,13 +76,27 @@ class HotelRoom(models.Model):
         verbose_name="Количество проживающих людей",
         help_text="Введите количество проживающих людей",
     )
-    # Кровать
-    bed = models.CharField(
+    # Односпальная кровать
+    single_bed = models.IntegerField(
         max_length=35,
-        choices=BedChoices.choices,
-        default=BedChoices.SINGLE_1,
-        verbose_name="Кровать",
+        verbose_name="Односпальная кровать",
         help_text="Выберите кровать",
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(3),
+        ],
+        **NULLABLE,
+    )
+    # Двуспальная кровать
+    double_bed = models.IntegerField(
+        max_length=35,
+        verbose_name="Двуспальная кровать",
+        help_text="Выберите кровать",
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(3),
+        ],
+        **NULLABLE,
     )
     # Цена за ночь
     nightly_price = models.PositiveIntegerField(
@@ -113,17 +132,19 @@ class Hotel(models.Model):
 
     # Название отеля
     name = models.CharField(
-        max_length=50,
+        max_length=100,
         verbose_name="Название отеля",
         help_text="Введите название отеля",
     )
     # Категория отеля в звёздах
-    category = models.CharField(
-        max_length=20,
-        choices=StarsChoices.choices,
-        default=StarsChoices.FIVE_STARS,
+    star_category = models.IntegerField(
         verbose_name="Категория отеля",
-        help_text="Выберите категорию отеля",
+        help_text="Выберите категорию отеля (от 0 до 5)",
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(5),
+        ],
+        default=0,
     )
     # Тип размещения
     place = models.ForeignKey(
