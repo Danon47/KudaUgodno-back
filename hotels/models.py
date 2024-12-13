@@ -78,7 +78,6 @@ class HotelRoom(models.Model):
     )
     # Односпальная кровать
     single_bed = models.IntegerField(
-        max_length=35,
         verbose_name="Односпальная кровать",
         help_text="Выберите кровать",
         validators= [
@@ -89,7 +88,6 @@ class HotelRoom(models.Model):
     )
     # Двуспальная кровать
     double_bed = models.IntegerField(
-        max_length=35,
         verbose_name="Двуспальная кровать",
         help_text="Выберите кровать",
         validators= [
