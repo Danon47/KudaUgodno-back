@@ -127,7 +127,6 @@ class APITestCase(TestCase):
             place=self.place_hotel,
             check_in_time=time(15, 0),
             check_out_time=time(11, 0),
-            # amenities=[self.amenity_hotel.id],
         )
         hotel.amenities.add(self.amenity_hotel)
         url = reverse("hotels:hotel-detail", kwargs={"pk": hotel.id})
