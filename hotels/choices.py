@@ -2,6 +2,19 @@ from datetime import time
 from django.db import models
 
 
+class PlaceChoices(models.TextChoices):
+    """
+    Тип размещения
+    """
+
+    HOTEL = "Отель", "Отель"
+    HOSTEL = "Хостел", "Хостел"
+    VILLA = "Вилла", "Вилла"
+    APARTMENT = "Апартаменты", "Апартаменты"
+    GUEST_HOUSE = "Гостевой дом", "Гостевой дом"
+    INN = "Гостиница", "Гостиница"
+
+
 class FoodChoices(models.TextChoices):
     """
     Питание

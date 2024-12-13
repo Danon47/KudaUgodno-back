@@ -38,13 +38,11 @@ class HotelRoom(models.Model):
     smoking = models.BooleanField(
         default=False,
         verbose_name="Курение разрешено?",
-        help_text="Да/Нет",
     )
     # С животными можно?
     pet = models.BooleanField(
         default=False,
         verbose_name="С животными разрешено?",
-        help_text="Да/Нет",
     )
     # Площадь номера
     area = models.PositiveIntegerField(
@@ -60,9 +58,9 @@ class HotelRoom(models.Model):
     # Удобства в номере
     amenities = models.ManyToManyField(
         "AmenityRoom",
-        blank=True,
         verbose_name="Удобства в номере",
         help_text="Выберите удобства в номере",
+        blank=True,
     )
     # Фотографии номера
     image = models.ImageField(
@@ -75,11 +73,14 @@ class HotelRoom(models.Model):
     capacity = models.PositiveIntegerField(
         verbose_name="Количество проживающих людей",
         help_text="Введите количество проживающих людей",
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],
     )
     # Односпальная кровать
     single_bed = models.IntegerField(
         verbose_name="Односпальная кровать",
-        help_text="Выберите кровать",
         validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
@@ -89,7 +90,6 @@ class HotelRoom(models.Model):
     # Двуспальная кровать
     double_bed = models.IntegerField(
         verbose_name="Двуспальная кровать",
-        help_text="Выберите кровать",
         validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
@@ -129,7 +129,7 @@ class Hotel(models.Model):
     """
 
     # Название отеля
-    hotel_name = models.CharField(
+    name = models.CharField(
         max_length=100,
         verbose_name="Название отеля",
         help_text="Введите название отеля",
@@ -142,16 +142,14 @@ class Hotel(models.Model):
             MinValueValidator(0),
             MaxValueValidator(5),
         ],
-        default=0,
     )
     # Тип размещения
-    place = models.ForeignKey(
-        "PlaceHotel",
-        related_name="hotels",
-        on_delete=models.CASCADE,
+    place = models.CharField(
+        max_length=13,
+        choices=PlaceChoices.choices,
+        default=PlaceChoices.HOTEL,
         verbose_name="Тип размещения",
         help_text="Выберите тип размещения",
-        null=True,
     )
     # Страна отеля
     country = models.CharField(
@@ -183,8 +181,8 @@ class Hotel(models.Model):
     )
     # Расстояние до аэропорта
     distance_to_airport = models.PositiveIntegerField(
-        verbose_name="Расстояние до аэродрома",
-        help_text="Введите расстояние до аэродрома",
+        verbose_name="Расстояние до аэропорта",
+        help_text="Введите расстояние до аэропорта",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10000),
@@ -213,18 +211,16 @@ class Hotel(models.Model):
     # Удобства в номере
     amenities = models.ManyToManyField(
         "AmenityHotel",
-        blank=True,
         verbose_name="Удобства в отеле",
         help_text="Выберите удобства в отеле",
+        blank=True,
     )
     # Пользовательская оценка
-    user_rating = models.PositiveIntegerField(
+    user_rating = models.DecimalField(
         verbose_name="Пользовательская оценка",
         help_text="Введите оценку",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(10),
-        ],
+        max_digits=3,
+        decimal_places=1,
         **NULLABLE,
     )
     # Время заселения
@@ -245,12 +241,12 @@ class Hotel(models.Model):
     )
 
     def __str__(self):
-        return self.hotel_name
+        return self.name
 
     class Meta:
         verbose_name = "Отель"
         verbose_name_plural = "Отели"
-        ordering = ["hotel_name"]
+        ordering = ("name",)
 
 
 class AmenityRoom(models.Model):
@@ -289,26 +285,6 @@ class AmenityHotel(models.Model):
     class Meta:
         verbose_name = "Удобство в отеле"
         verbose_name_plural = "Удобства в отеле"
-
-
-class PlaceHotel(models.Model):
-    """
-    Тип размещения
-    """
-
-    name = models.CharField(
-        max_length=15,
-        verbose_name="Тип размещения",
-        help_text="Выберите тип размещения",
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Тип размещения"
-        verbose_name_plural = "Типы размещения"
-        ordering = ["name"]
 
 
 class CategoryHotelRoom(models.Model):
