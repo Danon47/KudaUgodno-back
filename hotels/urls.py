@@ -18,7 +18,6 @@ urlpatterns = [
     # Удобства в отелях
     path("amenity-hotels/", AmenityHotelListCreateView.as_view(), name="amenity-hotel-list-create",),
     path("amenity-hotels/<int:pk>/", AmenityHotelDetailView.as_view(), name="amenity-hotel-detail",),
-    # Типы размещения
-    path("places-hotels/", PlaceHotelListCreateView.as_view(), name="place-hotels-list-create",),
-    path("places-hotels/<int:pk>/", PlaceHotelDetailView.as_view(), name="place-hotels-detail",),
+    # Категория номера
+    path("hotel-rooms-categories/", CategoryHotelRoomListCreateView.as_view(), name="hotel-room-categories-list-create",),
 ]
