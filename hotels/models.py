@@ -13,7 +13,7 @@ class HotelRoom(models.Model):
     category = models.CharField(
         max_length=20,
         choices=CategoryChoices.choices,
-        default=CategoryChoices.Standard,
+        default=CategoryChoices.STANDARD,
         verbose_name="Категория номера",
         help_text="Выберите категорию номера",
     )
@@ -21,7 +21,7 @@ class HotelRoom(models.Model):
     food = models.CharField(
         max_length=30,
         choices=FoodChoices.choices,
-        default=FoodChoices.Only_breakfast,
+        default=FoodChoices.ONLY_BREAKFAST,
         verbose_name="Тип питания",
         help_text="Выберите тип питания",
     )
@@ -29,25 +29,21 @@ class HotelRoom(models.Model):
     type_of_holiday = models.CharField(
         max_length=15,
         choices=TypeOfHolidayChoices.choices,
-        default=TypeOfHolidayChoices.Beach,
+        default=TypeOfHolidayChoices.BEACH,
         verbose_name="Тип отдыха",
         help_text="Выберите тип отдыха",
     )
     # Курение
-    smoking = models.CharField(
-        max_length=20,
-        choices=SmokingChoices.choices,
-        default=SmokingChoices.Forbidden,
-        verbose_name="Курение",
-        help_text="Выберите курение",
+    smoking = models.BooleanField(
+        verbose_name="Курение разрешено?",
+        help_text="Да/Нет",
+        default=False
     )
     # С животными можно?
-    pet = models.CharField(
-        max_length=20,
-        choices=PetChoices.choices,
-        default=PetChoices.Authorized,
-        verbose_name="С животными можно?",
-        help_text="Выберите с животными можно?",
+    pet = models.BooleanField(
+        default=False,
+        verbose_name="С животными разрешено?",
+        help_text="Да/Нет",
     )
     # Площадь номера
     area = models.PositiveIntegerField(
@@ -79,7 +75,7 @@ class HotelRoom(models.Model):
     bed = models.CharField(
         max_length=35,
         choices=BedChoices.choices,
-        default=BedChoices.Single_1,
+        default=BedChoices.SINGLE_1,
         verbose_name="Кровать",
         help_text="Выберите кровать",
     )
@@ -125,7 +121,7 @@ class Hotel(models.Model):
     category = models.CharField(
         max_length=20,
         choices=StarsChoices.choices,
-        default=StarsChoices.Five_stars,
+        default=StarsChoices.FIVE_STARS,
         verbose_name="Категория отеля",
         help_text="Выберите категорию отеля",
     )
