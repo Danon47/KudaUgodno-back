@@ -218,10 +218,13 @@ class Hotel(models.Model):
         help_text="Выберите удобства в отеле",
     )
     # Пользовательская оценка
-    user_rating = models.CharField(
-        max_length=255,
+    user_rating = models.PositiveIntegerField(
         verbose_name="Пользовательская оценка",
         help_text="Введите оценку",
+        validators= [
+            MinValueValidator(0),
+            MaxValueValidator(10),
+        ],
         **NULLABLE,
     )
     # Время заселения
