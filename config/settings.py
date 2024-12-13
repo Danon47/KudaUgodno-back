@@ -99,6 +99,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# Ограничение на размер загружаемого файла в 10 мегабайт
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
@@ -114,3 +117,4 @@ SWAGGER_SETTINGS = {
     "LANGUAGE_CODE": "ru",
     "TAGS_SORTER": "alpha",
 }
+
