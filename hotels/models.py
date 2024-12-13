@@ -259,10 +259,16 @@ class AmenityRoom(models.Model):
         verbose_name_plural = "Удобства в номерах"
 
 
-class AmenityHotel(AmenityRoom):
+class AmenityHotel(models.Model):
     """
     Удобства в отеле
     """
+
+    name = models.CharField(
+        max_length=50,
+        verbose_name="Удобство",
+        help_text="Введите удобство",
+    )
 
     def __str__(self):
         return self.name
