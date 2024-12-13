@@ -5,9 +5,8 @@ from hotels.models import Hotel, HotelRoom, AmenityHotel, AmenityRoom, PlaceHote
 
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "city", "address")
-    list_display_links = ("id", "name")
-    # search_fields = ("name", "city", "address")
+    list_display = ("id", "hotel_name", "city", "address")
+    list_display_links = ("id", "hotel_name")
 
 
 @admin.register(HotelRoom)
@@ -21,7 +20,6 @@ class HotelRoomAdmin(admin.ModelAdmin):
         "end_date",
     )
     list_display_links = ("id", "category")
-    # search_fields = ("category", "type_of_holiday")
 
 
 @admin.register(AmenityHotel)

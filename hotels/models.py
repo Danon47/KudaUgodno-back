@@ -129,7 +129,7 @@ class Hotel(models.Model):
     """
 
     # Название отеля
-    name = models.CharField(
+    hotel_name = models.CharField(
         max_length=100,
         verbose_name="Название отеля",
         help_text="Введите название отеля",
@@ -245,12 +245,12 @@ class Hotel(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.hotel_name
 
     class Meta:
         verbose_name = "Отель"
         verbose_name_plural = "Отели"
-        ordering = ["name"]
+        ordering = ["hotel_name"]
 
 
 class AmenityRoom(models.Model):
