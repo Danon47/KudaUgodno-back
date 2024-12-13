@@ -175,11 +175,21 @@ class Hotel(models.Model):
     distance_to_sea = models.PositiveIntegerField(
         verbose_name="Расстояние до моря",
         help_text="Введите расстояние до моря",
+        validators= [
+            MinValueValidator(1),
+            MaxValueValidator(10000),
+        ],
+        **NULLABLE,
     )
     # Расстояние до аэропорта
     distance_to_airport = models.PositiveIntegerField(
         verbose_name="Расстояние до аэродрома",
         help_text="Введите расстояние до аэродрома",
+        validators= [
+            MinValueValidator(1),
+            MaxValueValidator(10000),
+        ],
+        **NULLABLE,
     )
     # Описание отеля
     description = models.TextField(
