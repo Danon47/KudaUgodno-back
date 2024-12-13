@@ -2,33 +2,15 @@ from datetime import time
 from django.db import models
 
 
-class PetChoices(models.TextChoices):
-    """
-    Разрешено ли с животными в данном отеле
-    """
-
-    Authorized = "Разрешено", "Разрешено"
-    Forbidden = "Запрещено", "Запрещено"
-
-
-class SmokingChoices(models.TextChoices):
-    """
-    Разрешено ли курить в данным отеле
-    """
-
-    Authorized = "Разрешено", "Разрешено"
-    Forbidden = "Запрещено", "Запрещено"
-
-
 class CategoryChoices(models.TextChoices):
     """
     Категория номера
     """
 
-    Standard = "Стандарт", "Стандарт"
-    Comfort = "Комфорт", "Комфорт"
-    Family = "Семейный", "Семейный"
-    Lux = "Люкс", "Люкс"
+    STANDARD = "Стандарт", "Стандарт"
+    COMFORT = "Комфорт", "Комфорт"
+    FAMILY = "Семейный", "Семейный"
+    LUX = "Люкс", "Люкс"
 
 
 class FoodChoices(models.TextChoices):
@@ -36,12 +18,12 @@ class FoodChoices(models.TextChoices):
     Питание
     """
 
-    No_meals = "Без питания", "Без питания"
-    Ultra_all_inclusive = "Ultra all inclusive", "Ultra all inclusive"
-    All_inclusive = "All inclusive", "All inclusive"
-    Full_board = "Полный пансион", "Полный пансион"
-    Half_board = "Полупансион", "Полупансион"
-    Only_breakfast = "Только завтраки", "Только завтраки"
+    NO_MEALS = "Без питания", "Без питания"
+    ULTRA_ALL_INCLUSIVE = "Ultra all inclusive", "Ultra all inclusive"
+    ALL_INCLUSIVE = "All inclusive", "All inclusive"
+    FULL_BOARD = "Полный пансион", "Полный пансион"
+    HALF_BOARD = "Полупансион", "Полупансион"
+    ONLY_BREAKFAST = "Только завтраки", "Только завтраки"
 
 
 class BedChoices(models.TextChoices):
@@ -49,19 +31,19 @@ class BedChoices(models.TextChoices):
     Тип кровати
     """
 
-    Single_1 = "1 Односпальная", "1 Односпальная"
-    Double_1 = "1 Двуспальная", "1 Двуспальная"
-    Singles_2 = "2 Односпальные", "2 Односпальные"
-    Doubles_2 = "2 Двуспальные", "2 Двуспальные"
-    Single_and_Double_1 = (
+    SINGLE_1 = "1 Односпальная", "1 Односпальная"
+    DOUBLE_1 = "1 Двуспальная", "1 Двуспальная"
+    SINGLES_2 = "2 Односпальные", "2 Односпальные"
+    DOUBLES_2 = "2 Двуспальные", "2 Двуспальные"
+    SINGLE_AND_DOUBLE_1 = (
         "1 Односпальная и 1 Двуспальная",
         "1 Односпальная и 1 Двуспальная",
     )
-    Singles_and_Double_1 = (
+    SINGLES_AND_DOUBLE_1 = (
         "2 Односпальные и 1 Двуспальная",
         "2 Односпальные и 1 Двуспальная",
     )
-    Singles_and_Doubles_2 = (
+    SINGLES_AND_DOUBLES_2 = (
         "2 Односпальные и 2 Двуспальные",
         "2 Односпальные и 2 Двуспальные",
     )
@@ -72,11 +54,11 @@ class StarsChoices(models.TextChoices):
     Количество звезд
     """
 
-    One_star = "1 Звезда", "1 Звезда"
-    Two_stars = "2 Звезды", "2 Звезды"
-    Three_stars = "3 Звезды", "3 Звезды"
-    Four_stars = "4 Звезды", "4 Звезды"
-    Five_stars = "5 Звезд", "5 Звезд"
+    ONE_STAR = "1 Звезда", "1 Звезда"
+    TWO_STARS = "2 Звезды", "2 Звезды"
+    THREE_STARS = "3 Звезды", "3 Звезды"
+    FOUR_STARS = "4 Звезды", "4 Звезды"
+    FIVE_STARS = "5 Звезд", "5 Звезд"
 
 
 class TypeOfHolidayChoices(models.TextChoices):
@@ -84,10 +66,10 @@ class TypeOfHolidayChoices(models.TextChoices):
     Тип отдыха
     """
 
-    Beach = "Пляжный", "Пляжный"
-    City = "Городской", "Городской"
-    With_children = "С детьми", "С детьми"
-    With_animals = "С животными", "С животными"
+    BEACH = "Пляжный", "Пляжный"
+    CITY = "Городской", "Городской"
+    WITH_CHILDREN = "С детьми", "С детьми"
+    WITH_ANIMALS = "С животными", "С животными"
 
 
 class TimeChoices:
