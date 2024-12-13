@@ -11,10 +11,10 @@ class HotelRoom(models.Model):
     """
 
     # Категория номера
-    category = models.CharField(
-        max_length=20,
-        choices=CategoryChoices.choices,
-        default=CategoryChoices.STANDARD,
+    category = models.ForeignKey(
+        "CategoryHotelRoom",
+        on_delete=models.CASCADE,
+        related_name="rooms",
         verbose_name="Категория номера",
         help_text="Выберите категорию номера",
     )
@@ -50,7 +50,7 @@ class HotelRoom(models.Model):
     area = models.PositiveIntegerField(
         verbose_name="Площадь номера",
         help_text="Введите площадь номера",
-        validators= [
+        validators=[
             MinValueValidator(1),
             MaxValueValidator(1000),
         ],
@@ -80,7 +80,7 @@ class HotelRoom(models.Model):
     single_bed = models.IntegerField(
         verbose_name="Односпальная кровать",
         help_text="Выберите кровать",
-        validators= [
+        validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
         ],
@@ -90,7 +90,7 @@ class HotelRoom(models.Model):
     double_bed = models.IntegerField(
         verbose_name="Двуспальная кровать",
         help_text="Выберите кровать",
-        validators= [
+        validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
         ],
@@ -138,7 +138,7 @@ class Hotel(models.Model):
     star_category = models.IntegerField(
         verbose_name="Категория отеля",
         help_text="Выберите категорию отеля (от 0 до 5)",
-        validators= [
+        validators=[
             MinValueValidator(0),
             MaxValueValidator(5),
         ],
@@ -175,7 +175,7 @@ class Hotel(models.Model):
     distance_to_sea = models.PositiveIntegerField(
         verbose_name="Расстояние до моря",
         help_text="Введите расстояние до моря",
-        validators= [
+        validators=[
             MinValueValidator(1),
             MaxValueValidator(10000),
         ],
@@ -185,7 +185,7 @@ class Hotel(models.Model):
     distance_to_airport = models.PositiveIntegerField(
         verbose_name="Расстояние до аэродрома",
         help_text="Введите расстояние до аэродрома",
-        validators= [
+        validators=[
             MinValueValidator(1),
             MaxValueValidator(10000),
         ],
@@ -221,7 +221,7 @@ class Hotel(models.Model):
     user_rating = models.PositiveIntegerField(
         verbose_name="Пользовательская оценка",
         help_text="Введите оценку",
-        validators= [
+        validators=[
             MinValueValidator(0),
             MaxValueValidator(10),
         ],
@@ -309,3 +309,22 @@ class PlaceHotel(models.Model):
         verbose_name = "Тип размещения"
         verbose_name_plural = "Типы размещения"
         ordering = ["name"]
+
+
+class CategoryHotelRoom(models.Model):
+    """
+    Категория номера
+    """
+
+    name = models.CharField(
+        max_length=20,
+        verbose_name="Категория номера",
+        help_text="Выберите категорию номера",
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Категория номера"
+        verbose_name_plural = "Категории номеров"

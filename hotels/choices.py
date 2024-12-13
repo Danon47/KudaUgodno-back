@@ -2,17 +2,6 @@ from datetime import time
 from django.db import models
 
 
-class CategoryChoices(models.TextChoices):
-    """
-    Категория номера
-    """
-
-    STANDARD = "Стандарт", "Стандарт"
-    COMFORT = "Комфорт", "Комфорт"
-    FAMILY = "Семейный", "Семейный"
-    LUX = "Люкс", "Люкс"
-
-
 class FoodChoices(models.TextChoices):
     """
     Питание
