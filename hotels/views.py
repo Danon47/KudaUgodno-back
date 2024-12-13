@@ -512,12 +512,12 @@ class PlaceHotelListCreateView(generics.ListCreateAPIView):
     pagination_class = MyPagination
 
     @swagger_auto_schema(
-        operation_description="Получение списка всех типов отдыха",
-        operation_summary="Список типов отдыха",
-        tags=["2.2 Типы отдыха"],
+        operation_description="Получение списка всех типов размещения",
+        operation_summary="Список типов размещения",
+        tags=["2.2 Типы размещения"],
         responses={
             200: openapi.Response(
-                description="Успешное получение списка типов отдыха",
+                description="Успешное получение списка типов размещения",
                 schema=PlaceHotelSerializer(many=False),
             ),
             400: "Ошибка запроса",
@@ -527,13 +527,13 @@ class PlaceHotelListCreateView(generics.ListCreateAPIView):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="Создание нового типа отдыха",
-        operation_summary="Добавление типа отдыха",
+        operation_description="Создание нового типа размещения",
+        operation_summary="Добавление типа размещения",
         request_body=PlaceHotelSerializer,
-        tags=["2.2 Типы отдыха"],
+        tags=["2.2 Типы размещения"],
         responses={
             201: openapi.Response(
-                description="Тип отдыха успешно создан",
+                description="Тип размещения успешно создан",
                 schema=PlaceHotelSerializer(),
             ),
             400: "Ошибка валидации",
@@ -549,76 +549,76 @@ class PlaceHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     pagination_class = MyPagination
 
     @swagger_auto_schema(
-        operation_summary="Получение детальной информации о типе отдыха",
-        operation_description="Возвращает полную информацию о конкретном отдыха по его идентификатору",
-        tags=["2.2 Типы отдыха"],
+        operation_summary="Получение детальной информации о типе размещения",
+        operation_description="Возвращает полную информацию о конкретном типе размещения по его идентификатору",
+        tags=["2.2 Типы размещения"],
         manual_parameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор типа отдыха в базе данных",
+                description="Уникальный идентификатор типа размещения в базе данных",
                 required=True,
             )
         ],
         responses={
             200: openapi.Response(
-                description="Успешное получение информации о типе отдыха",
+                description="Успешное получение информации о типе размещения",
                 schema=PlaceHotelSerializer(),
             ),
-            404: "Тип отдыха не найдено",
+            404: "Тип размещения не найдено",
         },
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Полное обновление информации типа отдыха",
-        operation_description="Обновляет все поля типа отдыха целиком",
-        tags=["2.2 Типы отдыха"],
+        operation_summary="Полное обновление информации типа размещения",
+        operation_description="Обновляет все поля типа размещения целиком",
+        tags=["2.2 Типы размещения"],
         request_body=PlaceHotelSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор типа отдыха в базе данных",
+                description="Уникальный идентификатор типа размещения в базе данных",
                 required=True,
             )
         ],
         responses={
             200: openapi.Response(
-                description="Тип отдыха успешно обновлен",
+                description="Тип размещения успешно обновлен",
                 schema=PlaceHotelSerializer(),
             ),
             400: "Ошибка валидации",
-            404: "Тип отдыха не найден",
+            404: "Тип размещения не найден",
         },
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Частичное обновление информации типа отдыха",
-        operation_description="Обновляет указанные поля типа отдыха",
-        tags=["2.2 Типы отдыха"],
+        operation_summary="Частичное обновление информации типа размещения",
+        operation_description="Обновляет указанные поля типа размещения",
+        tags=["2.2 Типы размещения"],
         request_body=PlaceHotelSerializer,
         manual_parameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор типа отдыха в базе данных",
+                description="Уникальный идентификатор типа размещения в базе данных",
                 required=True,
             )
         ],
         responses={
             200: openapi.Response(
-                description="Тип отдыха успешно обновлен",
+                description="Тип размещения успешно обновлен",
                 schema=PlaceHotelSerializer(),
             ),
             400: "Ошибка валидации",
-            404: "Тип отдыха не найден",
+            404: "Тип размещения не найден",
         },
     )
     def patch(self, request, *args, **kwargs):
@@ -626,20 +626,20 @@ class PlaceHotelDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_summary="Удаление типа отдыха",
-        operation_description="Полное удаление типа отдыха по его идентификатору",
-        tags=["2.2 Типы отдыха"],
+        operation_description="Полное удаление типа размещения по его идентификатору",
+        tags=["2.2 Типы размещения"],
         manual_parameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор типа отдыха в базе данных",
+                description="Уникальный идентификатор типа размещения в базе данных",
                 required=True,
             )
         ],
         responses={
-            204: "Тип отдыха успешно удален",
-            404: "Тип отдыха не найден",
+            204: "Тип размещения успешно удален",
+            404: "Тип размещения не найден",
         },
     )
     def delete(self, request, *args, **kwargs):
