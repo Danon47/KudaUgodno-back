@@ -35,7 +35,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки просмотра списка рейсов
         """
-        url = reverse("flights:flights-list")
+        url = reverse("flights:flight-list-create")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -43,7 +43,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки создания рейсов
         """
-        url = reverse("flights:flight-create")
+        url = reverse("flights:flight-list-create")
         data = {
             "flight_number": "VK-1245",
             "airline": "S7",
@@ -65,7 +65,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки изменения рейса
         """
-        url = reverse("flights:flight-update", args=(self.flight.pk,))
+        url = reverse("flights:flight-detail", args=(self.flight.pk,))
         data = {"airline": "Победа"}
         response = self.client.patch(url, data)
 
@@ -76,7 +76,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки удаления рейса
         """
-        url = reverse('flights:flight-delete', args=(self.flight.pk,))
+        url = reverse('flights:flight-detail', args=(self.flight.pk,))
         response = self.client.delete(url)
 
         self.assertEqual(

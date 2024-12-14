@@ -1,36 +1,17 @@
 from rest_framework.generics import (
-    CreateAPIView,
-    ListAPIView,
-    RetrieveAPIView,
-    UpdateAPIView,
-    DestroyAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
 
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 
 
-class FlightCreateAPIView(CreateAPIView):
+class FlightListCreateView(ListCreateAPIView):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
 
 
-class FlightListAPIView(ListAPIView):
+class FlightDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
-
-
-class FlightRetrieveAPIView(RetrieveAPIView):
-    queryset = Flight.objects.all()
-    serializer_class = FlightSerializer
-
-
-class FlightUpdateAPIView(UpdateAPIView):
-    queryset = Flight.objects.all()
-    serializer_class = FlightSerializer
-
-
-class FlightDestroyAPIView(DestroyAPIView):
-    queryset = Flight.objects.all()
-    serializer_class = FlightSerializer
-
