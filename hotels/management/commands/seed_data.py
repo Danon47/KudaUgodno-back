@@ -59,10 +59,14 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Данные успешно заполнены"))
 
-        # Создаем администратора
-        User.objects.create_superuser(
-            username=os.getenv("ADMIN_USERNAME"),
-            password=os.getenv("ADMIN_PASSWORD"),
-        )
+        # Проверяем, существует ли уже администратор с указанным именем пользователя
+        if not User.objects.filter(username=os.getenv("ADMIN_USERNAME")).exists():
+            # Создаем администратора
+            User.objects.create_superuser(
+                username=os.getenv("ADMIN_USERNAME"),
+                password=os.getenv("ADMIN_PASSWORD"),
+            )
 
-        self.stdout.write(self.style.SUCCESS("Администратор успешно создан"))
+            self.stdout.write(self.style.SUCCESS(f"Администратор {os.getenv('ADMIN_USERNAME')} успешно создан"))
+        else:
+            self.stdout.write(self.style.WARNING(f"Администратор с именем пользователя {os.getenv('ADMIN_USERNAME')} уже существует"))
