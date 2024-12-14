@@ -7,8 +7,8 @@ class Flight(models.Model):
     """
 
     # Номер рейса
-    flight_number = models.PositiveIntegerField(
-        verbose_name="Номер рейса", help_text="Введите номер рейса"
+    flight_number = models.CharField(
+        max_length=10, verbose_name="Номер рейса", help_text="Введите номер рейса"
     )
     # Авиакомпания
     airline = models.CharField(
