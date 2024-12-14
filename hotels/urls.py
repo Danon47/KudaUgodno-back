@@ -7,15 +7,15 @@ app_name = HotelsConfig.name
 
 urlpatterns = [
     # Номера отеля
-    path("hotel-rooms/", HotelRoomListCreateView.as_view(), name="hotel-room-list-create"),
-    path("hotel-rooms/<int:pk>/", HotelRoomDetailView.as_view(), name="hotel-room-detail"),
+    path("rooms/", RoomListCreateView.as_view(), name="room_list_create"),
+    path("rooms/<int:pk>/", RoomDetailView.as_view(), name="room_detail"),
     # Удобства в номерах
-    path("hotel-rooms/amenities/", AmenityRoomListCreateView.as_view(), name="amenity-room-list-create"),
+    path("rooms/amenities/", AmenityRoomCreateAPIView.as_view(), name="amenity_room_create"),
     # Категория номера
-    path("hotel-rooms/categories/", CategoryHotelRoomListCreateView.as_view(),name="hotel-room-categories-list-create"),
+    path("rooms/categories/", CategoryRoomCreateAPIView.as_view(), name="room_categories_create"),
     # Отели
-    path("", HotelListCreateView.as_view(), name="hotel-list-create"),
-    path("<int:pk>/", HotelDetailView.as_view(), name="hotel-detail"),
+    path("", HotelListCreateView.as_view(), name="hotel_list_create"),
+    path("<int:pk>/", HotelDetailView.as_view(), name="hotel_detail"),
     # Удобства в отелях
-    path("amenities/", AmenityHotelListCreateView.as_view(), name="amenity-hotel-list-create"),
+    path("amenities/", AmenityHotelCreateAPIView.as_view(), name="amenity_hotel_create"),
 ]

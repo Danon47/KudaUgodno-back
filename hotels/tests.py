@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Hotel, HotelRoom, AmenityRoom, AmenityHotel, CategoryHotelRoom
+from .models import Hotel, Room, AmenityRoom, AmenityHotel, CategoryRoom
 from .choices import *
 from datetime import date, timedelta
 
@@ -10,10 +10,10 @@ from datetime import date, timedelta
 class ModelTestCase(TestCase):
     def setUp(self):
         self.amenity_room = AmenityRoom.objects.create(name="Кондиционер")
-        self.category = CategoryHotelRoom.objects.create(name="Стандарт")
+        self.category = CategoryRoom.objects.create(name="Стандарт")
         self.amenity_hotel = AmenityHotel.objects.create(name="Бассейн")
 
-        self.hotel_room = HotelRoom.objects.create(
+        self.hotel_room = Room.objects.create(
             category=self.category,
             food=FoodChoices.ONLY_BREAKFAST,
             type_of_holiday=TypeOfHolidayChoices.BEACH,
@@ -63,7 +63,7 @@ class ModelTestCase(TestCase):
         self.assertEqual(self.hotel.check_out_time, time(11, 0))
 
     def test_hotel_room_creation(self):
-        self.assertTrue(isinstance(self.hotel_room, HotelRoom))
+        self.assertTrue(isinstance(self.hotel_room, Room))
         self.assertEqual(self.hotel_room.amenities.first().name, "Кондиционер")
         self.assertEqual(self.hotel_room.category.name, "Стандарт")
         self.assertEqual(self.hotel_room.food, "Только завтраки")
@@ -83,12 +83,12 @@ class APITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.amenity_room = AmenityRoom.objects.create(name="Кондиционер")
-        self.category = CategoryHotelRoom.objects.create(name="Стандарт")
+        self.category = CategoryRoom.objects.create(name="Стандарт")
         self.amenity_hotel = AmenityHotel.objects.create(name="Бассейн")
 
     def test_hotel_room_creation(self):
         """Тест проверки создания номера отеля"""
-        url = reverse("hotels:hotel-room-list-create")
+        url = reverse("hotels:room_list_create")
         data = {
             "category": self.category.id,
             "food": FoodChoices.ONLY_BREAKFAST,
@@ -109,14 +109,14 @@ class APITestCase(TestCase):
 
     def test_hotel_room_list_view(self):
         """Тест проверки получения списка номеров отеля"""
-        url = reverse("hotels:hotel-room-list-create")
+        url = reverse("hotels:room_list_create")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("results" in response.data)
 
     def test_hotel_room_detail_view(self):
         """Тест проверки получения номера отеля по id"""
-        hotel_room = HotelRoom.objects.create(
+        hotel_room = Room.objects.create(
             category=self.category,
             food=FoodChoices.ONLY_BREAKFAST,
             type_of_holiday=TypeOfHolidayChoices.BEACH,
@@ -131,13 +131,13 @@ class APITestCase(TestCase):
             end_date=date.today() + timedelta(days=7),
         )
         hotel_room.amenities.add(self.amenity_room)
-        url = reverse("hotels:hotel-room-detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_hotel_room_update_view(self):
         """Тест проверки обновления номера отеля"""
-        hotel_room = HotelRoom.objects.create(
+        hotel_room = Room.objects.create(
             category=self.category,
             food=FoodChoices.ONLY_BREAKFAST,
             type_of_holiday=TypeOfHolidayChoices.BEACH,
@@ -152,7 +152,7 @@ class APITestCase(TestCase):
             end_date=date.today() + timedelta(days=7),
         )
         hotel_room.amenities.add(self.amenity_room)
-        url = reverse("hotels:hotel-room-detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
         data = {
             "category": self.category.id,
             "food": FoodChoices.ONLY_BREAKFAST,
@@ -173,7 +173,7 @@ class APITestCase(TestCase):
 
     def test_hotel_room_delete_view(self):
         """Тест проверки удаления номера отеля"""
-        hotel_room = HotelRoom.objects.create(
+        hotel_room = Room.objects.create(
             category=self.category,
             food=FoodChoices.ONLY_BREAKFAST,
             type_of_holiday=TypeOfHolidayChoices.BEACH,
@@ -187,13 +187,13 @@ class APITestCase(TestCase):
             start_date=date.today(),
             end_date=date.today() + timedelta(days=7),
         )
-        url = reverse("hotels:hotel-room-detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_hotel_creations(self):
         """Тест проверки создания отеля"""
-        url = reverse("hotels:hotel-list-create")
+        url = reverse("hotels:hotel_list_create")
         data = {
             "name": "Тестовый Отель",
             "star_category": 3,
@@ -214,7 +214,7 @@ class APITestCase(TestCase):
 
     def test_hotel_list_view(self):
         """Тест проверки получения списка отелей"""
-        url = reverse("hotels:hotel-list-create")
+        url = reverse("hotels:hotel_list_create")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("results" in response.data)
@@ -236,7 +236,7 @@ class APITestCase(TestCase):
             check_out_time=time(11, 0),
         )
         hotel.amenities.add(self.amenity_hotel)
-        url = reverse("hotels:hotel-detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "Тестовый Отель")
@@ -257,7 +257,7 @@ class APITestCase(TestCase):
             check_in_time=time(15, 0),
             check_out_time=time(11, 0),
         )
-        url = reverse("hotels:hotel-detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
         data = {
             "name": "Тестовый Отель",
             "star_category": 3,
@@ -292,30 +292,18 @@ class APITestCase(TestCase):
             check_in_time=time(15, 0),
             check_out_time=time(11, 0),
         )
-        url = reverse("hotels:hotel-detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_amenity_room_creation(self):
-        url = reverse("hotels:amenity-room-list-create")
+        url = reverse("hotels:amenity_room_create")
         data = {"name": "Фен"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_amenity_room_list_view(self):
-        url = reverse("hotels:amenity-room-list-create")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue("results" in response.data)
-
     def test_amenity_hotel_creation(self):
-        url = reverse("hotels:amenity-hotel-list-create")
+        url = reverse("hotels:amenity_hotel_create")
         data = {"name": "Бассейн"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_amenity_hotel_list_view(self):
-        url = reverse("hotels:amenity-hotel-list-create")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue("results" in response.data)
