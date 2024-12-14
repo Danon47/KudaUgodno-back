@@ -2,10 +2,10 @@ from django.contrib import admin
 
 from hotels.models import (
     Hotel,
-    HotelRoom,
+    Room,
     AmenityHotel,
     AmenityRoom,
-    CategoryHotelRoom,
+    CategoryRoom,
 )
 
 
@@ -15,7 +15,7 @@ class HotelAdmin(admin.ModelAdmin):
     list_display_links = ("id", "name")
 
 
-@admin.register(HotelRoom)
+@admin.register(Room)
 class HotelRoomAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -38,6 +38,6 @@ class AmenityRoomAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
-@admin.register(CategoryHotelRoom)
+@admin.register(CategoryRoom)
 class CategoryHotelRoomAdmin(admin.ModelAdmin):
     list_display = ("id", "name")

@@ -1,58 +1,46 @@
 from rest_framework import serializers
 from .models import (
     Hotel,
-    HotelRoom,
+    Room,
     AmenityRoom,
     AmenityHotel,
-    CategoryHotelRoom,
+    CategoryRoom,
 )
 
 
 class AmenityRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = AmenityRoom
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
 
 class AmenityHotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = AmenityHotel
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
 
-class CategoryHotelRoomSerializer(serializers.ModelSerializer):
+class CategoryRoomSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CategoryHotelRoom
-        fields = ["id", "name"]
+        model = CategoryRoom
+        fields = ("id", "name",)
 
 
-class HotelRoomSerializer(serializers.ModelSerializer):
-    amenities = serializers.PrimaryKeyRelatedField(
-        queryset=AmenityRoom.objects.all(), many=True, write_only=True
-    )
-    amenities_room = AmenityRoomSerializer(
-        source="amenities", many=True, read_only=True
-    )
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=CategoryHotelRoom.objects.all(), many=False, write_only=True
-    )
-    category_hotel = CategoryHotelRoomSerializer(
-        source="category", many=False, read_only=True
-    )
+class RoomSerializer(serializers.ModelSerializer):
+    amenities = serializers.PrimaryKeyRelatedField(queryset=AmenityRoom.objects.all(), many=True, write_only=True)
+    amenities_room = AmenityRoomSerializer(source="amenities", many=True, read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=CategoryRoom.objects.all(), many=False, write_only=True)
+    category_hotel = CategoryRoomSerializer(source="category", many=False, read_only=True)
 
     class Meta:
-        model = HotelRoom
+        model = Room
         fields = "__all__"
 
 
 class HotelSerializer(serializers.ModelSerializer):
-    amenities = serializers.PrimaryKeyRelatedField(
-        queryset=AmenityHotel.objects.all(), many=True, write_only=True
-    )
-    amenities_hotel = AmenityHotelSerializer(
-        source="amenities", many=True, read_only=True
-    )
-    hotel_room = HotelRoomSerializer(many=True, read_only=True)
+    amenities = serializers.PrimaryKeyRelatedField(queryset=AmenityHotel.objects.all(), many=True, write_only=True)
+    amenities_hotel = AmenityHotelSerializer(source="amenities", many=True, read_only=True)
+    hotel_room = RoomSerializer(many=True, read_only=True)
     user_rating = serializers.FloatField(read_only=True)
 
     class Meta:

@@ -1,18 +1,21 @@
+from datetime import time
+
 from django.core.validators import MinValueValidator, MaxValueValidator
-from .choices import *
+from .choices import FoodChoices, TypeOfHolidayChoices, PlaceChoices, TimeChoices
+from django.db import models
 
 
 NULLABLE = {"blank": True, "null": True}
 
 
-class HotelRoom(models.Model):
+class Room(models.Model):
     """
     Класс номера отеля
     """
 
     # Категория номера
     category = models.ForeignKey(
-        "CategoryHotelRoom",
+        "CategoryRoom",
         on_delete=models.CASCADE,
         related_name="rooms",
         verbose_name="Категория номера",
@@ -120,7 +123,7 @@ class HotelRoom(models.Model):
     class Meta:
         verbose_name = "Номер"
         verbose_name_plural = "Номера"
-        ordering = ["category"]
+        ordering = ("category",)
 
 
 class Hotel(models.Model):
@@ -203,8 +206,7 @@ class Hotel(models.Model):
     )
     # Номера в отеле
     hotel_room = models.ManyToManyField(
-        HotelRoom,
-        related_name="rooms",
+        Room,
         verbose_name="Номера в отеле",
         blank=True,
     )
@@ -287,7 +289,7 @@ class AmenityHotel(models.Model):
         verbose_name_plural = "Удобства в отеле"
 
 
-class CategoryHotelRoom(models.Model):
+class CategoryRoom(models.Model):
     """
     Категория номера
     """
