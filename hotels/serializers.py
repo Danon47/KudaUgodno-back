@@ -45,8 +45,6 @@ class HotelRoomSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-
-
 class HotelSerializer(serializers.ModelSerializer):
     amenities = serializers.PrimaryKeyRelatedField(
         queryset=AmenityHotel.objects.all(), many=True, write_only=True
@@ -60,4 +58,3 @@ class HotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
         fields = "__all__"
-
