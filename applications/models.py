@@ -17,22 +17,11 @@ class Application(models.Model):
     Модель Заявки
     """
 
-    start_date = models.DateField(
-        verbose_name="Дата начала тура",
-        help_text="Введите дату начала тура"
-    )
-    end_date = models.DateField(
-        verbose_name="Дата окончания тура",
-    )
-    hotel = models.ForeignKey(
-        "hotels.Hotel",
-        on_delete=models.SET_NULL,
-        verbose_name="Отель",
-        null=True
-    )
-    airline = models.CharField(
-        max_length=50,
-        verbose_name="Авиакомпания",
+    Tour = models.ForeignKey(
+        "tours.Tour",
+        on_delete=models.PROTECT,
+        verbose_name="Тур",
+        help_text="Выберите тур",
     )
     email = models.EmailField(
         verbose_name="Email",
