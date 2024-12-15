@@ -10,32 +10,37 @@ class Guest(models.Model):
     """
     Модель Гостя
     """
-
+    # Имя
     firstname = models.CharField(
         max_length=50,
         verbose_name="Имя",
         help_text="Введите имя"
     )
+    # Фамилия
     lastname = models.CharField(
         max_length=50,
         verbose_name="Фамилия",
         help_text="Введите фамилию"
     )
+    # Отчество
     surname = models.CharField(
         max_length=50,
         verbose_name="Отчество",
         help_text="Введите отчество",
         **NULLABLE
     )
+    # Дата рождения
     date_born = models.DateField(
         verbose_name="Дата рождения",
         help_text="Введите дату рождения",
     )
+    # Гражданство
     citizenship = models.CharField(
         max_length=100,
         verbose_name="Гражданство",
         help_text="Введите гражданство",
     )
+    # Серия/номер российского паспорта
     russian_passport_no = models.CharField(
         unique=True,
         verbose_name="Серия/номер российского паспорта",
@@ -48,6 +53,7 @@ class Guest(models.Model):
             )
         ]
     )
+    # Серия/номер иностранного паспорта
     international_passport_no = models.CharField(
         unique=True,
         verbose_name="Серия/номер иностранного паспорта",
@@ -60,6 +66,7 @@ class Guest(models.Model):
             )
         ]
     )
+    # Срок действия иностранного паспорта
     validity_international_passport = models.DateField(
         verbose_name="Срок действия иностранного паспорта",
         help_text="Введите срок действия иностранного паспорта",
@@ -79,34 +86,39 @@ class Application(models.Model):
     """
     Модель Заявки
     """
-
+    # Тур
     tour = models.ForeignKey(
         "tours.Tour",
         on_delete=models.PROTECT,
         verbose_name="Тур",
         help_text="Выберите тур",
     )
+    # Email пользователя
     email = models.EmailField(
         verbose_name="Email",
         help_text="Введите email"
     )
+    # Номер телефона
     phone_number = PhoneNumberField(
         region="RU",
         verbose_name="Телефон",
         help_text="Введите номер телефона"
     )
+    # Количество номеров
     quantity_rooms = models.ManyToManyField(
         "hotels.Room",
         verbose_name="Количество номеров",
         blank=True,
         # related_name="room_applications"
     )
+    # Количество гостей
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
         blank=True,
         # related_name="guest_applications"
     )
+    #Оформление визы
     visa = models.PositiveIntegerField(
         default=0,
         verbose_name="Оформление визы",
@@ -115,19 +127,23 @@ class Application(models.Model):
             MaxValueValidator(10)
         ]
     )
+    # Страховка жизни
     med_insurance = models.BooleanField(
         default=False,
         verbose_name="Медицинская страховка"
     )
+    # Страховка от невыезда
     cancellation_insurance = models.BooleanField(
         default=False,
         verbose_name="Страховка невыезда"
     )
+    # Пожелания
     wishes = models.TextField(
         verbose_name="Пожелания",
         help_text="Введите пожелания",
         **NULLABLE
     )
+    # Статус заявки
     status = models.CharField(
         choices= StatusChoices.choices,
         default=StatusChoices.AWAIT_CONFIRM,
