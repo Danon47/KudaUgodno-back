@@ -99,13 +99,13 @@ class Application(models.Model):
         "hotels.Room",
         verbose_name="Количество номеров",
         blank=True,
-        related_name="room_applications"
+        # related_name="room_applications"
     )
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
         blank=True,
-        related_name="guest_applications"
+        # related_name="guest_applications"
     )
     visa = models.PositiveIntegerField(
         default=0,
@@ -141,6 +141,4 @@ class Application(models.Model):
 
     def __str__(self):
         return self.pk
-
-
 
