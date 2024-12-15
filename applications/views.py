@@ -14,7 +14,7 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Получение списка всех заявок",
         operation_summary="Список заявок",
-        tags=["7. Заявки"],
+        tags=["5. Заявки"],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка заявок",
@@ -29,7 +29,7 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         operation_description="Создание новой заявки",
         operation_summary="Добавление завявки",
         request_body=ApplicationSerializer,
-        tags=["7. Заявки"],
+        tags=["5. Заявки"],
         responses={
             200: openapi.Response(
                 description="Успешное создание заявки",
@@ -39,3 +39,70 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         })
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+
+class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    queryset = Application.objects.all()
+    serializer_class = ApplicationSerializer
+
+
+    @swagger_auto_schema(
+        operation_description="Получение информации о заявке через идентификатор",
+        operation_summary="Информация о заявке",
+        tags=["5. Заявки"],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение информации о заявке",
+                schema=ApplicationSerializer()
+            ),
+            400: "Ошибка запроса"
+        })
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+    @swagger_auto_schema(
+        operation_description="Изменение всех полей заявки через идентификатор",
+        operation_summary="Полное изменение заявки",
+        tags=["5. Заявки"],
+        responses={
+            200: openapi.Response(
+                description="Успешное изменение всей заявки",
+                schema=ApplicationSerializer()
+            ),
+            400: "Ошибка запроса"
+        })
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+
+    @swagger_auto_schema(
+        operation_description="Частичное изменение заявки через идентификатор",
+        operation_summary="Частичное изменение заявки",
+        tags=["5. Заявки"],
+        responses={
+            200: openapi.Response(
+                description="Успешное изменение части заявки",
+                schema=ApplicationSerializer()
+            ),
+            400: "Ошибка запроса"
+        })
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+
+    @swagger_auto_schema(
+        operation_description="Удаление заявки через идентификатор",
+        operation_summary="Удаление заявки",
+        tags=["5. Заявки"],
+        responses={
+            200: openapi.Response(
+                description="Успешное удаление заявки",
+                schema=ApplicationSerializer()
+            ),
+            400: "Ошибка запроса"
+        })
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
