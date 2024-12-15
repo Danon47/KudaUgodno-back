@@ -103,7 +103,8 @@ class Application(models.Model):
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
-        blank=True
+        blank=True,
+        related_name="guest_applications"
     )
     visa = models.PositiveIntegerField(
         default=0,
