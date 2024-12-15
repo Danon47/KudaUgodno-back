@@ -15,6 +15,20 @@ class GuestListCreateView(generics.ListCreateAPIView):
         operation_description="Получение списка всех гостей",
         operation_summary="Список гостей",
         tags=["5.1. Гости в заявке"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество Гостей для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка гостей",
@@ -133,6 +147,20 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         operation_description="Получение списка всех заявок",
         operation_summary="Список заявок",
         tags=["5. Заявки"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество Заявок для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка заявок",
