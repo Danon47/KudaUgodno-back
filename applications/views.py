@@ -50,6 +50,15 @@ class GuestDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Получение информации о госте через идентификатор",
         operation_summary="Информация о госте",
         tags=["5.1. Гости в заявке"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор Гостя",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение информации о госте",
@@ -95,6 +104,15 @@ class GuestDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Удаление гостя через идентификатор",
         operation_summary="Удаление гостя",
         tags=["5.1. Гости в заявке"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор Гостя",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное удаление гостя",
@@ -151,6 +169,15 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Получение информации о заявке через идентификатор",
         operation_summary="Информация о заявке",
         tags=["5. Заявки"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор Заявки",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение информации о заявке",
@@ -197,6 +224,15 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Удаление заявки через идентификатор",
         operation_summary="Удаление заявки",
         tags=["5. Заявки"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор Заявки",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное удаление заявки",
