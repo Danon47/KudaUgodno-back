@@ -55,7 +55,7 @@ class Guest(models.Model):
         **NULLABLE,
         validators=[
             RegexValidator(
-                regex="^[0-9{2} [0-9]{7}$",
+                regex="^[0-9]{2} [0-9]{7}$",
                 message='Введите серия/номер в формате: XX XXXXXXXX'
             )
         ]
