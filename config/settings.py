@@ -21,12 +21,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_yasg",
+    "phonenumber_field",
+
     "users",
     "tours",
     "flights",
     "hotels",
     "applications",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
