@@ -37,6 +37,7 @@ class Guest(models.Model):
         help_text="Введите гражданство",
     )
     russian_passport_no = models.CharField(
+        unique=True,
         verbose_name="Серия/номер российского паспорта",
         help_text="Введите серия/номер российского паспорта в формате: XXXX XXXXXX",
         **NULLABLE,
@@ -48,6 +49,7 @@ class Guest(models.Model):
         ]
     )
     international_passport_no = models.CharField(
+        unique=True,
         verbose_name="Серия/номер иностранного паспорта",
         help_text="Введите серия/номер иностранного паспорта в формате: XX XXXXXXXX",
         **NULLABLE,
@@ -71,6 +73,7 @@ class Guest(models.Model):
 
     def __str__(self):
         return f"{self.lastname} {self.firstname} {self.surname}"
+
 
 class Application(models.Model):
     """
