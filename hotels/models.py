@@ -48,7 +48,7 @@ class Room(models.Model):
         verbose_name="С животными разрешено?",
     )
     # Площадь номера
-    area = models.PositiveIntegerField(
+    area = models.IntegerField(
         verbose_name="Площадь номера",
         help_text="Введите площадь номера",
         validators=[
@@ -73,7 +73,7 @@ class Room(models.Model):
         **NULLABLE,
     )
     # Количество проживающих людей
-    capacity = models.PositiveIntegerField(
+    capacity = models.IntegerField(
         verbose_name="Количество проживающих людей",
         help_text="Введите количество проживающих людей",
         validators=[
@@ -162,7 +162,7 @@ class Hotel(models.Model):
         help_text="Введите адрес отеля",
     )
     # Расстояние до моря
-    distance_to_sea = models.PositiveIntegerField(
+    distance_to_sea = models.IntegerField(
         verbose_name="Расстояние до моря",
         help_text="Введите расстояние до моря",
         validators=[
@@ -172,7 +172,7 @@ class Hotel(models.Model):
         **NULLABLE,
     )
     # Расстояние до аэропорта
-    distance_to_airport = models.PositiveIntegerField(
+    distance_to_airport = models.IntegerField(
         verbose_name="Расстояние до аэропорта",
         help_text="Введите расстояние до аэропорта",
         validators=[

@@ -26,7 +26,7 @@ class RoomListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Получение списка всех номеров",
         operation_summary="Список номеров",
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка номеров",
@@ -42,7 +42,7 @@ class RoomListCreateView(generics.ListCreateAPIView):
         operation_description="Создание нового номера",
         operation_summary="Добавление номера",
         request_body=RoomSerializer,
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         responses={
             201: openapi.Response(
                 description="Отель успешно номера", schema=RoomSerializer()
@@ -62,8 +62,8 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Получение детальной информации о номере",
         operation_description="Возвращает полную информацию о конкретном номере по его идентификатору",
-        tags=["1. Номер"],
-        manual_parameters=[
+        tags=["3. Номер"],
+        manual_zarameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
@@ -86,7 +86,7 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Полное обновление информации о номере",
         operation_description="Обновляет все поля номера целиком",
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         request_body=RoomSerializer,
         responses={
             200: openapi.Response(
@@ -102,7 +102,7 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Частичное обновление информации о номере",
         operation_description="Обновляет указанные поля номера",
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         request_body=RoomSerializer,
         responses={
             200: openapi.Response(
@@ -118,7 +118,7 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Удаление номера",
         operation_description="Полное удаление номера по его идентификатору",
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         responses={204: "Номер успешно удален", 404: "Номер не найден"},
     )
     def delete(self, request, *args, **kwargs):
@@ -133,7 +133,7 @@ class AmenityRoomCreateAPIView(generics.CreateAPIView):
         operation_description="Создание нового удобства в номере",
         operation_summary="Добавление удобства в номере",
         request_body=AmenityRoomSerializer,
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         responses={
             201: openapi.Response(
                 description="Удобство в номере успешно создан",
@@ -154,7 +154,7 @@ class CategoryRoomCreateAPIView(generics.CreateAPIView):
         operation_description="Создание новой категории номера",
         operation_summary="Добавление категории номера",
         request_body=CategoryRoomSerializer,
-        tags=["1. Номер"],
+        tags=["3. Номер"],
         responses={
             201: openapi.Response(
                 description="Категория номера успешно создана",
@@ -175,7 +175,7 @@ class HotelListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Получение списка всех отелей",
         operation_summary="Список отелей",
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка отелей",
@@ -191,7 +191,7 @@ class HotelListCreateView(generics.ListCreateAPIView):
         operation_description="Создание нового отеля",
         operation_summary="Добавление отеля",
         request_body=HotelSerializer,
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         responses={
             201: openapi.Response(
                 description="Отель успешно создан", schema=HotelSerializer()
@@ -211,7 +211,7 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Получение детальной информации об отеле",
         operation_description="Возвращает полную информацию о конкретном отеле по его идентификатору",
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -235,7 +235,7 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Полное обновление информации об отеле",
         operation_description="Обновляет все поля отеля целиком",
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         request_body=HotelSerializer,
         responses={
             200: openapi.Response(
@@ -251,7 +251,7 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Частичное обновление информации об отеле",
         operation_description="Обновляет указанные поля отеля",
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         request_body=HotelSerializer,
         responses={
             200: openapi.Response(
@@ -267,7 +267,7 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Удаление отеля",
         operation_description="Полное удаление отеля по его идентификатору",
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         responses={204: "Отель успешно удален", 404: "Отель не найден"},
     )
     def delete(self, request, *args, **kwargs):
@@ -282,7 +282,7 @@ class AmenityHotelCreateAPIView(generics.CreateAPIView):
         operation_description="Создание нового удобства в отеле",
         operation_summary="Добавление удобства в отеле",
         request_body=AmenityHotelSerializer,
-        tags=["2. Отель"],
+        tags=["3.1 Отель"],
         responses={
             201: openapi.Response(
                 description="Удобство в отеле успешно создано",
