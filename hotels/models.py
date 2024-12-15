@@ -106,17 +106,6 @@ class Room(models.Model):
     )
     # Ближайшая свободная дата ?
 
-    # Дата начала бронирования
-    start_date = models.DateField(
-        verbose_name="Дата начала бронирования",
-        help_text="Введите дату начала бронирования",
-    )
-    # Дата окончания бронирования
-    end_date = models.DateField(
-        verbose_name="Дата окончания бронирования",
-        help_text="Введите дату окончания бронирования",
-    )
-
     def __str__(self):
         return f"{self.id} {self.category}"
 

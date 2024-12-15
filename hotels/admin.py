@@ -16,14 +16,12 @@ class HotelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Room)
-class HotelRoomAdmin(admin.ModelAdmin):
+class RoomAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "category",
         "type_of_holiday",
         "nightly_price",
-        "start_date",
-        "end_date",
     )
     list_display_links = ("id", "category")
 

@@ -24,8 +24,6 @@ class ModelTestCase(TestCase):
             single_bed=1,
             double_bed=1,
             nightly_price=6500,
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
         )
         self.hotel_room.amenities.add(self.amenity_room)
 
@@ -75,8 +73,6 @@ class ModelTestCase(TestCase):
         self.assertEqual(self.hotel_room.area, 20)
         self.assertEqual(self.hotel_room.capacity, 2)
         self.assertEqual(self.hotel_room.nightly_price, 6500)
-        self.assertEqual(self.hotel_room.start_date, date.today())
-        self.assertEqual(self.hotel_room.end_date, date.today() + timedelta(days=7))
 
 
 class APITestCase(TestCase):
@@ -101,8 +97,6 @@ class APITestCase(TestCase):
             "amenities": [self.amenity_room.id],
             "capacity": 2,
             "nightly_price": 6500,
-            "start_date": date.today(),
-            "end_date": date.today() + timedelta(days=7),
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -127,8 +121,6 @@ class APITestCase(TestCase):
             area=20,
             capacity=2,
             nightly_price=6500,
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
         )
         hotel_room.amenities.add(self.amenity_room)
         url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
@@ -148,8 +140,6 @@ class APITestCase(TestCase):
             area=20,
             capacity=2,
             nightly_price=6500,
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
         )
         hotel_room.amenities.add(self.amenity_room)
         url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
@@ -165,8 +155,6 @@ class APITestCase(TestCase):
             "amenities": [self.amenity_room.id],
             "capacity": 2,
             "nightly_price": 6600,
-            "start_date": date.today(),
-            "end_date": date.today() + timedelta(days=7),
         }
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -184,8 +172,6 @@ class APITestCase(TestCase):
             area=20,
             capacity=2,
             nightly_price=6500,
-            start_date=date.today(),
-            end_date=date.today() + timedelta(days=7),
         )
         url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
         response = self.client.delete(url)
