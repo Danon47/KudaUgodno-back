@@ -69,7 +69,6 @@ class Guest(models.Model):
     # Срок действия иностранного паспорта
     validity_international_passport = models.DateField(
         verbose_name="Срок действия иностранного паспорта",
-        help_text="Введите срок действия иностранного паспорта",
         **NULLABLE
     )
 
@@ -91,23 +90,23 @@ class Application(models.Model):
         "tours.Tour",
         on_delete=models.PROTECT,
         verbose_name="Тур",
-        help_text="Выберите тур",
+        help_text="Тур который хотят оформить",
     )
     # Email пользователя
     email = models.EmailField(
         verbose_name="Email",
-        help_text="Введите email"
     )
     # Номер телефона
     phone_number = PhoneNumberField(
         region="RU",
         verbose_name="Телефон",
-        help_text="Введите номер телефона"
+        help_text="Номер телефона в формате: +7 (999) 999-99-99",
     )
     # Количество номеров
     quantity_rooms = models.ManyToManyField(
         "hotels.Room",
         verbose_name="Количество номеров",
+        help_text="Количество номеров которые хотят забронировать",
         blank=True,
         # related_name="room_applications"
     )
@@ -122,6 +121,7 @@ class Application(models.Model):
     visa = models.PositiveIntegerField(
         default=0,
         verbose_name="Оформление визы",
+        help_text="Количество виз необходимых для оформления",
         validators=[
             MinValueValidator(0),
             MaxValueValidator(10)
@@ -140,7 +140,7 @@ class Application(models.Model):
     # Пожелания
     wishes = models.TextField(
         verbose_name="Пожелания",
-        help_text="Введите пожелания",
+        help_text="Вводится клиентом при бронировании",
         **NULLABLE
     )
     # Статус заявки
