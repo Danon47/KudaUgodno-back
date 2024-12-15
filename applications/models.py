@@ -96,7 +96,7 @@ class Application(models.Model):
         help_text="Введите номер телефона"
     )
     quantity_rooms = models.ManyToManyField(
-        "hotels.HotelRoom",
+        "hotels.Room",
         verbose_name="Количество номеров",
         blank=True
     )
