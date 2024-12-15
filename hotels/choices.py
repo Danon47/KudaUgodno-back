@@ -36,7 +36,7 @@ class TypeOfHolidayChoices(models.TextChoices):
     BEACH = "Пляжный", "Пляжный"
     CITY = "Городской", "Городской"
     SPA = "Спа", "Спа"
-    HEALING = "Городской", "Городской"
+    HEALING = "Лечебный", "Лечебный"
     WITH_CHILDREN = "С детьми", "С детьми"
     WITH_ANIMALS = "С животными", "С животными"
 
