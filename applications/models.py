@@ -98,7 +98,8 @@ class Application(models.Model):
     quantity_rooms = models.ManyToManyField(
         "hotels.Room",
         verbose_name="Количество номеров",
-        blank=True
+        blank=True,
+        related_name="room_applications"
     )
     quantity_guests = models.ManyToManyField(
         Guest,
