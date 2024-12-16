@@ -70,12 +70,12 @@ class Command(BaseCommand):
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Администратор {os.getenv('ADMIN_USERNAME')} успешно создан"
+                    f"=== Admin {os.getenv('ADMIN_USERNAME')} successfully created ==="
                 )
             )
         else:
             self.stdout.write(
                 self.style.WARNING(
-                    f"Администратор с именем пользователя {os.getenv('ADMIN_USERNAME')} уже существует"
+                    f"=== Admin with username {os.getenv('ADMIN_USERNAME')} already exists ==="
                 )
             )
