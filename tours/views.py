@@ -49,8 +49,8 @@ class TourListCreateView(ListCreateAPIView):
         tour.country = tour.hotel.country
         tour.city = tour.hotel.city
         tour.type_of_holiday = tour.hotel.type_of_holiday
-        tour.price = ((tour.end_date - tour.start_date) * tour.room.price
-                      + tour.flight_to.price + tour.flight_from.price + tour.meal_cost)
+        tour.price = ((tour.end_date - tour.start_date) * (tour.room.price + tour.meal_cost)
+                      + tour.flight_to.price + tour.flight_from.price)
         tour.save()
 
 
