@@ -6,6 +6,8 @@ from hotels.models import (
     HotelAmenity,
     RoomAmenity,
     RoomCategory,
+    RoomPhoto,
+    HotelPhoto,
 )
 
 
@@ -39,3 +41,13 @@ class RoomAmenityAdmin(admin.ModelAdmin):
 @admin.register(RoomCategory)
 class RoomCategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
+
+
+@admin.register(RoomPhoto)
+class RoomPhotoAdmin(admin.ModelAdmin):
+    list_display = ("id", "photo")
+
+
+@admin.register(HotelPhoto)
+class HotelPhotoAdmin(admin.ModelAdmin):
+    list_display = ("id", "photo")
