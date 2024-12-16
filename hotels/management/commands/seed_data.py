@@ -10,45 +10,50 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Данные удобств отелей, номеров, категорий
         amenities_room = [
-            "Душ на этаже",
-            "Душ в комнате",
-            "Ванна",
-            "Дополнительная кровать",
-            "Фен",
-            "Сейф",
-            "Чайный набор",
-            "Wi-Fi",
-            "Кондиционер",
+            {"name": "Душ на этаже"},
+            {"name": "Душ в комнате"},
+            {"name": "Ванна"},
+            {"name": "Дополнительная кровать"},
+            {"name": "Фен"},
+            {"name": "Сейф"},
+            {"name": "Чайный набор"},
+            {"name": "Wi-Fi"},
+            {"name": "Кондиционер"},
         ]
+
         amenities_hotel = [
-            "Бассейн",
-            "Собственный пляж",
-            "Семейные номера",
-            "Детский клуб",
-            "Аквапарк",
-            "Теннисный корт",
-            "Бесплатный интернет",
+            {"name": "Бассейн"},
+            {"name": "Собственный пляж"},
+            {"name": "Семейные номера"},
+            {"name": "Детский клуб"},
+            {"name": "Аквапарк"},
+            {"name": "Теннисный корт"},
+            {"name": "Бесплатный интернет"},
         ]
+
         category_rooms = [
-            "Стандарт",
-            "Комфорт",
-            "Семейный",
-            "Люкс",
+            {"name": "Стандарт"},
+            {"name": "Комфорт"},
+            {"name": "Семейный"},
+            {"name": "Люкс"},
         ]
 
-        # Заполняем базу данных
-        RoomAmenity.objects.bulk_create(
-            [RoomAmenity(name=amenity) for amenity in amenities_room]
-        )
-        HotelAmenity.objects.bulk_create(
-            [HotelAmenity(name=amenity) for amenity in amenities_hotel]
-        )
-        RoomCategory.objects.bulk_create(
-            [RoomCategory(name=category) for category in category_rooms]
-        )
+        # Проверяем, заполнены ли уже данные
+        if RoomAmenity.objects.exists() or HotelAmenity.objects.exists() or RoomCategory.objects.exists():
+            self.stdout.write(self.style.WARNING("=== BD already has these values ==="))
+        else:
 
-        self.stdout.write(self.style.SUCCESS("=== BD DONE ==="))
+            # Заполняем базу данных
+            for amenity in amenities_room:
+                RoomAmenity.objects.get_or_create(**amenity)
 
+            for amenity in amenities_hotel:
+                HotelAmenity.objects.get_or_create(**amenity)
+
+            for category in category_rooms:
+                RoomCategory.objects.get_or_create(**category)
+
+            self.stdout.write(self.style.SUCCESS("=== BD DONE ==="))
 
         # Создание администратора
         username = os.getenv("ADMIN_USERNAME")

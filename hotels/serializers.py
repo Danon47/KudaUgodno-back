@@ -56,7 +56,7 @@ class RoomSerializer(serializers.ModelSerializer):
 class HotelSerializer(serializers.ModelSerializer):
     amenities = serializers.PrimaryKeyRelatedField(queryset=HotelAmenity.objects.all(), many=True, write_only=True)
     amenities_hotel = AmenityHotelSerializer(source="amenities", many=True, read_only=True)
-    room = RoomSerializer(many=True, read_only=True)
+    rooms = RoomSerializer(many=True, read_only=True)
     user_rating = serializers.FloatField(read_only=True)
 
     class Meta:
@@ -74,7 +74,7 @@ class HotelSerializer(serializers.ModelSerializer):
             "distance_to_sea",
             "distance_to_airport",
             "description",
-            "room",
+            "rooms",
             "user_rating",
             "check_in_time",
             "check_out_time",
