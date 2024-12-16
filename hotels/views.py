@@ -1,3 +1,373 @@
-from django.shortcuts import render
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics
+from .models import (
+    Hotel,
+    Room,
+    RoomAmenity,
+    HotelAmenity,
+    RoomCategory,
+)
+from .serializers import (
+    HotelSerializer,
+    RoomSerializer,
+    AmenityRoomSerializer,
+    AmenityHotelSerializer,
+    CategoryRoomSerializer,
+)
 
-# Create your views here.
+
+class RoomListCreateView(generics.ListCreateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
+    @swagger_auto_schema(
+        operation_description="Получение списка всех номеров",
+        operation_summary="Список номеров",
+        tags=["3. Номер"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество номеров для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение списка номеров",
+                schema=RoomSerializer(many=True),
+            ),
+            400: "Ошибка запроса",
+        },
+
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Создание нового номера",
+        operation_summary="Добавление номера",
+        request_body=RoomSerializer,
+        tags=["3. Номер"],
+        responses={
+            201: openapi.Response(
+                description="Отель успешно номера", schema=RoomSerializer()
+            ),
+            400: "Ошибка валидации",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+
+    @swagger_auto_schema(
+        operation_summary="Получение детальной информации о номере",
+        operation_description="Возвращает полную информацию о конкретном номере по его идентификатору",
+        tags=["3. Номер"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение информации о номере",
+                schema=HotelSerializer(),
+            ),
+            404: "Номер не найден",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Полное обновление информации о номере",
+        operation_description="Обновляет все поля номера целиком",
+        tags=["3. Номер"],
+        request_body=RoomSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Номер успешно обновлен", schema=RoomSerializer()
+            ),
+            400: "Ошибка валидации",
+            404: "Номер не найден",
+        },
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Частичное обновление информации о номере",
+        operation_description="Обновляет указанные поля номера",
+        tags=["3. Номер"],
+        request_body=RoomSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Номер успешно обновлен", schema=RoomSerializer()
+            ),
+            400: "Ошибка валидации",
+            404: "Номер не найден",
+        },
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Удаление номера",
+        operation_description="Полное удаление номера по его идентификатору",
+        tags=["3. Номер"],
+        responses={204: "Номер успешно удален", 404: "Номер не найден"},
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор отеля в базе данных",
+                required=True,
+            )
+        ],
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
+class RoomAmenityCreateAPIView(generics.CreateAPIView):
+    queryset = RoomAmenity.objects.all()
+    serializer_class = AmenityRoomSerializer
+
+    @swagger_auto_schema(
+        operation_description="Создание нового удобства в номере",
+        operation_summary="Добавление удобства в номере",
+        request_body=AmenityRoomSerializer,
+        tags=["3. Номер"],
+        responses={
+            201: openapi.Response(
+                description="Удобство в номере успешно создан",
+                schema=AmenityRoomSerializer(),
+            ),
+            400: "Ошибка валидации",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class RoomCategoryCreateAPIView(generics.CreateAPIView):
+    queryset = RoomCategory.objects.all()
+    serializer_class = CategoryRoomSerializer
+
+    @swagger_auto_schema(
+        operation_description="Создание новой категории номера",
+        operation_summary="Добавление категории номера",
+        request_body=CategoryRoomSerializer,
+        tags=["3. Номер"],
+        responses={
+            201: openapi.Response(
+                description="Категория номера успешно создана",
+                schema=CategoryRoomSerializer(),
+            ),
+            400: "Ошибка валидации",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class HotelListCreateView(generics.ListCreateAPIView):
+    queryset = Hotel.objects.all()
+    serializer_class = HotelSerializer
+
+    @swagger_auto_schema(
+        operation_description="Получение списка всех отелей",
+        operation_summary="Список отелей",
+        tags=["3.1 Отель"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество отелей для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение списка отелей",
+                schema=HotelSerializer(many=True),
+            ),
+            400: "Ошибка запроса",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Создание нового отеля",
+        operation_summary="Добавление отеля",
+        request_body=HotelSerializer,
+        tags=["3.1 Отель"],
+        responses={
+            201: openapi.Response(
+                description="Отель успешно создан", schema=HotelSerializer()
+            ),
+            400: "Ошибка валидации",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Hotel.objects.all()
+    serializer_class = HotelSerializer
+
+    @swagger_auto_schema(
+        operation_summary="Получение детальной информации об отеле",
+        operation_description="Возвращает полную информацию о конкретном отеле по его идентификатору",
+        tags=["3.1 Отель"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор отеля в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение информации об отеле",
+                schema=HotelSerializer(),
+            ),
+            404: "Отель не найден",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Полное обновление информации об отеле",
+        operation_description="Обновляет все поля отеля целиком",
+        tags=["3.1 Отель"],
+        request_body=HotelSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Отель успешно обновлен", schema=HotelSerializer()
+            ),
+            400: "Ошибка валидации",
+            404: "Отель не найден",
+        },
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Частичное обновление информации об отеле",
+        operation_description="Обновляет указанные поля отеля",
+        tags=["3.1 Отель"],
+        request_body=HotelSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Отель успешно обновлен", schema=HotelSerializer()
+            ),
+            400: "Ошибка валидации",
+            404: "Отель не найден",
+        },
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Удаление отеля",
+        operation_description="Полное удаление отеля по его идентификатору",
+        tags=["3.1 Отель"],
+        responses={204: "Отель успешно удален", 404: "Отель не найден"},
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор отеля в базе данных",
+                required=True,
+            )
+        ],
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
+class HotelAmenityCreateAPIView(generics.CreateAPIView):
+    queryset = HotelAmenity.objects.all()
+    serializer_class = AmenityHotelSerializer
+
+    @swagger_auto_schema(
+        operation_description="Создание нового удобства в отеле",
+        operation_summary="Добавление удобства в отеле",
+        request_body=AmenityHotelSerializer,
+        tags=["3.1 Отель"],
+        responses={
+            201: openapi.Response(
+                description="Удобство в отеле успешно создано",
+                schema=AmenityHotelSerializer(),
+            ),
+            400: "Ошибка валидации",
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
