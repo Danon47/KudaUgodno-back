@@ -18,4 +18,8 @@ urlpatterns = [
     path("<int:pk>/", HotelDetailView.as_view(), name="hotel_detail_update_delete"),
     # Удобства в отелях
     path("amenities/", HotelAmenityCreateAPIView.as_view(), name="hotel_amenity_create"),
+    # Добавление фотографий отеля и номера в отеле
+    # path("photos/", PhotoCreateAPIView.as_view(), name="photo_create"),
+    # path("rooms/photos/", PhotoCreateAPIView.as_view(), name="photo_create"),
+
 ]
