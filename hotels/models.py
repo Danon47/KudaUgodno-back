@@ -15,7 +15,7 @@ class Room(models.Model):
 
     # Категория номера
     category = models.ForeignKey(
-        "CategoryRoom",
+        "RoomCategory",
         on_delete=models.CASCADE,
         related_name="rooms",
         verbose_name="Категория номера",
@@ -60,7 +60,7 @@ class Room(models.Model):
 
     # Удобства в номере
     amenities = models.ManyToManyField(
-        "AmenityRoom",
+        "RoomAmenity",
         verbose_name="Удобства в номере",
         help_text="Выберите удобства в номере",
         blank=True,
@@ -201,7 +201,7 @@ class Hotel(models.Model):
     )
     # Удобства в номере
     amenities = models.ManyToManyField(
-        "AmenityHotel",
+        "HotelAmenity",
         verbose_name="Удобства в отеле",
         help_text="Выберите удобства в отеле",
         blank=True,

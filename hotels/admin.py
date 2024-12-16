@@ -27,15 +27,15 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 @admin.register(HotelAmenity)
-class AmenityHotelAdmin(admin.ModelAdmin):
+class HotelAmenityAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
 @admin.register(RoomAmenity)
-class AmenityRoomAdmin(admin.ModelAdmin):
+class RoomAmenityAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
 @admin.register(RoomCategory)
-class CategoryHotelRoomAdmin(admin.ModelAdmin):
+class RoomCategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name")

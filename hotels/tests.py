@@ -123,7 +123,7 @@ class APITestCase(TestCase):
             nightly_price=6500,
         )
         hotel_room.amenities.add(self.amenity_room)
-        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail_update_delete", kwargs={"pk": hotel_room.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -142,7 +142,7 @@ class APITestCase(TestCase):
             nightly_price=6500,
         )
         hotel_room.amenities.add(self.amenity_room)
-        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail_update_delete", kwargs={"pk": hotel_room.id})
         data = {
             "category": self.category.id,
             "food": FoodChoices.ONLY_BREAKFAST,
@@ -173,7 +173,7 @@ class APITestCase(TestCase):
             capacity=2,
             nightly_price=6500,
         )
-        url = reverse("hotels:room_detail", kwargs={"pk": hotel_room.id})
+        url = reverse("hotels:room_detail_update_delete", kwargs={"pk": hotel_room.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -222,7 +222,7 @@ class APITestCase(TestCase):
             check_out_time=time(11, 0),
         )
         hotel.amenities.add(self.amenity_hotel)
-        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail_update_delete", kwargs={"pk": hotel.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "Тестовый Отель")
@@ -243,7 +243,7 @@ class APITestCase(TestCase):
             check_in_time=time(15, 0),
             check_out_time=time(11, 0),
         )
-        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail_update_delete", kwargs={"pk": hotel.id})
         data = {
             "name": "Тестовый Отель",
             "star_category": 3,
@@ -278,18 +278,18 @@ class APITestCase(TestCase):
             check_in_time=time(15, 0),
             check_out_time=time(11, 0),
         )
-        url = reverse("hotels:hotel_detail", kwargs={"pk": hotel.id})
+        url = reverse("hotels:hotel_detail_update_delete", kwargs={"pk": hotel.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_amenity_room_creation(self):
-        url = reverse("hotels:amenity_room_create")
+    def test_room_amenity_creation(self):
+        url = reverse("hotels:room_amenity_create")
         data = {"name": "Фен"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_amenity_hotel_creation(self):
-        url = reverse("hotels:amenity_hotel_create")
+    def test_hotel_amenity_creation(self):
+        url = reverse("hotels:hotel_amenity_create")
         data = {"name": "Бассейн"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
