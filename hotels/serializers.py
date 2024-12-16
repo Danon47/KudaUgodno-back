@@ -70,7 +70,6 @@ class RoomSerializer(serializers.ModelSerializer):
 class HotelSerializer(serializers.ModelSerializer):
     amenities = AmenityHotelSerializer(many=True, read_only=True)
     rooms = RoomSerializer(source="room", many=True, read_only=True)
-    user_rating = serializers.FloatField(read_only=True)
     photos = RoomPhotoSerializer(many=True, read_only=True)
 
     class Meta:
