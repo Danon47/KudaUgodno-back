@@ -8,6 +8,6 @@ from flights.views import (
 app_name = FlightsConfig.name
 
 urlpatterns = [
-    path("", FlightListCreateView.as_view(), name="flight-list-create"),
-    path("<int:pk>/", FlightDetailView.as_view(), name="flight-detail"),
+    path("", FlightListCreateView.as_view(), name="flight_list_create"),
+    path("<int:pk>/", FlightDetailView.as_view(), name="flight_detail"),
 ]

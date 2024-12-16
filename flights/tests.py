@@ -6,6 +6,9 @@ from django.urls import reverse
 
 
 class FlightTestCase(APITestCase):
+    """
+    Тесты для модели Flight
+    """
 
     def setUp(self):
         self.flight = Flight.objects.create(
@@ -24,7 +27,8 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки просмотра рейса
         """
-        url = reverse("flights:flight-detail", args=(self.flight.pk,))
+
+        url = reverse("flights:flight_detail", args=(self.flight.pk,))
         response = self.client.get(url)
         data = response.json()
 
@@ -35,7 +39,8 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки просмотра списка рейсов
         """
-        url = reverse("flights:flight-list-create")
+
+        url = reverse("flights:flight_list_create")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -43,7 +48,8 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки создания рейсов
         """
-        url = reverse("flights:flight-list-create")
+
+        url = reverse("flights:flight_list_create")
         data = {
             "flight_number": "VK-1245",
             "airline": "S7",
@@ -65,7 +71,8 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки изменения рейса
         """
-        url = reverse("flights:flight-detail", args=(self.flight.pk,))
+
+        url = reverse("flights:flight_detail", args=(self.flight.pk,))
         data = {"airline": "Победа"}
         response = self.client.patch(url, data)
 
@@ -76,7 +83,8 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки удаления рейса
         """
-        url = reverse('flights:flight-detail', args=(self.flight.pk,))
+
+        url = reverse('flights:flight_detail', args=(self.flight.pk,))
         response = self.client.delete(url)
 
         self.assertEqual(
