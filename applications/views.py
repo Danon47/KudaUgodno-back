@@ -213,7 +213,6 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
             ),
             400: "Ошибка запроса"
         })
-
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 

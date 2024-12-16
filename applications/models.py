@@ -32,7 +32,7 @@ class Guest(models.Model):
     # Дата рождения
     date_born = models.DateField(
         verbose_name="Дата рождения",
-        help_text="Введите дату рождения",
+        help_text="Формат: YYYY-MM-DD",
     )
     # Гражданство
     citizenship = models.CharField(
@@ -44,7 +44,7 @@ class Guest(models.Model):
     russian_passport_no = models.CharField(
         unique=True,
         verbose_name="Серия/номер российского паспорта",
-        help_text="Введите серия/номер российского паспорта в формате: XXXX XXXXXX",
+        help_text="Формат: XXXX XXXXXX",
         **NULLABLE,
         validators=[
             RegexValidator(
@@ -57,12 +57,12 @@ class Guest(models.Model):
     international_passport_no = models.CharField(
         unique=True,
         verbose_name="Серия/номер иностранного паспорта",
-        help_text="Введите серия/номер иностранного паспорта в формате: XX XXXXXXXX",
+        help_text="Формат: XX XXXXXXXX",
         **NULLABLE,
         validators=[
             RegexValidator(
                 regex="^[0-9]{2} [0-9]{7}$",
-                message='Введите серия/номер в формате: XX XXXXXXXX'
+                message="Введите серия/номер в формате: XX XXXXXXXX"
             )
         ]
     )
@@ -140,7 +140,7 @@ class Application(models.Model):
     # Пожелания
     wishes = models.TextField(
         verbose_name="Пожелания",
-        help_text="Вводится клиентом при бронировании",
+        help_text="Вводится клиентом при бронировании по желанию",
         **NULLABLE
     )
     # Статус заявки
