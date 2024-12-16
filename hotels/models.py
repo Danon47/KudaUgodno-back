@@ -177,7 +177,7 @@ class Hotel(models.Model):
         help_text="Введите расстояние до аэропорта",
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(10000),
+            MaxValueValidator(200000),
         ],
         **NULLABLE,
     )
@@ -194,7 +194,7 @@ class Hotel(models.Model):
         **NULLABLE,
     )
     # Номера в отеле
-    hotel_room = models.ManyToManyField(
+    room = models.ManyToManyField(
         Room,
         verbose_name="Номера в отеле",
         blank=True,

@@ -42,7 +42,7 @@ class ModelTestCase(TestCase):
             check_out_time=time(11, 0),
         )
         self.hotel.amenities.add(self.amenity_hotel)
-        self.hotel.hotel_room.add(self.hotel_room)
+        self.hotel.room.add(self.hotel_room)
 
     def test_hotel_creation(self):
         self.assertTrue(isinstance(self.hotel, Hotel))
