@@ -17,7 +17,7 @@ class FlightListCreateView(ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Получение списка рейсов",
         operation_summary="Список рейсов",
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка рейсов",
@@ -33,7 +33,7 @@ class FlightListCreateView(ListCreateAPIView):
         operation_description="Создание рейса",
         operation_summary="Добавление рейса",
         request_body=FlightSerializer,
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         responses={
             201: openapi.Response(
                 description="Успешное создание номера", schema=FlightSerializer()
@@ -52,7 +52,7 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Получение детальной информации о рейсе",
         operation_description="Возвращает полную информацию о рейсе по его идентификатору",
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         manual_parameters=[
             openapi.Parameter(
                 name="id",
@@ -76,7 +76,7 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Полное обновление информации о рейсе",
         operation_description="Обновляет все поля рейса",
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         request_body=FlightSerializer,
         responses={
             200: openapi.Response(
@@ -92,7 +92,7 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Частичное обновление информации о рейсе",
         operation_description="Обновляет указанные поля рейса",
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         request_body=FlightSerializer,
         responses={
             200: openapi.Response(
@@ -108,7 +108,7 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
     @swagger_auto_schema(
         operation_summary="Удаление рейса",
         operation_description="Полное удаление рейса по его идентификатору",
-        tags=["1. Рейс"],
+        tags=["4. Рейс"],
         responses={204: "Рейс успешно удален", 404: "Рейс не найден"},
     )
     def delete(self, request, *args, **kwargs):
