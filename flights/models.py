@@ -20,17 +20,17 @@ class Flight(models.Model):
     departure_airport = models.CharField(
         max_length=100,
         verbose_name="Аэропорт вылета",
-        help_text="Укакжите аэропорт вылета",
+        help_text="Укажите аэропорт вылета",
     )
     # Аэропорт прибытия
     arrival_airport = models.CharField(
         max_length=100,
         verbose_name="Аэропорт прибытия",
-        help_text="Укакжите аэропорт прибытия",
+        help_text="Укажите аэропорт прибытия",
     )
     # Дата вылета
     departure_date = models.DateField(
-        verbose_name="Дата вылета", help_text="Укакжите дату вылета"
+        verbose_name="Дата вылета", help_text="Укажите дату вылета"
     )
     # Время вылета
     departure_time = models.TimeField(
@@ -38,7 +38,7 @@ class Flight(models.Model):
     )
     # Дата прибытия
     arrival_date = models.DateField(
-        verbose_name="Дата прибытия", help_text="Укакжите дату прибытия"
+        verbose_name="Дата прибытия", help_text="Укажите дату прибытия"
     )
     # Время прибытия
     arrival_time = models.TimeField(
@@ -55,7 +55,7 @@ class Flight(models.Model):
     class Meta:
         verbose_name = "Рейс"
         verbose_name_plural = "Рейсы"
-        ordering = ["departure_date"]
+        ordering = ("departure_date",)
 
     def __str__(self):
         return f"{self.flight_number}"
