@@ -2,34 +2,34 @@ from rest_framework import serializers
 from .models import (
     Hotel,
     Room,
-    AmenityRoom,
-    AmenityHotel,
-    CategoryRoom,
+    RoomAmenity,
+    HotelAmenity,
+    RoomCategory,
 )
 
 
 class AmenityRoomSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AmenityRoom
+        model = RoomAmenity
         fields = ("id", "name")
 
 
 class AmenityHotelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AmenityHotel
+        model = HotelAmenity
         fields = ("id", "name")
 
 
 class CategoryRoomSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CategoryRoom
+        model = RoomCategory
         fields = ("id", "name",)
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    amenities = serializers.PrimaryKeyRelatedField(queryset=AmenityRoom.objects.all(), many=True, write_only=True)
+    amenities = serializers.PrimaryKeyRelatedField(queryset=RoomAmenity.objects.all(), many=True, write_only=True)
     amenities_room = AmenityRoomSerializer(source="amenities", many=True, read_only=True)
-    category = serializers.PrimaryKeyRelatedField(queryset=CategoryRoom.objects.all(), many=False, write_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=RoomCategory.objects.all(), many=False, write_only=True)
     category_room = CategoryRoomSerializer(source="category", many=False, read_only=True)
 
     class Meta:
@@ -54,7 +54,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
 
 class HotelSerializer(serializers.ModelSerializer):
-    amenities = serializers.PrimaryKeyRelatedField(queryset=AmenityHotel.objects.all(), many=True, write_only=True)
+    amenities = serializers.PrimaryKeyRelatedField(queryset=HotelAmenity.objects.all(), many=True, write_only=True)
     amenities_hotel = AmenityHotelSerializer(source="amenities", many=True, read_only=True)
     room = RoomSerializer(many=True, read_only=True)
     user_rating = serializers.FloatField(read_only=True)

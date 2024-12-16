@@ -2,16 +2,16 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Hotel, Room, AmenityRoom, AmenityHotel, CategoryRoom
+from .models import Hotel, Room, RoomAmenity, HotelAmenity, RoomCategory
 from .choices import *
 from datetime import date, timedelta
 
 
 class ModelTestCase(TestCase):
     def setUp(self):
-        self.amenity_room = AmenityRoom.objects.create(name="Кондиционер")
-        self.category = CategoryRoom.objects.create(name="Стандарт")
-        self.amenity_hotel = AmenityHotel.objects.create(name="Бассейн")
+        self.amenity_room = RoomAmenity.objects.create(name="Кондиционер")
+        self.category = RoomCategory.objects.create(name="Стандарт")
+        self.amenity_hotel = HotelAmenity.objects.create(name="Бассейн")
 
         self.hotel_room = Room.objects.create(
             category=self.category,
@@ -78,9 +78,9 @@ class ModelTestCase(TestCase):
 class APITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.amenity_room = AmenityRoom.objects.create(name="Кондиционер")
-        self.category = CategoryRoom.objects.create(name="Стандарт")
-        self.amenity_hotel = AmenityHotel.objects.create(name="Бассейн")
+        self.amenity_room = RoomAmenity.objects.create(name="Кондиционер")
+        self.category = RoomCategory.objects.create(name="Стандарт")
+        self.amenity_hotel = HotelAmenity.objects.create(name="Бассейн")
 
     def test_hotel_room_creation(self):
         """Тест проверки создания номера отеля"""

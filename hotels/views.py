@@ -4,9 +4,9 @@ from rest_framework import generics
 from .models import (
     Hotel,
     Room,
-    AmenityRoom,
-    AmenityHotel,
-    CategoryRoom,
+    RoomAmenity,
+    HotelAmenity,
+    RoomCategory,
 )
 from .serializers import (
     HotelSerializer,
@@ -164,8 +164,8 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         return super().delete(request, *args, **kwargs)
 
 
-class AmenityRoomCreateAPIView(generics.CreateAPIView):
-    queryset = AmenityRoom.objects.all()
+class RoomAmenityCreateAPIView(generics.CreateAPIView):
+    queryset = RoomAmenity.objects.all()
     serializer_class = AmenityRoomSerializer
 
     @swagger_auto_schema(
@@ -185,8 +185,8 @@ class AmenityRoomCreateAPIView(generics.CreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
-class CategoryRoomCreateAPIView(generics.CreateAPIView):
-    queryset = CategoryRoom.objects.all()
+class RoomCategoryCreateAPIView(generics.CreateAPIView):
+    queryset = RoomCategory.objects.all()
     serializer_class = CategoryRoomSerializer
 
     @swagger_auto_schema(
@@ -352,8 +352,8 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         return super().delete(request, *args, **kwargs)
 
 
-class AmenityHotelCreateAPIView(generics.CreateAPIView):
-    queryset = AmenityHotel.objects.all()
+class HotelAmenityCreateAPIView(generics.CreateAPIView):
+    queryset = HotelAmenity.objects.all()
     serializer_class = AmenityHotelSerializer
 
     @swagger_auto_schema(

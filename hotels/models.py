@@ -106,13 +106,13 @@ class Room(models.Model):
     )
     # Ближайшая свободная дата ?
 
-    def __str__(self):
-        return f"{self.id} {self.category}"
-
     class Meta:
         verbose_name = "Номер"
         verbose_name_plural = "Номера"
         ordering = ("category",)
+
+    def __str__(self):
+        return f"{self.id} {self.category}"
 
 
 class Hotel(models.Model):
@@ -231,16 +231,16 @@ class Hotel(models.Model):
         help_text="Выберите время выезда",
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Отель"
         verbose_name_plural = "Отели"
         ordering = ("name",)
 
+    def __str__(self):
+        return self.name
 
-class AmenityRoom(models.Model):
+
+class RoomAmenity(models.Model):
     """
     Удобства в номере
     """
@@ -251,34 +251,15 @@ class AmenityRoom(models.Model):
         help_text="Введите удобство",
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Удобство в номере"
         verbose_name_plural = "Удобства в номерах"
 
-
-class AmenityHotel(models.Model):
-    """
-    Удобства в отеле
-    """
-
-    name = models.CharField(
-        max_length=50,
-        verbose_name="Удобство",
-        help_text="Введите удобство",
-    )
-
     def __str__(self):
         return self.name
 
-    class Meta:
-        verbose_name = "Удобство в отеле"
-        verbose_name_plural = "Удобства в отеле"
 
-
-class CategoryRoom(models.Model):
+class RoomCategory(models.Model):
     """
     Категория номера
     """
@@ -289,9 +270,28 @@ class CategoryRoom(models.Model):
         help_text="Выберите категорию номера",
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Категория номера"
         verbose_name_plural = "Категории номеров"
+
+    def __str__(self):
+        return self.name
+
+
+class HotelAmenity(models.Model):
+    """
+    Удобства в отеле
+    """
+
+    name = models.CharField(
+        max_length=50,
+        verbose_name="Удобство",
+        help_text="Введите удобство",
+    )
+
+    class Meta:
+        verbose_name = "Удобство в отеле"
+        verbose_name_plural = "Удобства в отеле"
+
+    def __str__(self):
+        return self.name
