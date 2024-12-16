@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Данные удобств отелей, номеров, категорий
-        amenities_rooms = [
+        amenities_room = [
             "Душ на этаже",
             "Душ в комнате",
             "Ванна",
@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
         # Заполняем базу данных
         RoomAmenity.objects.bulk_create(
-            [RoomAmenity(name=amenity) for amenity in amenities_rooms]
+            [RoomAmenity(name=amenity) for amenity in amenities_room]
         )
         HotelAmenity.objects.bulk_create(
             [HotelAmenity(name=amenity) for amenity in amenities_hotel]
@@ -47,15 +47,21 @@ class Command(BaseCommand):
             [RoomCategory(name=category) for category in category_rooms]
         )
 
-        self.stdout.write(self.style.SUCCESS("Данные успешно заполнены"))
+        self.stdout.write(self.style.SUCCESS("=== BD DONE ==="))
+
+
+        # Создание администратора
+        username = os.getenv("ADMIN_USERNAME")
+        password = os.getenv("ADMIN_PASSWORD")
 
         # Проверяем, существует ли уже администратор с указанным именем пользователя
         if not User.objects.filter(username=os.getenv("ADMIN_USERNAME")).exists():
             # Создаем администратора
             user = User.objects.create_superuser(
-                username=os.getenv("ADMIN_USERNAME"),
+                username=username,
             )
-            user.set_password(os.getenv("ADMIN_PASSWORD"))
+            user.set_password(password)
+            user.save()
 
             self.stdout.write(
                 self.style.SUCCESS(
