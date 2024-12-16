@@ -20,6 +20,7 @@ class GuestSerializer(serializers.ModelSerializer):
             "russian_passport_no",
             "international_passport_no",
             "validity_international_passport",
+            "user_owner",
         )
 
 
@@ -44,4 +45,5 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "med_insurance",
             "cancellation_insurance",
             "wishes",
+            "user_owner",
         )

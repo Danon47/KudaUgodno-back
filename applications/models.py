@@ -71,6 +71,12 @@ class Guest(models.Model):
         verbose_name="Срок действия иностранного паспорта",
         **NULLABLE
     )
+    user_owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь кто создал гостя",
+        **NULLABLE
+    )
 
     class Meta:
         verbose_name = "Гость"
@@ -148,6 +154,12 @@ class Application(models.Model):
         choices= StatusChoices.choices,
         default=StatusChoices.AWAIT_CONFIRM,
         verbose_name="Статус заявки"
+    )
+    user_owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь кто создал заявку",
+        **NULLABLE
     )
 
     class Meta:
