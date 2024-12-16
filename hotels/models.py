@@ -19,7 +19,6 @@ class Room(models.Model):
         on_delete=models.CASCADE,
         related_name="rooms",
         verbose_name="Категория номера",
-        help_text="Выберите категорию номера",
     )
     # Тип питания
     food = models.CharField(
@@ -27,7 +26,6 @@ class Room(models.Model):
         choices=FoodChoices.choices,
         default=FoodChoices.ONLY_BREAKFAST,
         verbose_name="Тип питания",
-        help_text="Выберите тип питания",
     )
     # Тип отдыха
     type_of_holiday = models.CharField(
@@ -35,7 +33,6 @@ class Room(models.Model):
         choices=TypeOfHolidayChoices.choices,
         default=TypeOfHolidayChoices.BEACH,
         verbose_name="Тип отдыха",
-        help_text="Выберите тип отдыха",
     )
     # Курение
     smoking = models.BooleanField(
@@ -62,15 +59,7 @@ class Room(models.Model):
     amenities = models.ManyToManyField(
         "RoomAmenity",
         verbose_name="Удобства в номере",
-        help_text="Выберите удобства в номере",
         blank=True,
-    )
-    # Фотографии номера
-    image = models.ImageField(
-        upload_to="hotels/rooms/",
-        verbose_name="Фотография",
-        help_text="Загрузите фотографию номера",
-        **NULLABLE,
     )
     # Количество проживающих людей
     capacity = models.IntegerField(
@@ -103,6 +92,13 @@ class Room(models.Model):
     nightly_price = models.PositiveIntegerField(
         verbose_name="Цена",
         help_text="Введите цену",
+    )
+    # Фотографии номера
+    photos = models.ManyToManyField(
+        "RoomPhoto",
+        verbose_name="Фотографии номера",
+        help_text="Загрузите фотографии отеля",
+        blank=True,
     )
     # Ближайшая свободная дата ?
 
@@ -186,13 +182,6 @@ class Hotel(models.Model):
         verbose_name="Описание отеля",
         help_text="Введите описание отеля",
     )
-    # Фотографии отеля
-    image = models.ImageField(
-        upload_to="hotels/",
-        verbose_name="Фотография",
-        help_text="Загрузите фотографию отеля",
-        **NULLABLE,
-    )
     # Номера в отеле
     room = models.ManyToManyField(
         Room,
@@ -229,6 +218,13 @@ class Hotel(models.Model):
         default=time(12, 0),
         verbose_name="Время выезда",
         help_text="Выберите время выезда",
+    )
+    # Фотографии отеля
+    photos = models.ManyToManyField(
+        "HotelPhoto",
+        verbose_name="Фотографии отеля",
+        help_text="Загрузите фотографии отеля",
+        blank=True,
     )
 
     class Meta:
@@ -295,3 +291,35 @@ class HotelAmenity(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RoomPhoto(models.Model):
+    """
+    Класс для загрузки несколько фотографий номера отеля
+    """
+
+    photo = models.ImageField(
+        upload_to="hotels/rooms/",
+        verbose_name="Фотография номера",
+        help_text="Загрузите фотографии номера",
+    )
+
+    class Meta:
+        verbose_name = "Фотография номера"
+        verbose_name_plural = "Фотографии номера"
+
+
+class HotelPhoto(models.Model):
+    """
+    Класс для загрузки несколько фотографий номера отеля
+    """
+
+    photo = models.ImageField(
+        upload_to="hotels/",
+        verbose_name="Фотография отеля",
+        help_text="Загрузите фотографии отеля",
+    )
+
+    class Meta:
+        verbose_name = "Фотография отеля"
+        verbose_name_plural = "Фотографии отеля"
