@@ -47,7 +47,6 @@ class Room(models.Model):
     # Площадь номера
     area = models.IntegerField(
         verbose_name="Площадь номера",
-        help_text="Введите площадь номера",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(1000),
@@ -64,7 +63,6 @@ class Room(models.Model):
     # Количество проживающих людей
     capacity = models.IntegerField(
         verbose_name="Количество проживающих людей",
-        help_text="Введите количество проживающих людей",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10),
@@ -90,14 +88,12 @@ class Room(models.Model):
     )
     # Цена за ночь
     nightly_price = models.PositiveIntegerField(
-        verbose_name="Цена",
-        help_text="Введите цену",
+        verbose_name="Цена за ночь",
     )
     # Фотографии номера
     photos = models.ManyToManyField(
         "RoomPhoto",
         verbose_name="Фотографии номера",
-        help_text="Загрузите фотографии отеля",
         blank=True,
     )
     # Ближайшая свободная дата ?
@@ -120,7 +116,6 @@ class Hotel(models.Model):
     name = models.CharField(
         max_length=100,
         verbose_name="Название отеля",
-        help_text="Введите название отеля",
     )
     # Категория отеля в звёздах
     star_category = models.IntegerField(
@@ -137,30 +132,26 @@ class Hotel(models.Model):
         choices=PlaceChoices.choices,
         default=PlaceChoices.HOTEL,
         verbose_name="Тип размещения",
-        help_text="Выберите тип размещения",
     )
     # Страна отеля
     country = models.CharField(
         max_length=50,
         verbose_name="Страна",
-        help_text="Введите страну",
     )
     # Город отеля
     city = models.CharField(
         max_length=50,
         verbose_name="Город",
-        help_text="Введите город",
     )
     # Адрес отеля
     address = models.CharField(
         max_length=100,
         verbose_name="Адрес отеля",
-        help_text="Введите адрес отеля",
     )
     # Расстояние до моря
     distance_to_sea = models.IntegerField(
         verbose_name="Расстояние до моря",
-        help_text="Введите расстояние до моря",
+        help_text="Введите расстояние до моря в метрах",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10000),
@@ -170,7 +161,7 @@ class Hotel(models.Model):
     # Расстояние до аэропорта
     distance_to_airport = models.IntegerField(
         verbose_name="Расстояние до аэропорта",
-        help_text="Введите расстояние до аэропорта",
+        help_text="Введите расстояние до аэропорта в метрах",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(200000),
@@ -180,7 +171,6 @@ class Hotel(models.Model):
     # Описание отеля
     description = models.TextField(
         verbose_name="Описание отеля",
-        help_text="Введите описание отеля",
     )
     # Номера в отеле
     room = models.ManyToManyField(
@@ -192,13 +182,11 @@ class Hotel(models.Model):
     amenities = models.ManyToManyField(
         "HotelAmenity",
         verbose_name="Удобства в отеле",
-        help_text="Выберите удобства в отеле",
         blank=True,
     )
     # Пользовательская оценка
     user_rating = models.DecimalField(
         verbose_name="Пользовательская оценка",
-        help_text="Введите оценку",
         max_digits=3,
         decimal_places=1,
         **NULLABLE,
@@ -209,7 +197,6 @@ class Hotel(models.Model):
         choices=TimeChoices.in_time(),
         default=time(14, 0),
         verbose_name="Время заезда",
-        help_text="Выберите время заезда",
     )
     # Время выезда
     check_out_time = models.TimeField(
@@ -217,13 +204,11 @@ class Hotel(models.Model):
         choices=TimeChoices.out_time(),
         default=time(12, 0),
         verbose_name="Время выезда",
-        help_text="Выберите время выезда",
     )
     # Фотографии отеля
     photos = models.ManyToManyField(
         "HotelPhoto",
         verbose_name="Фотографии отеля",
-        help_text="Загрузите фотографии отеля",
         blank=True,
     )
 
@@ -244,7 +229,6 @@ class RoomAmenity(models.Model):
     name = models.CharField(
         max_length=50,
         verbose_name="Удобство",
-        help_text="Введите удобство",
     )
 
     class Meta:
@@ -263,7 +247,6 @@ class RoomCategory(models.Model):
     name = models.CharField(
         max_length=20,
         verbose_name="Категория номера",
-        help_text="Выберите категорию номера",
     )
 
     class Meta:
@@ -282,7 +265,6 @@ class HotelAmenity(models.Model):
     name = models.CharField(
         max_length=50,
         verbose_name="Удобство",
-        help_text="Введите удобство",
     )
 
     class Meta:
@@ -295,13 +277,12 @@ class HotelAmenity(models.Model):
 
 class RoomPhoto(models.Model):
     """
-    Класс для загрузки несколько фотографий номера отеля
+    Класс для загрузки нескольких фотографий номеров отеля
     """
 
     photo = models.ImageField(
         upload_to="hotels/rooms/",
         verbose_name="Фотография номера",
-        help_text="Загрузите фотографии номера",
     )
 
     class Meta:
@@ -311,13 +292,12 @@ class RoomPhoto(models.Model):
 
 class HotelPhoto(models.Model):
     """
-    Класс для загрузки несколько фотографий номера отеля
+    Класс для загрузки нескольких фотографий отеля
     """
 
     photo = models.ImageField(
         upload_to="hotels/",
         verbose_name="Фотография отеля",
-        help_text="Загрузите фотографии отеля",
     )
 
     class Meta:
