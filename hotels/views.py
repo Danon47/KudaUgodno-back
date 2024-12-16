@@ -8,7 +8,6 @@ from .models import (
     AmenityHotel,
     CategoryRoom,
 )
-from .pagination import MyPagination
 from .serializers import (
     HotelSerializer,
     RoomSerializer,
@@ -21,12 +20,25 @@ from .serializers import (
 class RoomListCreateView(generics.ListCreateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех номеров",
         operation_summary="Список номеров",
         tags=["3. Номер"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество номеров для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка номеров",
@@ -34,6 +46,7 @@ class RoomListCreateView(generics.ListCreateAPIView):
             ),
             400: "Ошибка запроса",
         },
+
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -57,13 +70,12 @@ class RoomListCreateView(generics.ListCreateAPIView):
 class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации о номере",
         operation_description="Возвращает полную информацию о конкретном номере по его идентификатору",
         tags=["3. Номер"],
-        manual_zarameters=[
+        manual_parameters=[
             openapi.Parameter(
                 name="id",
                 in_=openapi.IN_PATH,
@@ -88,6 +100,15 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет все поля номера целиком",
         tags=["3. Номер"],
         request_body=RoomSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Номер успешно обновлен", schema=RoomSerializer()
@@ -104,6 +125,15 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет указанные поля номера",
         tags=["3. Номер"],
         request_body=RoomSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Номер успешно обновлен", schema=RoomSerializer()
@@ -120,6 +150,15 @@ class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Полное удаление номера по его идентификатору",
         tags=["3. Номер"],
         responses={204: "Номер успешно удален", 404: "Номер не найден"},
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор отеля в базе данных",
+                required=True,
+            )
+        ],
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
@@ -170,12 +209,25 @@ class CategoryRoomCreateAPIView(generics.CreateAPIView):
 class HotelListCreateView(generics.ListCreateAPIView):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
-    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_description="Получение списка всех отелей",
         operation_summary="Список отелей",
         tags=["3.1 Отель"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество отелей для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка отелей",
@@ -206,7 +258,6 @@ class HotelListCreateView(generics.ListCreateAPIView):
 class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
-    pagination_class = MyPagination
 
     @swagger_auto_schema(
         operation_summary="Получение детальной информации об отеле",
@@ -237,6 +288,15 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет все поля отеля целиком",
         tags=["3.1 Отель"],
         request_body=HotelSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Отель успешно обновлен", schema=HotelSerializer()
@@ -253,6 +313,15 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет указанные поля отеля",
         tags=["3.1 Отель"],
         request_body=HotelSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Отель успешно обновлен", schema=HotelSerializer()
@@ -269,6 +338,15 @@ class HotelDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description="Полное удаление отеля по его идентификатору",
         tags=["3.1 Отель"],
         responses={204: "Отель успешно удален", 404: "Отель не найден"},
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор отеля в базе данных",
+                required=True,
+            )
+        ],
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
