@@ -25,10 +25,7 @@ class AmenityHotelSerializer(serializers.ModelSerializer):
 class CategoryRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomCategory
-        fields = (
-            "id",
-            "name",
-        )
+        fields = ("id", "name",)
 
 
 class RoomPhotoSerializer(serializers.ModelSerializer):
@@ -70,7 +67,7 @@ class RoomSerializer(serializers.ModelSerializer):
 class HotelSerializer(serializers.ModelSerializer):
     amenities = AmenityHotelSerializer(many=True, read_only=True)
     rooms = RoomSerializer(source="room", many=True, read_only=True)
-    photos = RoomPhotoSerializer(many=True, read_only=True)
+    photos = HotelPhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hotel
