@@ -7,9 +7,9 @@ app_name = ApplicationsConfig.name
 
 urlpatterns = [
     # Заявка
-    path("", ApplicationListCreateView.as_view(), name="application-list-create"),
-    path("<int:pk>", ApplicationDetailView.as_view(), name="application-detail-update-delete"),
+    path("", ApplicationListCreateView.as_view(), name="application_list_create"),
+    path("<int:pk>", ApplicationDetailView.as_view(), name="application_detail_update_delete"),
     # Гости
-    path("guests/", GuestListCreateView.as_view(), name="guest-list-create"),
-    path("guests/<int:pk>", GuestDetailView.as_view(), name="guest-detail-update-delete"),
+    path("guests/", GuestListCreateView.as_view(), name="guest_list_create"),
+    path("guests/<int:pk>", GuestDetailView.as_view(), name="guest_detail_update_delete"),
 ]
