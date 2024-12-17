@@ -281,7 +281,7 @@ class RoomPhoto(models.Model):
     """
 
     photo = models.ImageField(
-        upload_to="hotels/rooms/",
+        upload_to="hotels/hotels/rooms/",
         verbose_name="Фотография номера",
     )
 
@@ -296,7 +296,7 @@ class HotelPhoto(models.Model):
     """
 
     photo = models.ImageField(
-        upload_to="hotels/",
+        upload_to="hotels/hotels/",
         verbose_name="Фотография отеля",
     )
 
