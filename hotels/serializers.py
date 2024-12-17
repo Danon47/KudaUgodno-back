@@ -89,3 +89,4 @@ class HotelSerializer(serializers.ModelSerializer):
             "check_out_time",
             "photos",
         )
+        read_only_fields = ("user_rating",)
