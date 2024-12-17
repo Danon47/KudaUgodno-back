@@ -87,8 +87,12 @@ class Room(models.Model):
         **NULLABLE,
     )
     # Цена за ночь
-    nightly_price = models.PositiveIntegerField(
+    nightly_price = models.IntegerField(
         verbose_name="Цена за ночь",
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(100000),
+        ],
     )
     # Фотографии номера
     photos = models.ManyToManyField(
@@ -97,6 +101,14 @@ class Room(models.Model):
         blank=True,
     )
     # Ближайшая свободная дата ?
+
+    # Отель
+    hotel = models.ForeignKey(
+        "Hotel",
+        on_delete=models.CASCADE,
+        related_name="rooms",
+        verbose_name="Отель",
+    )
 
     class Meta:
         verbose_name = "Номер"
@@ -171,12 +183,6 @@ class Hotel(models.Model):
     # Описание отеля
     description = models.TextField(
         verbose_name="Описание отеля",
-    )
-    # Номера в отеле
-    room = models.ManyToManyField(
-        Room,
-        verbose_name="Номера в отеле",
-        blank=True,
     )
     # Удобства в номере
     amenities = models.ManyToManyField(

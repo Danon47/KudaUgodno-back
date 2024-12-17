@@ -66,7 +66,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
 class HotelSerializer(serializers.ModelSerializer):
     amenities = AmenityHotelSerializer(many=True, read_only=True)
-    rooms = RoomSerializer(source="room", many=True, read_only=True)
+    rooms = RoomSerializer(many=True, read_only=True)
     photos = HotelPhotoSerializer(many=True, read_only=True)
 
     class Meta:
