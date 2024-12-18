@@ -84,7 +84,7 @@ class Guest(models.Model):
         ordering = ("lastname",)
 
     def __str__(self):
-        return f"{self.lastname} {self.firstname} {self.surname}"
+        return f"{self.lastname} {self.firstname}"
 
 
 class Application(models.Model):
@@ -168,5 +168,5 @@ class Application(models.Model):
         ordering = ("-pk",)
 
     def __str__(self):
-        return self.pk
+        return f"Заявка N {self.pk}"
 
