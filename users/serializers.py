@@ -12,12 +12,12 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "email",
-            "user_type",
             "first_name",
             "last_name",
             "password",
             "phone_number",
         ]
+        read_only_fields = ("is_stuff", "is_superuser",)
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate_phone_number(self, value):
