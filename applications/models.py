@@ -71,11 +71,10 @@ class Guest(models.Model):
         verbose_name="Срок действия иностранного паспорта",
         **NULLABLE
     )
-    user_owner = models.ForeignKey(
+    user_owner = models.ManyToManyField(
         "users.User",
-        on_delete=models.CASCADE,
-        verbose_name="Пользователь кто создал гостя",
-        **NULLABLE
+        verbose_name="Пользователи которые использовали гостя",
+        blank=True
     )
 
     class Meta:
