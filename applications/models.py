@@ -113,14 +113,12 @@ class Application(models.Model):
         verbose_name="Количество номеров",
         help_text="Количество номеров которые хотят забронировать",
         blank=True,
-        # related_name="room_applications"
     )
     # Количество гостей
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
         blank=True,
-        # related_name="guest_applications"
     )
     #Оформление визы
     visa = models.PositiveIntegerField(

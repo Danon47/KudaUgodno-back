@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from applications.models import Application, Guest
+from hotels.serializers import RoomSerializer
 
 
 class GuestSerializer(serializers.ModelSerializer):
@@ -29,7 +30,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
     Сериализатор для модели Application
     """
 
-    # quantity_guests = GuestSerializer(source="guest_applications", many=True)
+    quantity_guests = GuestSerializer(many=True)
+    quantity_rooms = RoomSerializer(many=True)
 
     class Meta:
         model = Application
