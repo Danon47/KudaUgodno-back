@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from users.managers import CustomUserManager
+
 
 class User(AbstractUser):
     """
@@ -25,6 +27,8 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
+
+    objects = CustomUserManager()  # Устанавливает кастомный менеджер пользователей
 
     def __str__(self):
         return self.username
