@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -15,6 +16,12 @@ class User(AbstractUser):
         unique=True,
         help_text="Номер телефона в формате: +7 (999) 999-99-99",
     )  # Добавлено поле телефона
+    avatar = models.ImageField(
+        upload_to='users/avatars/',  # Папка, куда будут загружаться аватары
+        null=True,
+        blank=True,
+        verbose_name="Аватар",
+    )
 
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
