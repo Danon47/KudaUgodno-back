@@ -31,4 +31,4 @@ class User(AbstractUser):
     objects = CustomUserManager()  # Устанавливает кастомный менеджер пользователей
 
     def __str__(self):
-        return self.username
+        return f"{self.first_name} {self.last_name} ({self.phone_number})"
