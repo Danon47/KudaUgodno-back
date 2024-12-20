@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
+from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
 from applications.models import Application, Guest
@@ -101,3 +102,55 @@ class ApplicationTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.count(), 2)
 
+    def test_application_retrieve(self):
+        """Тест на вывод конкретной заявки"""
+
+        url = reverse(
+            "applications:application_detail_update_delete", args=(self.application.pk,)
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.json()["email"], "test@test.ru")
+
+    def test_applications_put(self):
+        """Тест на обновление заявки"""
+
+        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        data = {
+            "pk": 6,
+            "tour": self.tour.pk,
+            "email": "test1@test.ru",
+            "phone_number": "+79999999988",
+            "visa": 1,
+            "med_insurance": False,
+            "cancellation_insurance": False,
+            "wishes": "test wishes new",
+            "status": "Подтвержден",
+            "user_owner": self.user.pk,
+            "quantity_rooms": [self.room.pk],
+            "quantity_guests": [self.guest.pk]
+        }
+
+        response = self.client.put(url, data)
+        print(response.data)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.json()["wishes"], "test wishes new")
+
+    def test_application_patch(self):
+        """Тест на частичное обновление заявки"""
+
+        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        data = {
+            "email": "test2@test.ru",
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.json()["email"], "test2@test.ru")
+
+    def test_applications_delete(self):
+        """Удаление заявки"""
+
+        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Application.objects.count(), 0)
