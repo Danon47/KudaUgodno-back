@@ -1,7 +1,9 @@
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 from flights.models import Flight
 from hotels.models import Room, Hotel
+from tours.choices import FoodChoices
 from users.models import User
 
 NULLABLE = {"blank": True, "null": True}
@@ -13,23 +15,14 @@ class Tour(models.Model):
     """
 
     # Дата начала тура
-    start_date = models.DateField(
-        verbose_name="Дата начала тура", help_text="Укажите дату начала тура"
-    )
+    start_date = models.DateField(verbose_name="Дата начала тура")
     # Дата окончания тура
-    end_date = models.DateField(
-        verbose_name="Дата окончания тура", help_text="Укажите дату окончания тура"
-    )
-    # Название тура (название отеля)
-    name = models.CharField(
-        max_length=100, verbose_name="Название", help_text="Введите название тура"
-    )
+    end_date = models.DateField(verbose_name="Дата окончания тура")
     # Рейс туда
     flight_to = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
         verbose_name="Рейс туда",
-        help_text="Укажите рейс туда",
         related_name="tours",
         **NULLABLE,
     )
@@ -38,7 +31,12 @@ class Tour(models.Model):
         Flight,
         on_delete=models.SET_NULL,
         verbose_name="Рейс обратно",
-        help_text="Укажите обратный рейс",
+        **NULLABLE,
+    )
+    #   Город вылета
+    departure_city = models.CharField(
+        max_length=50,
+        verbose_name="Город вылета",
         **NULLABLE,
     )
     # Туроператор
@@ -46,7 +44,6 @@ class Tour(models.Model):
         User,
         on_delete=models.SET_NULL,
         verbose_name="Туроператор",
-        help_text="Укажите туроператора",
         related_name="tours",
         **NULLABLE,
     )
@@ -55,46 +52,36 @@ class Tour(models.Model):
         Hotel,
         on_delete=models.SET_NULL,
         verbose_name="Отель",
-        help_text="Укажите отель",
         related_name="tours",
         **NULLABLE,
     )
-    # Номер
-    room = models.ForeignKey(
+
+    room = models.ManyToManyField(
         Room,
-        on_delete=models.SET_NULL,
         verbose_name="Номер",
-        help_text="Укажите номер",
         related_name="tours",
+    )
+    # Количество человек
+    guests_number = models.PositiveIntegerField(
+        verbose_name="Количество человек",
+        default=2,
+        validators=[
+            MaxValueValidator(10),
+        ],
         **NULLABLE,
     )
-    # Страна тура
-    country = models.CharField(
-        max_length=50,
-        verbose_name="Страна",
-        help_text="Введите страну",
-        **NULLABLE,
-    )
-    # Город тура
-    city = models.CharField(
-        max_length=50,
-        verbose_name="Город",
-        help_text="Введите город",
-        **NULLABLE
-    )
-    # Тип отдыха
-    type_of_holiday = models.CharField(
-        max_length=100,
-        verbose_name="Тип отдыха",
-        help_text="Укажите тип отдыха",
-        **NULLABLE,
+    # Тип питания
+    food = models.CharField(
+        max_length=30,
+        choices=FoodChoices.choices,
+        default=FoodChoices.ONLY_BREAKFAST,
+        verbose_name="Тип питания",
     )
     # Стоимость питания
     meal_cost = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Стоимость питания",
-        help_text="Укажите стоимость питания",
         **NULLABLE,
     )
     # Стоимость тура
@@ -102,7 +89,6 @@ class Tour(models.Model):
         max_digits=10,
         decimal_places=2,
         verbose_name="Стоимость тура",
-        help_text="Укажите стоимость тура",
         **NULLABLE,
     )
 
@@ -112,4 +98,4 @@ class Tour(models.Model):
         ordering = ("start_date",)
 
     def __str__(self):
-        return f"{self.start_date} - {self.end_date}"
+        return f"{self.hotel.name}"
