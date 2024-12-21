@@ -78,6 +78,15 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет все поля рейса",
         tags=["4. Рейс"],
         request_body=FlightSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Рейс успешно обновлен", schema=FlightSerializer()
@@ -94,6 +103,15 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет указанные поля рейса",
         tags=["4. Рейс"],
         request_body=FlightSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор номера в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Рейс успешно обновлен", schema=FlightSerializer()
