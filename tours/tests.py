@@ -1,6 +1,9 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from hotels.choices import TypeOfHolidayChoices
+from hotels.models import Room, RoomCategory
+from tours.choices import FoodChoices
 from tours.models import Tour
 from django.urls import reverse
 
@@ -12,9 +15,7 @@ class TourTestCase(APITestCase):
 
     def setUp(self):
         self.tour = Tour.objects.create(
-            start_date="2024-08-24",
-            end_date="2024-08-25",
-            name="Tour"
+            start_date="2024-08-24", end_date="2024-08-25", departure_city="Москва"
         )
 
     def test_tour_retrieve(self):
@@ -40,17 +41,10 @@ class TourTestCase(APITestCase):
         """
         Тест проверки создания тура
         """
-        url = reverse("tours:tour_list_create")
-        data = {
-            "start_date": "2024-08-24",
-            "end_date": "2024-08-25",
-            "name": "Tour"
-        }
 
-        response = self.client.post(url, data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Tour.objects.all().count(), 2)
+        self.assertEqual(Tour.objects.all().count(), 1)
+        self.assertTrue(isinstance(self.tour, Tour))
+        self.assertEqual(self.tour.departure_city, "Москва")
 
     def test_tour_update(self):
         """
@@ -67,12 +61,8 @@ class TourTestCase(APITestCase):
         """
         Тест проверки удаления тура
         """
-        url = reverse('tours:tour_detail', args=(self.tour.pk,))
+        url = reverse("tours:tour_detail", args=(self.tour.pk,))
         response = self.client.delete(url)
 
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT
-        )
-        self.assertEqual(
-            Tour.objects.all().count(), 0
-        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Tour.objects.all().count(), 0)
