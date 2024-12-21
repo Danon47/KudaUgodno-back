@@ -12,7 +12,6 @@ class TourSerializer(ModelSerializer):
         model = Tour
         fields = (
             'id',
-            'name',
             'start_date',
             'end_date',
             'flight_to',
@@ -20,10 +19,8 @@ class TourSerializer(ModelSerializer):
             'tour_operator',
             'hotel',
             'room',
-            'country',
-            'city',
-            'type_of_holiday',
             'meal_cost',
             'price'
         )
+        read_only_fields = ('price', 'meal_cost')
 
