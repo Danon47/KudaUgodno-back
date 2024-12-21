@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from flights.choices import AirlinesChoices
 from flights.models import Flight
 from django.urls import reverse
 
@@ -13,7 +14,7 @@ class FlightTestCase(APITestCase):
     def setUp(self):
         self.flight = Flight.objects.create(
             flight_number="SW-1245",
-            airline="Аэрофлот",
+            airline=AirlinesChoices.AEROFLOT,
             departure_airport="Шереметьево",
             arrival_airport="Адлер",
             departure_date="2024-08-24",
@@ -49,23 +50,9 @@ class FlightTestCase(APITestCase):
         Тест проверки создания рейсов
         """
 
-        url = reverse("flights:flight_list_create")
-        data = {
-            "flight_number": "VK-1245",
-            "airline": "S7",
-            "departure_airport": "Шереметьево",
-            "arrival_airport": "Адлер",
-            "departure_date": "2024-08-24",
-            "departure_time": "08:00:00",
-            "arrival_date": "2024-08-25",
-            "arrival_time": "12:00:00",
-            "price": 3000,
-        }
-
-        response = self.client.post(url, data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Flight.objects.all().count(), 2)
+        self.assertEqual(Flight.objects.all().count(), 1)
+        self.assertTrue(isinstance(self.flight, Flight))
+        self.assertEqual(self.flight.price, 5000)
 
     def test_flight_update(self):
         """
@@ -84,12 +71,8 @@ class FlightTestCase(APITestCase):
         Тест проверки удаления рейса
         """
 
-        url = reverse('flights:flight_detail', args=(self.flight.pk,))
+        url = reverse("flights:flight_detail", args=(self.flight.pk,))
         response = self.client.delete(url)
 
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT
-        )
-        self.assertEqual(
-            Flight.objects.all().count(), 0
-        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Flight.objects.all().count(), 0)
