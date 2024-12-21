@@ -98,7 +98,6 @@ class ApplicationTest(TestCase):
             "quantity_guests": [self.guest.id],
         }
         response = self.client.post(url, data)
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.count(), 2)
 
@@ -132,7 +131,6 @@ class ApplicationTest(TestCase):
         }
 
         response = self.client.put(url, data)
-        print(response.data)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.json()["wishes"], "test wishes new")
 
