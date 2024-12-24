@@ -71,11 +71,10 @@ class Guest(models.Model):
         verbose_name="Срок действия иностранного паспорта",
         **NULLABLE
     )
-    user_owner = models.ForeignKey(
+    user_owner = models.ManyToManyField(
         "users.User",
-        on_delete=models.CASCADE,
-        verbose_name="Пользователь кто создал гостя",
-        **NULLABLE
+        verbose_name="Пользователи которые использовали гостя",
+        blank=True
     )
 
     class Meta:
@@ -84,7 +83,7 @@ class Guest(models.Model):
         ordering = ("lastname",)
 
     def __str__(self):
-        return f"{self.lastname} {self.firstname} {self.surname}"
+        return f"{self.lastname} {self.firstname}"
 
 
 class Application(models.Model):
@@ -114,14 +113,12 @@ class Application(models.Model):
         verbose_name="Количество номеров",
         help_text="Количество номеров которые хотят забронировать",
         blank=True,
-        # related_name="room_applications"
     )
     # Количество гостей
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
         blank=True,
-        # related_name="guest_applications"
     )
     #Оформление визы
     visa = models.PositiveIntegerField(
@@ -168,5 +165,5 @@ class Application(models.Model):
         ordering = ("-pk",)
 
     def __str__(self):
-        return self.pk
+        return f"Заявка N {self.pk}"
 

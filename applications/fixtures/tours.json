@@ -1,0 +1,21 @@
+[
+  {
+    "model": "tours.tour",
+    "pk": 1,
+    "fields": {
+      "start_date": "2024-12-18",
+      "end_date": "2024-12-29",
+      "name": "Тур в Турцию",
+      "flight_to": 1,
+      "flight_from": 2,
+      "tour_operator": 1,
+      "hotel": 1,
+      "room": 1,
+      "country": "Турция",
+      "city": "Алания",
+      "type_of_holiday": "Классный",
+      "meal_cost": "1400.00",
+      "price": "400000.00"
+    }
+  }
+]
