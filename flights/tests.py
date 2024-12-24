@@ -13,7 +13,7 @@ class FlightTestCase(APITestCase):
 
     def setUp(self):
         self.flight = Flight.objects.create(
-            flight_number="SW-1245",
+            flight_number="SW 1245",
             airline=AirlinesChoices.AEROFLOT,
             departure_airport="Шереметьево",
             arrival_airport="Адлер",
@@ -58,13 +58,28 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки изменения рейса
         """
-
         url = reverse("flights:flight_detail", args=(self.flight.pk,))
-        data = {"airline": "Победа"}
-        response = self.client.patch(url, data)
+        data = {
+            "flight_number": "SW 1246",
+            "airline": self.flight.airline,  # Сохраните текущее значение или обновите его
+            "departure_airport": self.flight.departure_airport,
+            "arrival_airport": self.flight.arrival_airport,
+            "departure_date": self.flight.departure_date,
+            "departure_time": self.flight.departure_time,
+            "arrival_date": self.flight.arrival_date,
+            "arrival_time": self.flight.arrival_time,
+            "price": self.flight.price,
+            "service_class": self.flight.service_class,
+            "flight_type": self.flight.flight_type,
+        }
+        response = self.client.patch(url, data, format="json")
 
+        # Проверка статуса ответа
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(data.get("airline"), "Победа")
+
+        # Получаем обновленный объект
+        self.flight.refresh_from_db()
+        self.assertEqual(self.flight.flight_number, "SW 1246")
 
     def test_flight_delete(self):
         """
