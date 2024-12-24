@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 
 from flights.choices import AirlinesChoices, ServicesClassChoices, FlightTypeChoices
@@ -67,6 +67,7 @@ class Flight(models.Model):
         decimal_places=2,
         verbose_name="Цена",
         help_text="Укажите цену билета",
+        validators=[MinValueValidator(0.01)],
     )
     # Клас обслуживания
     service_class = models.CharField(
