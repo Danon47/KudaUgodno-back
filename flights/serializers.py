@@ -53,11 +53,11 @@ class FlightSerializer(ModelSerializer):
             "arrival_time",
             "price",
         )
-        # Валидатор для проверки уникальности рейса в конкретную дату
+
         validators = [
             serializers.UniqueTogetherValidator(
                 fields=["flight_number", "departure_date"],
-                queryset=Flight.objects.all(),
+                queryset=Flight.objects.all(),  # Валидатор для проверки уникальности рейса в конкретную дату
             ),
             AirportValidator(field="departure_airport"),
             AirportValidator(field="arrival_airport"),

@@ -2,6 +2,9 @@ from rest_framework.exceptions import ValidationError
 
 
 class AirportValidator:
+    """
+    Валидатор на наличие недопустимых слов в названии аэропорта.
+    """
     def __init__(self, field):
         self.field = field
 
