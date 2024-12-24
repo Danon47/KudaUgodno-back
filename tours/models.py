@@ -3,7 +3,6 @@ from django.db import models
 
 from flights.models import Flight
 from hotels.models import Room, Hotel
-from tours.choices import FoodChoices
 from users.models import User
 
 NULLABLE = {"blank": True, "null": True}
@@ -55,7 +54,6 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-
     room = models.ManyToManyField(
         Room,
         verbose_name="Номер",
@@ -70,13 +68,7 @@ class Tour(models.Model):
         ],
         **NULLABLE,
     )
-    # Тип питания
-    food = models.CharField(
-        max_length=30,
-        choices=FoodChoices.choices,
-        default=FoodChoices.ONLY_BREAKFAST,
-        verbose_name="Тип питания",
-    )
+
     # Стоимость питания
     meal_cost = models.DecimalField(
         max_digits=10,
