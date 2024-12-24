@@ -1,7 +1,34 @@
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
+
+from users.managers import CustomUserManager
+
 
 class User(AbstractUser):
     """
     Модель Пользователя
     """
-    pass
+
+    username = None
+
+    phone_number = PhoneNumberField(
+        region="RU",
+        verbose_name="Телефон",
+        unique=True,
+        help_text="Номер телефона в формате: +7 (999) 999-99-99",
+    )  # Добавлено поле телефона
+    avatar = models.ImageField(
+        upload_to='users/avatars/',  # Папка, куда будут загружаться аватары
+        null=True,
+        blank=True,
+        verbose_name="Аватар",
+    )
+
+    USERNAME_FIELD = "phone_number"
+    REQUIRED_FIELDS = []
+
+    objects = CustomUserManager()  # Устанавливает кастомный менеджер пользователей
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.phone_number})"
