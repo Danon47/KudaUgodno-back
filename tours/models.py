@@ -69,13 +69,6 @@ class Tour(models.Model):
         **NULLABLE,
     )
 
-    # Стоимость питания
-    meal_cost = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Стоимость питания",
-        **NULLABLE,
-    )
     # Стоимость тура
     price = models.DecimalField(
         max_digits=10,

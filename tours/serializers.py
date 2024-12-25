@@ -48,7 +48,6 @@ class TourSerializer(ModelSerializer):
             "tour_operator",
             "hotel",
             "room",
-            "meal_cost",
             "price",
         )
-        read_only_fields = ("price", "meal_cost")
+        read_only_fields = ("price", )

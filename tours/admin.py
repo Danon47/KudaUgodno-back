@@ -13,7 +13,6 @@ class TourAdmin(admin.ModelAdmin):
             'flight_to',
             'tour_operator',
             'hotel',
-            'meal_cost',
             'price'
         )
     list_filter = ("tour_operator",)
