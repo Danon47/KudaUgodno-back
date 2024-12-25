@@ -17,6 +17,20 @@ class TourListCreateView(ListCreateAPIView):
         operation_description="Получение списка туров",
         operation_summary="Список туров",
         tags=["2. Тур"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество туров для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            ),
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка туров",
@@ -45,10 +59,9 @@ class TourListCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         tour = serializer.save()
-        # tour.meal_cost = tour.food * tour.hotel
-        tour.price = (tour.end_date - tour.start_date) * (
-            tour.room.price + tour.meal_cost * tour.guests_number
-        ) + (tour.flight_to.price + tour.flight_from.price) * tour.guests_number
+        tour.price = (tour.end_date - tour.start_date) * tour.room.price + (
+            tour.flight_to.price + tour.flight_from.price
+        ) * tour.guests_number
         tour.save()
 
 
@@ -134,6 +147,15 @@ class TourDetailView(RetrieveUpdateDestroyAPIView):
         operation_summary="Удаление тура",
         operation_description="Полное удаление тура по его идентификатору",
         tags=["2. Тур"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор тура",
+                required=True,
+            )
+        ],
         responses={204: "Тур успешно удален", 404: "Тур не найден"},
     )
     def delete(self, request, *args, **kwargs):
