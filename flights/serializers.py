@@ -50,6 +50,9 @@ class FlightSerializer(ModelSerializer):
             "arrival_date",
             "arrival_time",
             "price",
+            "service_class",
+            "flight_type",
+
         )
 
         validators = [
