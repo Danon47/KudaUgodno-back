@@ -59,9 +59,12 @@ class TourListCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         tour = serializer.save()
-        tour.price = (tour.end_date - tour.start_date) * tour.room.price + (
-            tour.flight_to.price + tour.flight_from.price
-        ) * tour.guests_number
+        total_price = 0
+        if tour.room and tour.flight_from and tour.flight_to:
+            for room in tour.room.all():
+                total_price += (tour.end_date - tour.start_date).days * room.nightly_price
+            total_price += (tour.flight_to.price + tour.flight_from.price) * tour.guests_number
+        tour.price = total_price
         tour.save()
 
 
