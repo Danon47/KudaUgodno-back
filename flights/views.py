@@ -18,6 +18,20 @@ class FlightListCreateView(ListCreateAPIView):
         operation_description="Получение списка рейсов",
         operation_summary="Список рейсов",
         tags=["4. Рейс"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество рейсов для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            ),
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка рейсов",
@@ -127,6 +141,15 @@ class FlightDetailView(RetrieveUpdateDestroyAPIView):
         operation_summary="Удаление рейса",
         operation_description="Полное удаление рейса по его идентификатору",
         tags=["4. Рейс"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор рейса",
+                required=True,
+            )
+        ],
         responses={204: "Рейс успешно удален", 404: "Рейс не найден"},
     )
     def delete(self, request, *args, **kwargs):
