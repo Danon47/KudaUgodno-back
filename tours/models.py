@@ -58,6 +58,7 @@ class Tour(models.Model):
         Room,
         verbose_name="Номер",
         related_name="tours",
+        blank=True,
     )
     # Количество человек
     guests_number = models.PositiveIntegerField(
