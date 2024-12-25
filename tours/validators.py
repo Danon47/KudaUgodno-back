@@ -29,7 +29,7 @@ class EndDateValidator:
 
     def __call__(self, value):
         start_date_field = value.get("start_date")
-        end_date_field = value.get("start_date")
+        end_date_field = value.get("end_date")
 
         if end_date_field < start_date_field:
             raise serializers.ValidationError(
