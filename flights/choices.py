@@ -36,7 +36,7 @@ class ServicesClassChoices(models.TextChoices):
     """
 
     ECONOMY = "Эконом", "Эконом"
-    BUSINESS = "Бизнес ", "Бизнес"
+    BUSINESS = "Бизнес", "Бизнес"
     FIRST = "Первый", "Первый"
 
 

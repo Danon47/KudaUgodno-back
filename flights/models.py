@@ -74,14 +74,14 @@ class Flight(models.Model):
         max_length=100,
         verbose_name="Класс обслуживания",
         choices=ServicesClassChoices.choices,
-        default=ServicesClassChoices.ECONOMY[0],
+        default=ServicesClassChoices.ECONOMY,
     )
     # Тип рейса
     flight_type = models.CharField(
         max_length=50,
         verbose_name="Тип рейса",
         choices=FlightTypeChoices.choices,
-        default=FlightTypeChoices.REGULAR[0],
+        default=FlightTypeChoices.REGULAR,
     )
 
     class Meta:
