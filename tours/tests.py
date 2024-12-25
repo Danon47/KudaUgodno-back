@@ -38,14 +38,44 @@ class TourTestCase(APITestCase):
 
     def test_tour_create(self):
         """
-        Тест проверки создания тура
+        Тест проверки создания тура методом POST
         """
+        url = reverse("tours:tour_list_create")
+        data = {
+            "start_date": "2029-10-01",
+            "end_date": "2029-10-05",
+            "departure_city": "Казань",
+        }
 
-        self.assertEqual(Tour.objects.all().count(), 1)
-        self.assertTrue(isinstance(self.tour, Tour))
-        self.assertEqual(self.tour.departure_city, "Москва")
+        response = self.client.post(url, data, format="json")
 
-    def test_tour_update(self):
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Tour.objects.count(), 2)
+        created_tour = Tour.objects.get(departure_city="Казань")
+        self.assertEqual(created_tour.start_date, date(2029, 10, 1))
+        self.assertEqual(created_tour.end_date, date(2029, 10, 5))
+
+    def test_tour_update_put(self):
+        """
+        Тест проверки изменения тура методом PUT
+        """
+        url = reverse("tours:tour_detail", args=(self.tour.pk,))
+        data = {
+            "start_date": "2029-10-01",
+            "end_date": "2029-10-05",
+            "departure_city": "Санкт-Петербург",
+            "guests_number": 3,
+        }
+
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.tour.refresh_from_db()
+        self.assertEqual(self.tour.start_date, date(2029, 10, 1))
+        self.assertEqual(self.tour.end_date, date(2029, 10, 5))
+        self.assertEqual(self.tour.departure_city, "Санкт-Петербург")
+        self.assertEqual(self.tour.guests_number, 3)
+
+    def test_tour_update_patch(self):
         """
         Тест проверки изменения тура
         """
@@ -53,10 +83,7 @@ class TourTestCase(APITestCase):
         data = {
             "start_date": "2029-09-01",
             "end_date": "2029-09-05",
-            "departure_city": "Санкт-Петербург",
             "guests_number": 3,
-            "food": "ONLY_BREAKFAST",
-            "price": 12000,
         }
         response = self.client.patch(url, data, format="json")
 
@@ -64,7 +91,6 @@ class TourTestCase(APITestCase):
         self.tour.refresh_from_db()
         self.assertEqual(self.tour.start_date, date(2029, 9, 1))
         self.assertEqual(self.tour.end_date, date(2029, 9, 5))
-        self.assertEqual(self.tour.departure_city, "Санкт-Петербург")
         self.assertEqual(self.tour.guests_number, 3)
 
     def test_tour_delete(self):
