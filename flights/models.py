@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 
@@ -67,7 +69,7 @@ class Flight(models.Model):
         decimal_places=2,
         verbose_name="Цена",
         help_text="Укажите цену билета",
-        validators=[MinValueValidator(0.01)],
+        validators=[MinValueValidator(Decimal('0.01'))],
     )
     # Клас обслуживания
     service_class = models.CharField(
