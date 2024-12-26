@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from flights.models import Flight
-from flights.validarors import DateValidator, ForbiddenWordValidator
+from flights.validators.validarors import DateValidator, ForbiddenWordValidator
 
 
 class FlightSerializer(ModelSerializer):

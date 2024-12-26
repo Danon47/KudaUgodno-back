@@ -19,7 +19,7 @@ class ForbiddenWordValidator:
         """
         file_path = os.path.join(os.path.dirname(__file__), "forbidden_words.txt")
         with open(file_path, "r", encoding="utf-8") as file:
-            return [line.strip().lower() for line in file if line.strip()]
+            return file.read().splitlines()
 
     def __call__(self, value):
         for field in self.fields:
