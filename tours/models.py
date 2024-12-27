@@ -14,9 +14,13 @@ class Tour(models.Model):
     """
 
     # Дата начала тура
-    start_date = models.DateField(verbose_name="Дата начала тура")
+    start_date = models.DateField(
+        verbose_name="Дата начала тура"
+    )
     # Дата окончания тура
-    end_date = models.DateField(verbose_name="Дата окончания тура")
+    end_date = models.DateField(
+        verbose_name="Дата окончания тура"
+    )
     # Рейс туда
     flight_to = models.ForeignKey(
         Flight,
@@ -32,7 +36,7 @@ class Tour(models.Model):
         verbose_name="Рейс обратно",
         **NULLABLE,
     )
-    #   Город вылета
+    # Город вылета
     departure_city = models.CharField(
         max_length=50,
         verbose_name="Город вылета",
@@ -54,6 +58,7 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
+    # Номера
     room = models.ManyToManyField(
         Room,
         verbose_name="Номер",

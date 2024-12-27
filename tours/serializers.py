@@ -28,5 +28,5 @@ class TourSerializer(ModelSerializer):
             "price",
         )
         read_only_fields = ("price",)
-        validators = [StartDateValidator("start_date"),
-                      EndDateValidator("start_date", "end_date")]
+        validators = [StartDateValidator(),
+                      EndDateValidator()]
