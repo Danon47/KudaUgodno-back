@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from flights.choices import AirlinesChoices
 from flights.models import Flight
 from django.urls import reverse
 
@@ -12,8 +13,8 @@ class FlightTestCase(APITestCase):
 
     def setUp(self):
         self.flight = Flight.objects.create(
-            flight_number="SW-1245",
-            airline="Аэрофлот",
+            flight_number="SW 1245",
+            airline=AirlinesChoices.AEROFLOT,
             departure_airport="Шереметьево",
             arrival_airport="Адлер",
             departure_date="2024-08-24",
@@ -44,52 +45,82 @@ class FlightTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_flight_create(self):
+    def test_flight_create_post(self):
         """
-        Тест проверки создания рейсов
+        Тест проверки создания рейса методом POST
         """
 
         url = reverse("flights:flight_list_create")
         data = {
-            "flight_number": "VK-1245",
-            "airline": "S7",
+            "flight_number": "SW 1247",
+            "airline": AirlinesChoices.AEROFLOT,
             "departure_airport": "Шереметьево",
-            "arrival_airport": "Адлер",
-            "departure_date": "2024-08-24",
-            "departure_time": "08:00:00",
-            "arrival_date": "2024-08-25",
-            "arrival_time": "12:00:00",
-            "price": 3000,
+            "arrival_airport": "Сочи",
+            "departure_date": "2024-09-01",
+            "departure_time": "09:00:00",
+            "arrival_date": "2024-09-01",
+            "arrival_time": "11:00:00",
+            "price": 6000,
         }
 
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Flight.objects.all().count(), 2)
 
-    def test_flight_update(self):
-        """
-        Тест проверки изменения рейса
-        """
+        self.assertEqual(Flight.objects.count(), 2)
+        created_flight = Flight.objects.get(flight_number="SW 1247")
+        self.assertEqual(created_flight.price, 6000)
+        self.assertEqual(created_flight.departure_airport, "Шереметьево")
+        self.assertEqual(created_flight.arrival_airport, "Сочи")
 
+    def test_flight_update_patch(self):
+        """
+        Тест проверки частичного изменения рейса
+        """
         url = reverse("flights:flight_detail", args=(self.flight.pk,))
-        data = {"airline": "Победа"}
-        response = self.client.patch(url, data)
-
+        data = {
+            "flight_number": "SW 1246",
+            "departure_date": self.flight.departure_date,
+            "departure_time": self.flight.departure_time,
+            "arrival_date": self.flight.arrival_date,
+            "arrival_time": self.flight.arrival_time,
+        }
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(data.get("airline"), "Победа")
+        self.flight.refresh_from_db()
+        self.assertEqual(self.flight.flight_number, "SW 1246")
+
+    def test_flight_update_put(self):
+        """
+        Тест проверки изменения рейса методом PUT
+        """
+        url = reverse("flights:flight_detail", args=(self.flight.pk,))
+        data = {
+            "flight_number": "SW 1246",
+            "airline": AirlinesChoices.AEROFLOT,
+            "departure_airport": "Шереметьево",
+            "arrival_airport": "Сочи",
+            "departure_date": "2024-09-01",
+            "departure_time": "09:00:00",
+            "arrival_date": "2024-09-01",
+            "arrival_time": "11:00:00",
+            "price": 6000
+        }
+
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.flight.refresh_from_db()
+        self.assertEqual(self.flight.flight_number, "SW 1246")
+        self.assertEqual(self.flight.price, 6000)
+        self.assertEqual(self.flight.arrival_airport, "Сочи")
 
     def test_flight_delete(self):
         """
         Тест проверки удаления рейса
         """
 
-        url = reverse('flights:flight_detail', args=(self.flight.pk,))
+        url = reverse("flights:flight_detail", args=(self.flight.pk,))
         response = self.client.delete(url)
 
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT
-        )
-        self.assertEqual(
-            Flight.objects.all().count(), 0
-        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Flight.objects.all().count(), 0)
