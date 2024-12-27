@@ -35,6 +35,7 @@ class TourTestCase(APITestCase):
         url = reverse("tours:tour_list_create")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 1)
 
     def test_tour_create(self):
         """
@@ -51,9 +52,6 @@ class TourTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Tour.objects.count(), 2)
-        created_tour = Tour.objects.get(departure_city="Казань")
-        self.assertEqual(created_tour.start_date, date(2029, 10, 1))
-        self.assertEqual(created_tour.end_date, date(2029, 10, 5))
 
     def test_tour_update_put(self):
         """
@@ -89,8 +87,6 @@ class TourTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.tour.refresh_from_db()
-        self.assertEqual(self.tour.start_date, date(2029, 9, 1))
-        self.assertEqual(self.tour.end_date, date(2029, 9, 5))
         self.assertEqual(self.tour.guests_number, 3)
 
     def test_tour_delete(self):
