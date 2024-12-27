@@ -17,6 +17,20 @@ class TourListCreateView(ListCreateAPIView):
         operation_description="Получение списка туров",
         operation_summary="Список туров",
         tags=["2. Тур"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="limit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Количество туров для возврата на страницу",
+            ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Начальный индекс, из которого возвращаются результаты",
+            ),
+        ],
         responses={
             200: openapi.Response(
                 description="Успешное получение списка туров",
@@ -45,12 +59,12 @@ class TourListCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         tour = serializer.save()
-        tour.name = tour.hotel.name
-        tour.country = tour.hotel.country
-        tour.city = tour.hotel.city
-        tour.type_of_holiday = tour.hotel.type_of_holiday
-        tour.price = ((tour.end_date - tour.start_date) * (tour.room.price + tour.meal_cost)
-                      + tour.flight_to.price + tour.flight_from.price)
+        total_price = 0
+        if tour.room and tour.flight_from and tour.flight_to:
+            for room in tour.room.all():
+                total_price += (tour.end_date - tour.start_date).days * room.nightly_price
+            total_price += (tour.flight_to.price + tour.flight_from.price) * tour.guests_number
+        tour.price = total_price
         tour.save()
 
 
@@ -87,6 +101,15 @@ class TourDetailView(RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет все поля тура",
         tags=["2. Тур"],
         request_body=TourSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор тура в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Тур успешно обновлен", schema=TourSerializer()
@@ -103,6 +126,15 @@ class TourDetailView(RetrieveUpdateDestroyAPIView):
         operation_description="Обновляет указанные поля тура",
         tags=["2. Тур"],
         request_body=TourSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор тура в базе данных",
+                required=True,
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Тур успешно обновлен", schema=TourSerializer()
@@ -118,6 +150,15 @@ class TourDetailView(RetrieveUpdateDestroyAPIView):
         operation_summary="Удаление тура",
         operation_description="Полное удаление тура по его идентификатору",
         tags=["2. Тур"],
+        manual_parameters=[
+            openapi.Parameter(
+                name="id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="Уникальный идентификатор тура",
+                required=True,
+            )
+        ],
         responses={204: "Тур успешно удален", 404: "Тур не найден"},
     )
     def delete(self, request, *args, **kwargs):
