@@ -1,28 +1,8 @@
 from rest_framework import serializers
 
-from applications.models import Application, Guest
+from applications.models.models_application import Application
+from applications.models.models_guest import Guest
 from hotels.models import Room
-
-
-class GuestSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для модели Guest
-    """
-
-    class Meta:
-        model = Guest
-        fields = (
-            "pk",
-            "firstname",
-            "lastname",
-            "surname",
-            "date_born",
-            "citizenship",
-            "russian_passport_no",
-            "international_passport_no",
-            "validity_international_passport",
-            "user_owner",
-        )
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -31,7 +11,6 @@ class ApplicationSerializer(serializers.ModelSerializer):
     """
 
     quantity_guests = serializers.PrimaryKeyRelatedField(many=True, queryset=Guest.objects.all())
-
     quantity_rooms = serializers.PrimaryKeyRelatedField(many=True, queryset=Room.objects.all())
 
     class Meta:
@@ -48,5 +27,6 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "med_insurance",
             "cancellation_insurance",
             "wishes",
-            "user_owner",
+            "user_owner"
         )
+        read_only_fields = ("user_owner", "status")

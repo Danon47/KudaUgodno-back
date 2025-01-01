@@ -12,7 +12,7 @@ if os.path.exists(dotenv_path):
 class Command(BaseCommand):
     def handle(self, *args, **options):
         user = User.objects.create(
-            phone=os.getenv("ADMIN_PHONE"),
+            phone_number=os.getenv("ADMIN_PHONE"),
             first_name="Admin",
             last_name="Root",
             is_staff=True,

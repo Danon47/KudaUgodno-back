@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 from rest_framework.test import APIClient
 
-from applications.models import Guest
+from applications.models.models_application import Guest
 from users.models import User
 
 

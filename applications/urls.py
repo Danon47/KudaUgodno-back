@@ -1,7 +1,8 @@
 from django.urls import path
 
 from applications.apps import ApplicationsConfig
-from applications.views import ApplicationListCreateView, ApplicationDetailView, GuestListCreateView, GuestDetailView
+from applications.views.views_application import ApplicationListCreateView, ApplicationDetailView
+from applications.views.views_guest import GuestListCreateView, GuestDetailView
 
 app_name = ApplicationsConfig.name
 
