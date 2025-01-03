@@ -3,13 +3,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 
 from applications.models.models_application import Application
-from applications.serializers.serializers_applications import ApplicationSerializer
+from applications.serializers.serializers_applications import ApplicationCreateSerializer, ApplicationSerializer
 
 
 class ApplicationListCreateView(generics.ListCreateAPIView):
 
     queryset = Application.objects.all()
-    serializer_class = ApplicationSerializer
 
     @swagger_auto_schema(
         operation_description="Получение списка всех заявок",
@@ -43,11 +42,11 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Создание новой заявки",
         operation_summary="Добавление заявки",
-        request_body=ApplicationSerializer,
+        request_body=ApplicationCreateSerializer,
         tags=["5. Заявки"],
         responses={
             200: openapi.Response(
-                description="Успешное создание заявки", schema=ApplicationSerializer()
+                description="Успешное создание заявки", schema=ApplicationCreateSerializer()
             ),
             400: "Ошибка запроса",
         },
@@ -58,11 +57,16 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user_owner=self.request.user)
 
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ApplicationCreateSerializer
+        return ApplicationSerializer
+
 
 class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Application.objects.all()
-    serializer_class = ApplicationSerializer
+    serializer_class = ApplicationCreateSerializer
 
     @swagger_auto_schema(
         operation_description="Получение информации о заявке через идентификатор",
@@ -80,7 +84,7 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное получение информации о заявке",
-                schema=ApplicationSerializer(),
+                schema=ApplicationCreateSerializer(),
             ),
             400: "Ошибка запроса",
         },
@@ -95,7 +99,7 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное изменение всей заявки",
-                schema=ApplicationSerializer(),
+                schema=ApplicationCreateSerializer(),
             ),
             400: "Ошибка запроса",
         },
@@ -110,7 +114,7 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         responses={
             200: openapi.Response(
                 description="Успешное изменение части информации о заявке",
-                schema=ApplicationSerializer(),
+                schema=ApplicationCreateSerializer(),
             ),
             400: "Ошибка запроса",
         },
@@ -133,7 +137,7 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         ],
         responses={
             200: openapi.Response(
-                description="Успешное удаление заявки", schema=ApplicationSerializer()
+                description="Успешное удаление заявки", schema=ApplicationCreateSerializer()
             ),
             400: "Ошибка запроса",
         },

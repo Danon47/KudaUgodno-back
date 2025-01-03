@@ -3,13 +3,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 
 from applications.models.models_guest import Guest
-from applications.serializers.serializers_guests import GuestSerializer
+from applications.serializers.serializers_guests import GuestCreateSerializer, GuestSerializer
 
 
 class GuestListCreateView(generics.ListCreateAPIView):
 
     queryset = Guest.objects.all()
-    serializer_class = GuestSerializer
 
     @swagger_auto_schema(
         operation_description="Получение списка всех гостей",
@@ -43,12 +42,12 @@ class GuestListCreateView(generics.ListCreateAPIView):
     @swagger_auto_schema(
         operation_description="Создание нового гостя",
         operation_summary="Добавление гостя",
-        request_body=GuestSerializer,
+        request_body=GuestCreateSerializer,
         tags=["5.1. Гости в заявке"],
         responses={
             200: openapi.Response(
                 description="Успешное создание гостя",
-                schema=GuestSerializer()
+                schema=GuestCreateSerializer()
             ),
             400: "Ошибка запроса"
         })
@@ -57,6 +56,11 @@ class GuestListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user_owner=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return GuestCreateSerializer
+        return GuestSerializer
 
 
 
