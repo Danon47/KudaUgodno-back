@@ -30,7 +30,7 @@ class Application(models.Model):
     phone_number = PhoneNumberField(
         region="RU",
         verbose_name="Телефон",
-        help_text="Формат: Произвольный формат из 11 цифр",
+        help_text="Формат: +X XXX XXX XX XX",
     )
     # Количество номеров
     quantity_rooms = models.ManyToManyField(
