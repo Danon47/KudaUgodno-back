@@ -8,25 +8,23 @@ class Guest(models.Model):
     """
     Модель Гостя
     """
+
     # Имя
     firstname = models.CharField(
         max_length=50,
         verbose_name="Имя",
-        help_text="Введите имя"
     )
     # Фамилия
     lastname = models.CharField(
         max_length=50,
         verbose_name="Фамилия",
-        help_text="Введите фамилию"
     )
     # Отчество
     surname = models.CharField(
         max_length=50,
         verbose_name="Отчество",
-        help_text="Введите отчество",
         blank=True,
-        null=True
+        null=True,
     )
     # Дата рождения
     date_born = models.DateField(
@@ -37,7 +35,6 @@ class Guest(models.Model):
     citizenship = models.CharField(
         max_length=100,
         verbose_name="Гражданство",
-        help_text="Введите гражданство",
     )
     # Серия/номер российского паспорта
     russian_passport_no = models.CharField(
@@ -47,10 +44,10 @@ class Guest(models.Model):
         null=True,
         validators=[
             RegexValidator(
-                regex=r'^[0-9]{4} [0-9]{6}$',
-                message='Введите серия/номер в формате: XXXX XXXXXX'
+                regex=r"^[0-9]{4} [0-9]{6}$",
+                message="Введите серия/номер в формате: XXXX XXXXXX",
             )
-        ]
+        ],
     )
     # Серия/номер иностранного паспорта
     international_passport_no = models.CharField(
@@ -61,22 +58,20 @@ class Guest(models.Model):
         validators=[
             RegexValidator(
                 regex="^[0-9]{2} [0-9]{7}$",
-                message="Введите серия/номер в формате: XX XXXXXXXX"
+                message="Введите серия/номер в формате: XX XXXXXXXX",
             )
-        ]
+        ],
     )
     # Срок действия иностранного паспорта
     validity_international_passport = models.DateField(
         verbose_name="Срок действия иностранного паспорта",
+        help_text="Формат: YYYY-MM-DD",
         blank=True,
         null=True
     )
     user_owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name="Пользователь cоздавший гостя",
-        blank=True,
-        null=True,
+        User, on_delete=models.CASCADE,
+        verbose_name="Пользователь cоздавший гостя"
     )
 
     class Meta:

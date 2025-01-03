@@ -8,18 +8,19 @@ from hotels.models import Room
 from tours.models import Tour
 from users.models import User
 
-NULLABLE = {'blank': True, 'null': True}
+NULLABLE = {"blank": True, "null": True}
+
 
 class Application(models.Model):
     """
     Модель Заявки
     """
+
     # Тур
     tour = models.ForeignKey(
         Tour,
         on_delete=models.PROTECT,
         verbose_name="Тур",
-        help_text="Тур который хотят оформить",
     )
     # Email пользователя
     email = models.EmailField(
@@ -29,13 +30,12 @@ class Application(models.Model):
     phone_number = PhoneNumberField(
         region="RU",
         verbose_name="Телефон",
-        help_text="Номер телефона в формате: +7 (999) 999-99-99",
+        help_text="Формат: Произвольный формат из 11 цифр",
     )
     # Количество номеров
     quantity_rooms = models.ManyToManyField(
         Room,
         verbose_name="Количество номеров",
-        help_text="Количество номеров которые хотят забронировать",
         blank=True,
     )
     # Количество гостей
@@ -44,7 +44,7 @@ class Application(models.Model):
         verbose_name="Количество гостей",
         blank=True,
     )
-    #Оформление визы
+    # Оформление визы
     visa = models.PositiveIntegerField(
         default=0,
         verbose_name="Оформление визы",
@@ -52,7 +52,7 @@ class Application(models.Model):
         validators=[
             MinValueValidator(0),
             MaxValueValidator(10)
-        ]
+        ],
     )
     # Страховка жизни
     med_insurance = models.BooleanField(
@@ -67,21 +67,19 @@ class Application(models.Model):
     # Пожелания
     wishes = models.TextField(
         verbose_name="Пожелания",
-        help_text="Вводится клиентом при бронировании по желанию",
         **NULLABLE
     )
     # Статус заявки
     status = models.CharField(
-        choices= StatusChoices.choices,
+        choices=StatusChoices.choices,
         default=StatusChoices.AWAIT_CONFIRM,
-        verbose_name="Статус заявки"
+        verbose_name="Статус заявки",
     )
     # Пользователь кто создал заявку
     user_owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name="Пользователь кто создал заявку",
-        **NULLABLE
+        verbose_name="Пользователь кто создал заявку"
     )
 
     class Meta:
@@ -91,4 +89,3 @@ class Application(models.Model):
 
     def __str__(self):
         return f"Заявка N {self.pk}"
-
