@@ -101,9 +101,22 @@ class ApplicationTest(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.count(), 2)
-        data["wishes"] = "плохое слово хуй"
+
+    def test_forbidden_word_validator(self):
+        """Тест на проверку запрещенных слов"""
+        url = reverse("applications:application_list_create")
+        data = {
+            "tour": self.tour.id,
+            "email": "user@example.com",
+            "phone_number": "+79999999999",
+            "quantity_rooms": [self.room.id],
+            "quantity_guests": [self.guest.id],
+            "wishes": "плохое_слово"
+        }
         response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Проверка на присутствие запрещенных слов в пожелание
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Введено недопустимое слово")
+
 
     def test_application_retrieve(self):
         """Тест на вывод конкретной заявки"""
