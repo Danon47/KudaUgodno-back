@@ -29,7 +29,7 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
             "wishes",
             "user_owner"
         )
-        read_only_fields = ("user_owner",)
+        read_only_fields = ("user_owner", "status")
         validators = [
             ForbiddenWordValidator(fields=["wishes"])
         ]
