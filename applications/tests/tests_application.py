@@ -19,8 +19,8 @@ class ApplicationTest(TestCase):
         """
         Экземпляр модели Заявка
         """
+        self.user = User.objects.create_user(phone_number="+79999999999", password="testpassword")
         self.client = APIClient()
-        self.user = User.objects.create_user(username="test_user")
         self.category = RoomCategory.objects.create(name="Стандарт")
         self.hotel = Hotel.objects.create(
             name="Тест Отель",
@@ -38,15 +38,16 @@ class ApplicationTest(TestCase):
             hotel=self.hotel,
         )
         self.tour = Tour.objects.create(
-            name="Тур Тест",
-            start_date="2024-08-24",
-            end_date="2024-08-25",
+            start_date="2028-08-24",
+            end_date="2028-08-25",
+            departure_city="Москва"
         )
         self.guest = Guest.objects.create(
             firstname="Иван",
             lastname="Иванов",
             date_born="1999-09-09",
             citizenship="Россия",
+            user_owner=self.user
         )
         self.application = Application.objects.create(
             tour=self.tour,
@@ -87,7 +88,7 @@ class ApplicationTest(TestCase):
 
     def test_applications_create(self):
         """Тест создания заявки"""
-
+        self.client.login(phone_number="+79999999999", password="testpassword")
         url = reverse("applications:application_list_create")
 
         data = {
@@ -100,6 +101,9 @@ class ApplicationTest(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.count(), 2)
+        data["wishes"] = "плохое слово хуй"
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Проверка на присутствие запрещенных слов в пожелание
 
     def test_application_retrieve(self):
         """Тест на вывод конкретной заявки"""
