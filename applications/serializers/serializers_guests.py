@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from applications.models.models_guest import Guest
-from applications.validators import DateBornValidator
+from applications.validators import DateBornValidator, ValidityOfForeignPassportValidator
 from flights.validators.validarors import ForbiddenWordValidator
 from users.serializers import UserSerializer
 
@@ -28,7 +28,8 @@ class GuestCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ("user_owner",)
         validators = [
             ForbiddenWordValidator(fields=["firstname", "lastname", "surname", "citizenship"]),
-            DateBornValidator()
+            DateBornValidator(),
+            ValidityOfForeignPassportValidator()
         ]
 
 
