@@ -1,6 +1,7 @@
 from django.test import TestCase
+from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
 from applications.models.models_application import Guest
@@ -13,7 +14,7 @@ class GuestTest(TestCase):
     def setUp(self):
 
         self.client = APIClient()
-        self.user = User.objects.create(username="test_user")
+        self.user = User.objects.create_user(phone_number="+79999999999", password="testpassword")
         self.guest = Guest.objects.create(
             firstname="Ivan",
             lastname="Ivanov",
@@ -22,9 +23,9 @@ class GuestTest(TestCase):
             citizenship="Россия",
             russian_passport_no="1234 567890",
             international_passport_no="12 3456789",
-            validity_international_passport="2024-11-11",
+            validity_international_passport="2040-11-11",
+            user_owner=self.user
         )
-        self.guest.user_owner.add(self.user)
 
     def test_guest(self):
         """Тест модели Гость"""
@@ -36,8 +37,8 @@ class GuestTest(TestCase):
         self.assertEqual(self.guest.citizenship, "Россия")
         self.assertEqual(self.guest.russian_passport_no, "1234 567890")
         self.assertEqual(self.guest.international_passport_no, "12 3456789")
-        self.assertEqual(self.guest.validity_international_passport, "2024-11-11")
-        self.assertEqual(self.guest.user_owner.count(), 1)
+        self.assertEqual(self.guest.validity_international_passport, "2040-11-11")
+        self.assertEqual(self.guest.user_owner, self.user)
 
     def test_guest_list(self):
         """Тест на вывод списка гостей"""
@@ -46,6 +47,73 @@ class GuestTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)
+
+    def test_guest_create(self):
+        """Тест для создания гостя"""
+
+        url = reverse("applications:guest_list_create")
+        data = {
+            "firstname": "Petr",
+            "lastname": "Petrov",
+            "surname": "Petrovich",
+            "date_born": "2000-12-12",
+            "citizenship": "Россия",
+            "russian_passport_no": "1234 567890",
+            "international_passport_no": "12 3456789",
+            "validity_international_passport": "2040-11-11",
+        }
+        self.client.login(phone_number="+79999999999", password="testpassword")
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(Guest.objects.count(), 2)
+
+    def test_date_born_validator(self):
+        """Тест на валидность даты рождения"""
+
+        url = reverse("applications:guest_list_create")
+        data = {
+            "firstname": "Petr",
+            "lastname": "Petrov",
+            "citizenship": "Россия",
+            "date_born": "2040-12-12",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Дата рождения не может быть в будущем")
+
+
+    def test_forbidden_word_validator(self):
+        """Тест на проверку запрещенных слов"""
+
+        url = reverse("applications:guest_list_create")
+        data = {
+            "firstname": "Petr",
+            "lastname": "Petrov",
+            "citizenship": "плохое_слово",
+            "date_born": "2000-12-12",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Введено недопустимое слово")
+
+    def test_validity_of_foreign_passport_validator(self):
+        """Тест на наличие и корректность даты окончания действия загранпаспорта """
+
+        url = reverse("applications:guest_list_create")
+        data = {
+            "firstname": "Petr",
+            "lastname": "Petrov",
+            "citizenship": "Россия",
+            "date_born": "2000-12-12",
+            "international_passport_no": "12 3456789",
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Срок действия паспорта не указан")
+        data["validity_international_passport"] = "2015-11-11"
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Срок действия паспорта истек")
 
     def test_guest_retrieve(self):
         """Тест на вывод конкретного заказа"""
@@ -67,7 +135,7 @@ class GuestTest(TestCase):
             "citizenship": "Россия",
             "russian_passport_no": "1234 567890",
             "international_passport_no": "12 3456789",
-            "validity_international_passport": "2024-11-11",
+            "validity_international_passport": "2040-11-11",
         }
 
         response = self.client.put(url, data)

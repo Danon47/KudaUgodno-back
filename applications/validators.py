@@ -23,6 +23,5 @@ class ValidityOfForeignPassportValidator:
         validity_international_passport = value.get("validity_international_passport")
         if international_passport_no and not validity_international_passport:
             raise ValidationError("Срок действия паспорта не указан")
-
-        if validity_international_passport < date.today():
-            raise ValidationError("Срок действия паспорта истек")
+        if validity_international_passport is not None and  validity_international_passport < date.today():
+                raise ValidationError("Срок действия паспорта истек")
