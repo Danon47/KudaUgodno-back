@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from applications.models.models_application import Application
 from applications.serializers.serializers_guests import GuestSerializer
+from flights.validators.validarors import ForbiddenWordValidator
 from hotels.serializers import RoomSerializer
 from tours.serializers import TourSerializer
 from users.serializers import UserSerializer
@@ -29,6 +30,9 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
             "user_owner"
         )
         read_only_fields = ("user_owner",)
+        validators = [
+            ForbiddenWordValidator(fields=["wishes"])
+        ]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
