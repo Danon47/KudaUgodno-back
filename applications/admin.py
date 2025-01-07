@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from applications.models import Application, Guest
+from applications.models.models_application import Application
+from applications.models.models_guest import Guest
 
 
 @admin.register(Application)

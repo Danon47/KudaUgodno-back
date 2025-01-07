@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
-from applications.models import Application, Guest
+from applications.models.models_application import Application, Guest
 from hotels.models import Hotel, Room, RoomCategory
 from tours.models import Tour
 from users.models import User
@@ -19,8 +19,8 @@ class ApplicationTest(TestCase):
         """
         Экземпляр модели Заявка
         """
+        self.user = User.objects.create_user(phone_number="+79999999999", password="testpassword")
         self.client = APIClient()
-        self.user = User.objects.create_user(username="test_user")
         self.category = RoomCategory.objects.create(name="Стандарт")
         self.hotel = Hotel.objects.create(
             name="Тест Отель",
@@ -38,15 +38,16 @@ class ApplicationTest(TestCase):
             hotel=self.hotel,
         )
         self.tour = Tour.objects.create(
-            name="Тур Тест",
-            start_date="2024-08-24",
-            end_date="2024-08-25",
+            start_date="2028-08-24",
+            end_date="2028-08-25",
+            departure_city="Москва"
         )
         self.guest = Guest.objects.create(
             firstname="Иван",
             lastname="Иванов",
             date_born="1999-09-09",
             citizenship="Россия",
+            user_owner=self.user
         )
         self.application = Application.objects.create(
             tour=self.tour,
@@ -87,7 +88,7 @@ class ApplicationTest(TestCase):
 
     def test_applications_create(self):
         """Тест создания заявки"""
-
+        self.client.login(phone_number="+79999999999", password="testpassword")
         url = reverse("applications:application_list_create")
 
         data = {
@@ -100,6 +101,22 @@ class ApplicationTest(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.count(), 2)
+
+    def test_forbidden_word_validator(self):
+        """Тест на проверку запрещенных слов"""
+        url = reverse("applications:application_list_create")
+        data = {
+            "tour": self.tour.id,
+            "email": "user@example.com",
+            "phone_number": "+79999999999",
+            "quantity_rooms": [self.room.id],
+            "quantity_guests": [self.guest.id],
+            "wishes": "плохое_слово"
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["non_field_errors"][0], "Введено недопустимое слово")
+
 
     def test_application_retrieve(self):
         """Тест на вывод конкретной заявки"""
