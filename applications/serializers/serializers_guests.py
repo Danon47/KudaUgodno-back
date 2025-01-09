@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from applications.models.models_guest import Guest
 from applications.validators import DateBornValidator, ValidityOfForeignPassportValidator
-from flights.validators.validarors import ForbiddenWordValidator
+from flights.validators.validators import ForbiddenWordValidator
 from users.serializers import UserSerializer
 
 

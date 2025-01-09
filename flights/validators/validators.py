@@ -35,12 +35,6 @@ class DateValidator:
     Валидатор для проверки, что дата и время прибытия позже даты и времени отправления.
     """
 
-    def __init__(self, departure_date, departure_time, arrival_date, arrival_time):
-        self.departure_date = departure_date
-        self.departure_time = departure_time
-        self.arrival_date = arrival_date
-        self.arrival_time = arrival_time
-
     def __call__(self, value):
         departure_date_field = value.get("departure_date")
         departure_time_field = value.get("departure_time")
