@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -98,3 +98,39 @@ class TourTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Tour.objects.all().count(), 0)
+
+    def test_start_date(self):
+        """
+        Тест проверки, что дата начала тура не может быть в прошлом.
+        """
+        url = reverse("tours:tour_list_create")
+        past_date = (date.today() - timedelta(days=1)).isoformat()
+        data = {
+            "start_date": past_date,
+            "end_date": "2028-08-25",
+            "departure_city": "Москва",
+        }
+
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["non_field_errors"][0], "Дата начала тура не может быть в прошлом."
+        )
+
+    def test_end_date(self):
+        """
+        Тест проверки, что дата окончания тура не может быть раньше даты начала.
+        """
+        url = reverse("tours:tour_list_create")
+        data = {
+            "start_date": "2028-08-24",
+            "end_date": "2028-08-23",
+            "departure_city": "Москва",
+        }
+
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["non_field_errors"][0],
+            "Дата окончания тура не может быть раньше даты начала.",
+        )
