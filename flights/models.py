@@ -15,7 +15,7 @@ class Flight(models.Model):
     flight_number = models.CharField(
         max_length=10,
         verbose_name="Номер рейса",
-        help_text="Введите номер рейса",
+        help_text="Введите номер рейса в формате: AA XXXX, где A-латинские буквы в верхнем регистре, X- цифры",
         validators=[
             RegexValidator(
                 regex=r"^[A-Z]{2} [0-9]{4}$",
@@ -29,46 +29,39 @@ class Flight(models.Model):
     airline = models.CharField(
         max_length=100,
         verbose_name="Авиакомпания",
-        choices=AirlinesChoices.choices,
-        help_text="Введите название авиакомпании",
+        choices=AirlinesChoices.choices
     )
     # Аэропорт вылета
     departure_airport = models.CharField(
         max_length=100,
-        verbose_name="Аэропорт вылета",
-        help_text="Укажите аэропорт вылета",
+        verbose_name="Аэропорт вылета"
     )
     # Аэропорт прибытия
     arrival_airport = models.CharField(
         max_length=100,
-        verbose_name="Аэропорт прибытия",
-        help_text="Укажите аэропорт прибытия",
+        verbose_name="Аэропорт прибытия"
     )
     # Дата вылета
     departure_date = models.DateField(
-        verbose_name="Дата вылета", help_text="Укажите дату вылета"
+        verbose_name="Дата вылета"
     )
     # Время вылета
     departure_time = models.TimeField(
-        verbose_name="Время вылета",
-        help_text="Укажите время вылета",
+        verbose_name="Время вылета"
     )
     # Дата прибытия
     arrival_date = models.DateField(
-        verbose_name="Дата прибытия",
-        help_text="Укажите дату прибытия",
+        verbose_name="Дата прибытия"
     )
     # Время прибытия
     arrival_time = models.TimeField(
-        verbose_name="Время прибытия",
-        help_text="Укажите время прибытия",
+        verbose_name="Время прибытия"
     )
     # Цена за билет
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Цена",
-        help_text="Укажите цену билета",
         validators=[MinValueValidator(Decimal('0.01'))],
     )
     # Клас обслуживания

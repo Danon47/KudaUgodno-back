@@ -104,7 +104,7 @@ class FlightTestCase(APITestCase):
             "departure_time": "09:00:00",
             "arrival_date": "2024-09-01",
             "arrival_time": "11:00:00",
-            "price": 6000
+            "price": 6000,
         }
 
         response = self.client.put(url, data, format="json")
@@ -124,3 +124,53 @@ class FlightTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Flight.objects.all().count(), 0)
+
+    def test_forbidden_word_validator(self):
+        """
+        Тест проверки валидатора на наличие недопустимых слов в названии
+        """
+        url = reverse("flights:flight_list_create")
+        data = {
+            "flight_number": "SW 1247",
+            "airline": AirlinesChoices.AEROFLOT,
+            "departure_airport": "плохое_слово",
+            "arrival_airport": "Сочи",
+            "departure_date": "2024-09-01",
+            "departure_time": "09:00:00",
+            "arrival_date": "2024-09-01",
+            "arrival_time": "11:00:00",
+            "price": 6000,
+        }
+
+        # Добавьте недопустимое слово в название
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["non_field_errors"][0], "Введено недопустимое слово"
+        )
+
+    def test_date_validator(self):
+        """
+        Тест проверки валидатора даты и времени прибытия
+        """
+        url = reverse("flights:flight_list_create")
+        data = {
+            "flight_number": "SW 1247",
+            "airline": AirlinesChoices.AEROFLOT,
+            "departure_airport": "Шереметьево",
+            "arrival_airport": "Сочи",
+            "departure_date": "2024-09-01",
+            "departure_time": "09:00:00",
+            "arrival_date": "2024-08-31",
+            "arrival_time": "11:00:00",
+            "price": 6000,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["non_field_errors"][0], "Дата и время прилета должны быть позже даты и времени вылета."
+        )
