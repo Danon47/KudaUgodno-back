@@ -1,28 +1,35 @@
 from rest_framework import serializers
 
+from flights.validators.validators import ForbiddenWordValidator
 from users.models import User
+from users.validators import FillFieldsValidator
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Пользователя"""
+class AdminSerializer(serializers.ModelSerializer):
+    """Сериализатор модели User для пользователя"""
 
     class Meta:
         model = User
-        fields = [
+        fields = "__all__"
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор модели User для пользователя"""
+
+    class Meta:
+        model = User
+        fields = (
             "id",
             "username",
-            "email",
             "first_name",
             "last_name",
-            "password",
+            "email",
             "phone_number",
             "avatar",
+            "address",
+            "description"
+        )
+        validators = [
+            ForbiddenWordValidator(fields=["username", "first_name", "last_name", "email", "address", "description"]),
+            FillFieldsValidator()
         ]
-        read_only_fields = ("is_staff", "is_superuser",)
-        extra_kwargs = {"password": {"write_only": True}}
-
-    def create(self, validated_data):
-        user = User(**validated_data)
-        user.set_password(validated_data["password"])
-        user.save()
-        return user

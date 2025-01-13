@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = ["176.108.253.5", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "phonenumber_field",
+    "django_celery_beat",
     "users",
     "tours",
     "flights",
@@ -138,3 +139,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
 }
+
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False) != "False"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", True) == "True"
+
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
