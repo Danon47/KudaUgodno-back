@@ -15,7 +15,7 @@ class PlaceChoices(models.TextChoices):
     INN = "Гостиница", "Гостиница"
 
 
-class FoodChoices(models.TextChoices):
+class MealChoices(models.TextChoices):
     """
     Питание
     """
