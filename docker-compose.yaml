@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: 36_kuda_ugodno_backend_api_db_12
     image: postgres
     restart: on-failure
     env_file:
@@ -7,14 +8,18 @@ services:
     expose:
       - 5432
     volumes:
-      - ku_data:/var/lib/postgresql/data
+      - ${POSTGRES_VOLUME_PATH}/postgres:/var/lib/postgresql/data
+      - ${POSTGRES_VOLUME_PATH}/logs:/var/log/postgresql
     healthcheck:
       test: [ 'CMD-SHELL', '-c', 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB' ]
       interval: 1s
       retries: 2
       timeout: 1s
+    networks:
+      - 36_kuda_ugodno_beckend
 
   app:
+    container_name: 36_kuda_ugodno_backend_api_12
     build: .
     tty: true
     ports:
@@ -23,21 +28,17 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - .:/app
+      - .:/app:cached
     env_file:
       - .env
     command: sh -c 'python3 manage.py migrate && python3 manage.py seed_data && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3'
+    networks:
+      - default
+      - 36_kuda_ugodno_beckend
 
-  nginx:
-    image: nginx:latest
-    restart: on-failure
-    ports:
-      - "80:80"
-    volumes:
-      - .:/app
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
-
-volumes:
-  ku_data:
+networks:
+  default:
+    name: nginx_network
+    external: True
+  36_kuda_ugodno_beckend:
+    name: 36_kuda_ugodno_beckend
