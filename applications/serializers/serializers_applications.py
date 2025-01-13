@@ -3,7 +3,7 @@ from rest_framework import serializers
 from applications.models.models_application import Application
 from applications.serializers.serializers_guests import GuestSerializer
 from flights.validators.validators import ForbiddenWordValidator
-from hotels.serializers import RoomSerializer
+from hotels.serializers import RoomBaseSerializer
 from tours.serializers import TourSerializer
 from users.serializers import UserSerializer
 
@@ -41,7 +41,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     """
     tour = TourSerializer()
     quantity_guests = GuestSerializer(many=True)
-    quantity_rooms = RoomSerializer(many=True)
+    quantity_rooms = RoomBaseSerializer(many=True)
     user_owner = UserSerializer()
 
     class Meta(ApplicationCreateSerializer.Meta):
