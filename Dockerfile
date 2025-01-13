@@ -6,9 +6,9 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Устанавливаем Poetry и зависимости
-RUN pip install poetry==1.8.5 && \
+RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-dev-- no-root
+    poetry install no-root
 
 # Копируем остальной код проекта
 COPY . .
