@@ -6,20 +6,20 @@ app_name = HotelsConfig.name
 
 
 urlpatterns = [
-    # Номера отеля
-    path("rooms/", RoomListCreateView.as_view(), name="room_list_create"),
-    path("rooms/<int:pk>/", RoomDetailView.as_view(), name="room_detail_update_delete"),
-    # Удобства в номерах
-    path("rooms/amenities/", RoomAmenityCreateAPIView.as_view(), name="room_amenity_create"),
-    # Категория номера
-    path("rooms/categories/", RoomCategoryCreateAPIView.as_view(), name="room_categories_create"),
     # Отели
-    path("", HotelListCreateView.as_view(), name="hotel_list_create"),
-    path("<int:pk>/", HotelDetailView.as_view(), name="hotel_detail_update_delete"),
+    path("", HotelListCreateAPIView.as_view(), name="hotel-list-create"),
+    path("<int:pk>/", HotelDetailAPIView.as_view(), name="hotel-detail-update-delete"),
     # Удобства в отелях
-    path("amenities/", HotelAmenityCreateAPIView.as_view(), name="hotel_amenity_create"),
-    # Добавление фотографий отеля и номера в отеле
-    # path("photos/", PhotoCreateAPIView.as_view(), name="photo_create"),
-    # path("rooms/photos/", PhotoCreateAPIView.as_view(), name="photo_create"),
-
+    path("amenities/", HotelAmenityCreateAPIView.as_view(), name="hotel-amenity-create"),
+    # Добавление фотографий отеля
+    path("photos/", HotelPhotoCreateAPIView.as_view(), name="hotel-photo-create"),
+    # Номера отеля
+    path("rooms/", RoomListCreateAPIView.as_view(), name="room-list-create"),
+    path("rooms/<int:pk>/", RoomDetailAPIView.as_view(), name="room-detail-update-delete"),
+    # Удобства в номерах
+    path("rooms/amenities/", RoomAmenityCreateAPIView.as_view(), name="room-amenity-create"),
+    # Добавление фотографий номера
+    path("rooms/photo/", RoomPhotoCreateAPIView.as_view(), name="room-photo-create"),
+    # Категория номера
+    path("rooms/categories/", RoomCategoryCreateAPIView.as_view(), name="room-categories-create"),
 ]

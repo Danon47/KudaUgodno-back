@@ -8,7 +8,9 @@ from hotels.models import (
     RoomCategory,
     RoomPhoto,
     HotelPhoto,
+    MealPlan,
 )
+
 
 class RoomInline(admin.StackedInline):
     model = Room
@@ -18,10 +20,10 @@ class RoomInline(admin.StackedInline):
 
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "city", "address")
+    list_display = ("id", "type_of_holiday", "name", "city", "address")
     list_display_links = ("id", "name")
     # Добавляем встроенный класс для номеров
-    inlines = [RoomInline]
+    inlines = (RoomInline,)
 
 
 @admin.register(Room)
@@ -29,8 +31,13 @@ class RoomAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "category",
-        "type_of_holiday",
-        "nightly_price",
+        "hotel",
+        "nightly_price_no_meals",
+        "nightly_price_ultra_all_inclusive",
+        "nightly_price_all_inclusive",
+        "nightly_price_full_board",
+        "nightly_price_half_board",
+        "nightly_price_only_breakfast",
     )
     list_display_links = ("id", "category")
 
@@ -58,3 +65,8 @@ class RoomPhotoAdmin(admin.ModelAdmin):
 @admin.register(HotelPhoto)
 class HotelPhotoAdmin(admin.ModelAdmin):
     list_display = ("id", "photo")
+
+
+@admin.register(MealPlan)
+class MealPlanAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "price_per_person", "hotel")

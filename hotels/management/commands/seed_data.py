@@ -1,5 +1,9 @@
 import os
+from sys import is_stack_trampoline_active
+
 from django.core.management.base import BaseCommand
+from django.utils.timezone import is_aware
+
 from hotels.models import HotelAmenity, RoomAmenity, RoomCategory
 from users.models import User
 
@@ -14,6 +18,7 @@ class Command(BaseCommand):
             {"name": "Душ в комнате"},
             {"name": "Ванна"},
             {"name": "Дополнительная кровать"},
+            {"name": "Можно с животными"},
             {"name": "Фен"},
             {"name": "Сейф"},
             {"name": "Чайный набор"},
@@ -56,26 +61,31 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("=== BD DONE ==="))
 
         # Создание администратора
-        username = os.getenv("ADMIN_USERNAME")
+        email = os.getenv("ADMIN_EMAIL")
         password = os.getenv("ADMIN_PASSWORD")
 
         # Проверяем, существует ли уже администратор с указанным именем пользователя
-        if not User.objects.filter(username=os.getenv("ADMIN_USERNAME")).exists():
+        if not User.objects.filter(email=os.getenv("ADMIN_EMAIL")).exists():
             # Создаем администратора
-            user = User.objects.create_superuser(
-                username=username,
+            user = User.objects.create(
+                email=email,
+                is_staff=True,
+                is_superuser=True,
+                is_active=True,
+                first_name="Admin",
+                last_name="Admin",
             )
             user.set_password(password)
             user.save()
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"=== Admin {os.getenv('ADMIN_USERNAME')} successfully created ==="
+                    f"=== Admin {os.getenv('ADMIN_EMAIL')} successfully created ==="
                 )
             )
         else:
             self.stdout.write(
                 self.style.WARNING(
-                    f"=== Admin with username {os.getenv('ADMIN_USERNAME')} already exists ==="
+                    f"=== Admin with email {os.getenv('ADMIN_EMAIL')} already exists ==="
                 )
             )
