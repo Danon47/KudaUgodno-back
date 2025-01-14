@@ -8,11 +8,13 @@ COPY pyproject.toml poetry.lock ./
 # Устанавливаем Poetry и зависимости
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-root
+    poetry install --no-root && \
+    pip cache purge
 
 # Копируем остальной код проекта
 COPY . .
 
 # Создаём пользователя и заходим под ним
-RUN useradd -m backenduser
+RUN useradd -m backenduser && \
+    chown -R backenduser:backenduser /app
 USER backenduser
