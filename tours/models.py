@@ -1,11 +1,9 @@
 from django.core.validators import MaxValueValidator
 from django.db import models
-
 from flights.models import Flight
-from hotels.models import Room, Hotel
+from hotels.models.models_hotel import Hotel, NULLABLE
+from hotels.models.models_room import Room
 from users.models import User
-
-NULLABLE = {"blank": True, "null": True}
 
 
 class Tour(models.Model):

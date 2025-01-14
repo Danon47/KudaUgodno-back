@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from hotels.models import MealPlan
+from hotels.models.models_hotel_meal import MealPlan
 
 
 class MealSerializer(serializers.ModelSerializer):

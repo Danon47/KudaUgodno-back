@@ -1,7 +1,10 @@
 from rest_framework import serializers
-
 from hotels.choices import MealChoices
-from hotels.models import RoomAmenity, RoomCategory, RoomPhoto, Room, MealPlan
+from hotels.models.models_hotel_meal import MealPlan
+from hotels.models.models_room import Room
+from hotels.models.models_room_amenity import RoomAmenity
+from hotels.models.models_room_caterogy import RoomCategory
+from hotels.models.models_room_photo import RoomPhoto
 from hotels.serializers.serializers_meal import MealSerializer
 from hotels.services import calculate_nightly_prices
 

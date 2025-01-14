@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from hotels.models import HotelAmenity, HotelPhoto, Hotel
+from hotels.models.models_hotel import Hotel
+from hotels.models.models_hotel_amenity import HotelAmenity
+from hotels.models.models_hotel_photo import HotelPhoto
+from hotels.serializers.serializers_room import RoomBaseSerializer
 
 
 class AmenityHotelSerializer(serializers.ModelSerializer):

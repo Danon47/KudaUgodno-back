@@ -2,7 +2,9 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.parsers import MultiPartParser, FormParser
-from hotels.models import Hotel, HotelAmenity, HotelPhoto
+from hotels.models.models_hotel import Hotel
+from hotels.models.models_hotel_amenity import HotelAmenity
+from hotels.models.models_hotel_photo import HotelPhoto
 from hotels.serializers.serializers_hotel import (
     AmenityHotelSerializer,
     HotelPhotoSerializer,
