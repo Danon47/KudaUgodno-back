@@ -30,9 +30,9 @@ urlpatterns = [
     path("rooms/", RoomListCreateAPIView.as_view(), name="room-list-create"),
     path("rooms/<int:pk>/", RoomDetailAPIView.as_view(), name="room-detail-update-delete"),
     # Удобства в номерах
-    path("rooms/<int:pk>/amenities/", RoomAmenityCreateAPIView.as_view(), name="room-amenity-create"),
+    path("rooms/amenities/", RoomAmenityCreateAPIView.as_view(), name="room-amenity-create"),
     # Добавление фотографий номера
-    path("rooms/<int:pk>/photo/", RoomPhotoCreateAPIView.as_view(), name="room-photo-create"),
+    path("rooms/photo/", RoomPhotoCreateAPIView.as_view(), name="room-photo-create"),
     # Категория номера
-    path("rooms/<int:pk>/categories/", RoomCategoryCreateAPIView.as_view(), name="room-categories-create"),
+    path("rooms/categories/", RoomCategoryCreateAPIView.as_view(), name="room-categories-create"),
 ]
