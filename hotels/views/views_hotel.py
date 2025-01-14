@@ -203,10 +203,10 @@ class HotelPhotoCreateAPIView(generics.CreateAPIView):
         tags=["3. Отель"],
         manual_parameters=[
             openapi.Parameter(
-                name="hotel",
-                in_=openapi.IN_FORM,
-                type=openapi.TYPE_INTEGER,
-                description="ID Отеля в базе данных",
+                name="hotel_pk",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_STRING,
+                description="ID комнаты в базе данных",
                 required=True,
             )
         ],
@@ -220,3 +220,8 @@ class HotelPhotoCreateAPIView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        hotel = Hotel.objects.get(pk=self.kwargs['hotel_pk'])
+        serializer.save(hotel=hotel)
+

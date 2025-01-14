@@ -19,11 +19,11 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HotelPhoto
-        fields = ("photo", "hotel",)
+        fields = ("photo",)
 
 class HotelBaseSerializer(serializers.ModelSerializer):
     amenities = AmenityHotelSerializer(many=True,)
-    photo = HotelPhotoSerializer(source="hotel_photos", many=True,)
+    photo = HotelPhotoSerializer(source="hotel_photos", many=True, required=False)
     user_rating = serializers.FloatField()
 
     class Meta:

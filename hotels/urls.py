@@ -25,14 +25,14 @@ urlpatterns = [
     # Удобства в отелях
     path("<int:pk>/amenities/", HotelAmenityCreateAPIView.as_view(), name="hotel-amenity-create"),
     # Добавление фотографий отеля
-    path("<int:pk>/photos/", HotelPhotoCreateAPIView.as_view(), name="hotel-photo-create"),
+    path("<int:hotel_pk>/photos/", HotelPhotoCreateAPIView.as_view(), name="hotel-photo-create"),
     # Номера отеля
     path("rooms/", RoomListCreateAPIView.as_view(), name="room-list-create"),
     path("rooms/<int:pk>/", RoomDetailAPIView.as_view(), name="room-detail-update-delete"),
     # Удобства в номерах
     path("rooms/amenities/", RoomAmenityCreateAPIView.as_view(), name="room-amenity-create"),
     # Добавление фотографий номера
-    path("rooms/photo/", RoomPhotoCreateAPIView.as_view(), name="room-photo-create"),
+    path("rooms/<int:room_pk>/photo/", RoomPhotoCreateAPIView.as_view(), name="room-photo-create"),
     # Категория номера
     path("rooms/categories/", RoomCategoryCreateAPIView.as_view(), name="room-categories-create"),
 ]

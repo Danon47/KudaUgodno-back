@@ -31,7 +31,7 @@ class RoomPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomPhoto
-        fields = ("photo", "room",)
+        fields = ("photo",)
 
 
 class RoomBaseSerializer(serializers.ModelSerializer):
@@ -39,7 +39,7 @@ class RoomBaseSerializer(serializers.ModelSerializer):
 
     amenities = AmenityRoomSerializer(many=True,)
     category = serializers.CharField()
-    photo = RoomPhotoSerializer(source="room_photos", many=True,)
+    photo = RoomPhotoSerializer(source="room_photos", many=True, required=False)
     meal = MealSerializer(many=True,)
 
     class Meta:
@@ -130,6 +130,14 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         )
         instance.meal.clear()  # Очищаем типы питания
         instance.meal.add(no_meals_plan)  # Добавляем "Без питания"
+
+        for meal in meal_data:
+            meal_instance, created = MealPlan.objects.get_or_create(
+                name=meal.get("name"),
+                price_per_person=meal.get("price_per_person")
+            )
+            instance.meal.add(meal_instance)
+        instance.save()
 
         # Рассчитываем цены с учетом типов питания и сохраняем
         calculate_nightly_prices(instance)

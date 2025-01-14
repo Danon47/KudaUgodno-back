@@ -232,9 +232,9 @@ class RoomPhotoCreateAPIView(generics.CreateAPIView):
         tags=["3.1 Номер"],
         manual_parameters=[
             openapi.Parameter(
-                name="room",
-                in_=openapi.IN_FORM,
-                type=openapi.TYPE_INTEGER,
+                name="room_pk",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_STRING,
                 description="ID комнаты в базе данных",
                 required=True,
             )
@@ -249,3 +249,7 @@ class RoomPhotoCreateAPIView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        room = Room.objects.get(pk=self.kwargs['room_pk'])
+        serializer.save(room=room)
