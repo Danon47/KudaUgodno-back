@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["127.0.0.1", "anywhere.god-it.ru", "anywhere-test.god-it.ru", "anywhere-dev.god-it.ru"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -144,8 +144,8 @@ EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False) != "False"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", True) == "True"
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
