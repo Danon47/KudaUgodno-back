@@ -18,7 +18,7 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HotelPhoto
-        fields = ("photo",)
+        fields = ("photo", "hotel",)
 
 class HotelBaseSerializer(serializers.ModelSerializer):
     amenities = AmenityHotelSerializer(many=True,)

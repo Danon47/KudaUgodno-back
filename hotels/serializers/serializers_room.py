@@ -30,7 +30,7 @@ class RoomPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomPhoto
-        fields = ("photo",)
+        fields = ("photo", "room",)
 
 
 class RoomBaseSerializer(serializers.ModelSerializer):
