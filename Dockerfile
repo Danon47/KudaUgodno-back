@@ -12,3 +12,7 @@ RUN pip install poetry && \
 
 # Копируем остальной код проекта
 COPY . .
+
+# Создаём пользователя и заходим под ним
+RUN useradd -m backenduser
+USER backenduser
