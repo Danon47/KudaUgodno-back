@@ -1,5 +1,7 @@
 from datetime import time
-from django.test import TestCase
+import shutil
+import tempfile
+from django.test import TestCase, override_settings
 from hotels.choices import MealChoices, TypeOfHolidayChoices, PlaceChoices
 from hotels.models.models_hotel import Hotel
 from hotels.models.models_hotel_amenity import HotelAmenity
@@ -11,8 +13,18 @@ from hotels.models.models_room_caterogy import RoomCategory
 from hotels.models.models_room_photo import RoomPhoto
 from hotels.tests.fixtures.temp_image import create_test_image
 
+# Создаем временную директорию для MEDIA_ROOT
+temp_media_root = tempfile.mkdtemp()
 
+
+@override_settings(MEDIA_ROOT=temp_media_root)
 class ModelTestCase(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        # Удаляем временную директорию после всех тестов
+        shutil.rmtree(temp_media_root, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         # Создаём объекты Удобств в отеле, Категорий номеров, Удобств в номере
         self.amenity_hotel = HotelAmenity.objects.create(name="Бассейн")
