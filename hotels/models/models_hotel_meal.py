@@ -19,7 +19,7 @@ class MealPlan(models.Model):
         validators=[
             MinValueValidator(0),
             MaxValueValidator(50000),
-        ]
+        ],
     )
     hotel = models.ForeignKey(
         Hotel,
