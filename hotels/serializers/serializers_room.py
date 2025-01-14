@@ -27,6 +27,7 @@ class CategoryRoomSerializer(serializers.ModelSerializer):
 
 class RoomPhotoSerializer(serializers.ModelSerializer):
     """Сериализатор фотографий номера"""
+    photo = serializers.ImageField()
 
     class Meta:
         model = RoomPhoto

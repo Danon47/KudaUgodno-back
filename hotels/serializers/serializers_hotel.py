@@ -15,6 +15,7 @@ class AmenityHotelSerializer(serializers.ModelSerializer):
 
 class HotelPhotoSerializer(serializers.ModelSerializer):
     """Сериализатор фотографий отеля"""
+    photo = serializers.ImageField()
 
     class Meta:
         model = HotelPhoto
