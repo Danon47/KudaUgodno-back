@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from hotels.choices import PlaceChoices, TypeOfHolidayChoices
 from hotels.models.models_hotel import Hotel
+from hotels.tests.fixtures.temp_image import create_test_image
 
 # Создаем временную директорию для MEDIA_ROOT
 temp_media_root = tempfile.mkdtemp()
@@ -21,6 +22,9 @@ class HotelAPITest(APITestCase):
         super().tearDownClass()
 
     def setUp(self):
+        self.photo_file1 = create_test_image()
+        self.photo_file2 = create_test_image()
+        self.photo_file3 = create_test_image()
         # Создаем объект Hotel
         self.hotel_data = {
             "name": "Тестовый Отель",
@@ -42,10 +46,24 @@ class HotelAPITest(APITestCase):
         # Создаем отель
         create_url = reverse("hotels:hotel-list-create")
         create_data = self.hotel_data.copy()
-        response = self.client.post(create_url, create_data)
+        response = self.client.post(create_url, create_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         # Сохраняем ID созданного отеля
         self.hotel_id = response.data["id"]
+
+        # Добавляем первую фотографию отеля
+        photo_upload_url = reverse("hotels:hotel-photo-create", kwargs={"hotel_pk": self.hotel_id})
+        photo_data = {"photo": self.photo_file1}
+        response = self.client.post(photo_upload_url, photo_data, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Добавляем вторую фотографию отеля
+        photo_upload_url = reverse("hotels:hotel-photo-create", kwargs={"hotel_pk": self.hotel_id})
+        photo_data = {"photo": self.photo_file2}
+        response = self.client.post(photo_upload_url, photo_data, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
     def test_hotel_creation(self):
         """Тест проверки создания отеля"""
@@ -53,7 +71,7 @@ class HotelAPITest(APITestCase):
         self.assertEqual(hotel.name, "Тестовый Отель")
         # Проверяем, что фотографии добавлены
         photos = hotel.hotel_photos.all()
-        self.assertEqual(photos.count(), 1)
+        self.assertEqual(photos.count(), 2)
 
     def test_hotel_update(self):
         """Тест проверки обновления отеля"""
@@ -65,9 +83,6 @@ class HotelAPITest(APITestCase):
         update_data = {
             "name": "Обновленный Отель",
             "star_category": 5,
-            "photo": [
-                {"photo": f"data:image/jpeg;base64,{self.photo2_base64}"},
-            ],
             "amenities": [{"name": "Спа"}],  # Обновляем удобства
             # Обязательные поля с текущими значениями
             "country": hotel.country,
@@ -86,10 +101,9 @@ class HotelAPITest(APITestCase):
         self.assertEqual(updated_hotel.name, "Обновленный Отель")
         self.assertEqual(updated_hotel.star_category, 5)
 
-        # Проверяем, что фотографии обновлены
+        # Проверяем, что фотография обновлена
         photos = updated_hotel.hotel_photos.all()
-        self.assertEqual(photos.count(), 1)
-        self.assertTrue(photos[0].photo.name.endswith(".jpg"))
+        self.assertEqual(photos.count(), 0)
 
         # Проверяем, что удобства обновлены
         amenities = updated_hotel.amenities.all()
@@ -122,7 +136,7 @@ class HotelAPITest(APITestCase):
         # Проверяем, что данные корректны
         self.assertEqual(response.data["name"], "Тестовый Отель")
         self.assertEqual(response.data["star_category"], 4)
-        self.assertEqual(len(response.data["photo"]), 1)
+        self.assertEqual(len(response.data["photo"]), 2)
 
     def test_hotel_delete(self):
         """Тест проверки удаления отеля"""
@@ -136,7 +150,7 @@ class HotelAPITest(APITestCase):
             Hotel.objects.get(id=self.hotel_id)
 
     def test_hotel_amenity_creation(self):
-        url = reverse("hotels:hotel-amenity-create")
+        url = reverse("hotels:hotel-amenity-create", args=[self.hotel_id])
         data = {"name": "Бассейн"}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
