@@ -60,112 +60,109 @@ class RoomAPITest(APITestCase):
         self.room_id = response.data["id"]
 
         # Добавляем фотографию к номеру
-        photo_upload_url = reverse("hotels:room-photo-create", kwargs={"room_pk": self.room_id})
+        photo_upload_url = reverse(
+            "hotels:room-photo-create", kwargs={"room_pk": self.room_id}
+        )
         photo_data = {"photo": self.photo_file1}
         response = self.client.post(photo_upload_url, photo_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Добавляем вторую фотограцию к номеру
-        photo_upload_url = reverse("hotels:room-photo-create", kwargs={"room_pk": self.room_id})
+        photo_upload_url = reverse(
+            "hotels:room-photo-create", kwargs={"room_pk": self.room_id}
+        )
         photo_data = {"photo": self.photo_file2}
         response = self.client.post(photo_upload_url, photo_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_room_creation(self):
-        """Тест проверки создания номера"""
-        room = Room.objects.get(id=self.room_id)
-        self.assertEqual(room.category.name, "Стандарт")
-        # Проверяем, что фотографии добавлены
-        photos = room.room_photos.all()
-        self.assertEqual(photos.count(), 2)
+    # def test_room_creation(self):
+    #     """Тест проверки создания номера"""
+    #     room = Room.objects.get(id=self.room_id)
+    #     self.assertEqual(room.category.name, "Стандарт")
+    #     # Проверяем, что фотографии добавлены
+    #     photos = room.room_photos.all()
+    #     self.assertEqual(photos.count(), 2)
 
-    # def test_room_update(self):
-    #     """Тест проверки обновления номера"""
-    #     update_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
-    #
-    #     # Данные для обновления
-    #     update_data = {
-    #         "category": self.category.name,
-    #         "meal": [
-    #             {"name": MealChoices.NO_MEALS, "price_per_person": 0},
-    #             {"name": MealChoices.ULTRA_ALL_INCLUSIVE, "price_per_person": 1000},
-    #             {"name": MealChoices.ALL_INCLUSIVE, "price_per_person": 750},
-    #             {"name": MealChoices.FULL_BOARD, "price_per_person": 500},
-    #             {"name": MealChoices.HALF_BOARD, "price_per_person": 250},
-    #             {"name": MealChoices.ONLY_BREAKFAST, "price_per_person": 100},
-    #         ],
-    #         "smoking": False,  # Обновляем значение
-    #         "area": 40,  # Обновляем значение
-    #         "amenities": [
-    #             {"name": "Кондиционер"},
-    #             {"name": "Wi-Fi"},
-    #         ],
-    #         "capacity": 3,  # Обновляем значение
-    #         "single_bed": 2,  # Обновляем значение
-    #         "double_bed": 1,
-    #         "nightly_price": 150,  # Обновляем значение
-    #         "photo": [{"photo": "photo1.jpg"}]
-    #     }
-    #
-    #     # Отправляем запрос на обновление
-    #     response = self.client.put(update_url, update_data)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     # Проверяем, что номер обновлен
-    #     updated_room = Room.objects.get(id=self.room_id)
-    #     self.assertEqual(updated_room.smoking, False)
-    #     self.assertEqual(updated_room.area, 40)
-    #     self.assertEqual(updated_room.capacity, 3)
-    #     self.assertEqual(updated_room.single_bed, 2)
-    #     self.assertEqual(updated_room.nightly_price, 150)
-    #
-    #     # Проверяем, что фотографии обновлены
-    #     photos = updated_room.room_photos.all()
-    #     self.assertEqual(photos.count(), 1)
-    #     self.assertTrue(photos[0].photo.name.endswith(".jpg"))
-    #
-    # def test_room_list(self):
-    #     """Тест проверки просмотра списка номеров"""
-    #     # Получаем список номеров
-    #     list_url = reverse("hotels:room-list-create")
-    #     response = self.client.get(list_url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     # Проверяем, что в списке есть созданный номер
-    #     if "results" in response.data:  # Если используется пагинация
-    #         rooms = response.data["results"]
-    #     else:
-    #         rooms = response.data
-    #
-    #     self.assertGreater(len(rooms), 0)  # Проверяем, что список не пуст
-    #     self.assertEqual(rooms[0]["category"], "Стандарт")
-    #
-    # def test_room_detail(self):
-    #     """Тест проверки просмотра конкретного номера"""
-    #     # Запрашиваем данные номера
-    #     detail_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
-    #     response = self.client.get(detail_url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     # Проверяем, что данные корректны
-    #     self.assertEqual(response.data["category"], "Стандарт")
-    #     self.assertEqual(response.data["capacity"], 3)
-    #     self.assertEqual(len(response.data["photo"]), 1)
-    #
-    # def test_room_delete(self):
-    #     """Тест проверки удаления номера"""
-    #     # Удаляем номер
-    #     delete_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
-    #     response = self.client.delete(delete_url)
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #
-    #     # Проверяем, что номер удален
-    #     with self.assertRaises(Room.DoesNotExist):
-    #         Room.objects.get(id=self.room_id)
-    #
-    #
-    # def test_room_amenity_creation(self):
-    #     url = reverse("hotels:room-amenity-create")
-    #     data = {"name": "Фен"}
-    #     response = self.client.post(url, data)
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_room_update(self):
+        """Тест проверки обновления номера"""
+        update_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
+
+        # Данные для обновления
+        update_data = {
+            "category": self.category.name,
+            "meal": [
+                {"name": MealChoices.NO_MEALS, "price_per_person": 0},
+                {"name": MealChoices.ULTRA_ALL_INCLUSIVE, "price_per_person": 1000},
+                {"name": MealChoices.ALL_INCLUSIVE, "price_per_person": 750},
+                {"name": MealChoices.FULL_BOARD, "price_per_person": 500},
+                {"name": MealChoices.HALF_BOARD, "price_per_person": 250},
+                {"name": MealChoices.ONLY_BREAKFAST, "price_per_person": 100},
+            ],
+            "smoking": False,  # Обновляем значение
+            "area": 40,  # Обновляем значение
+            "amenities": [
+                {"name": "Кондиционер"},
+                {"name": "Wi-Fi"},
+            ],
+            "capacity": 3,  # Обновляем значение
+            "single_bed": 2,  # Обновляем значение
+            "double_bed": 1,
+            "nightly_price": 3500,  # Обновляем значение
+        }
+
+        # Отправляем запрос на обновление
+        response = self.client.put(update_url, update_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем, что номер обновлен
+        updated_room = Room.objects.get(id=self.room_id)
+        self.assertEqual(updated_room.smoking, False)
+        self.assertEqual(updated_room.area, 40)
+        self.assertEqual(updated_room.capacity, 3)
+        self.assertEqual(updated_room.single_bed, 2)
+        self.assertEqual(updated_room.nightly_price, 3500)
+
+    def test_room_list(self):
+        """Тест проверки просмотра списка номеров"""
+        # Получаем список номеров
+        list_url = reverse("hotels:room-list-create")
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем, что в списке есть созданный номер
+        if "results" in response.data:
+            rooms = response.data["results"]
+        else:
+            rooms = response.data
+
+        self.assertGreater(len(rooms), 0)
+        self.assertEqual(rooms[0]["category"], "Стандарт")
+
+    def test_room_detail(self):
+        """Тест проверки просмотра конкретного номера"""
+        # Запрашиваем данные номера
+        detail_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем, что данные корректны
+        self.assertEqual(response.data["category"], "Стандарт")
+        self.assertEqual(response.data["capacity"], 3)
+        self.assertEqual(len(response.data["photo"]), 2)
+
+    def test_room_delete(self):
+        """Тест проверки удаления номера"""
+        # Удаляем номер
+        delete_url = reverse("hotels:room-detail-update-delete", args=[self.room_id])
+        response = self.client.delete(delete_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Проверяем, что номер удален
+        with self.assertRaises(Room.DoesNotExist):
+            Room.objects.get(id=self.room_id)
+
+    def test_room_amenity_creation(self):
+        url = reverse("hotels:room-amenity-create")
+        data = {"name": "Фен"}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
