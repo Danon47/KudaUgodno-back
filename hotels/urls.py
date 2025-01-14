@@ -1,6 +1,19 @@
 from django.urls import path
-from .views import *
+
 from hotels.apps import HotelsConfig
+from hotels.views.views_hotel import (
+    HotelListCreateAPIView,
+    HotelDetailAPIView,
+    HotelAmenityCreateAPIView,
+    HotelPhotoCreateAPIView,
+)
+from hotels.views.views_room import (
+    RoomListCreateAPIView,
+    RoomDetailAPIView,
+    RoomAmenityCreateAPIView,
+    RoomPhotoCreateAPIView,
+    RoomCategoryCreateAPIView,
+)
 
 app_name = HotelsConfig.name
 
