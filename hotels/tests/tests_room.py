@@ -75,13 +75,13 @@ class RoomAPITest(APITestCase):
         response = self.client.post(photo_upload_url, photo_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    # def test_room_creation(self):
-    #     """Тест проверки создания номера"""
-    #     room = Room.objects.get(id=self.room_id)
-    #     self.assertEqual(room.category.name, "Стандарт")
-    #     # Проверяем, что фотографии добавлены
-    #     photos = room.room_photos.all()
-    #     self.assertEqual(photos.count(), 2)
+    def test_room_creation(self):
+        """Тест проверки создания номера"""
+        room = Room.objects.get(id=self.room_id)
+        self.assertEqual(room.category.name, "Стандарт")
+        # Проверяем, что фотографии добавлены
+        photos = room.room_photos.all()
+        self.assertEqual(photos.count(), 2)
 
     def test_room_update(self):
         """Тест проверки обновления номера"""
