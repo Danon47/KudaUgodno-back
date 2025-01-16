@@ -91,8 +91,10 @@ class Hotel(models.Model):
         verbose_name="Пользовательская оценка",
         max_digits=3,
         decimal_places=1,
+        default=0.0,  # Добавьте значение по умолчанию
         **NULLABLE,
     )
+
     # Время заселения
     check_in_time = models.TimeField(
         max_length=8,
