@@ -169,10 +169,7 @@ class HotelDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class HotelAmenityCreateAPIView(generics.CreateAPIView):
     queryset = HotelAmenity.objects.all()
-
-    def get_serializer_class(self):
-        return AmenityHotelSerializer
-
+    serializer_class = AmenityHotelSerializer
 
     @swagger_auto_schema(
         operation_description="Создание нового удобства в отеле",
@@ -227,4 +224,3 @@ class HotelPhotoCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         hotel = Hotel.objects.get(pk=self.kwargs['hotel_pk'])
         serializer.save(hotel=hotel)
-
