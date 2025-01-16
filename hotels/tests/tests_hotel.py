@@ -14,18 +14,19 @@ temp_media_root = tempfile.mkdtemp()
 
 
 @override_settings(MEDIA_ROOT=temp_media_root)
-class HotelAPITests(APITestCase):
+class HotelAPITest(APITestCase):
     @classmethod
     def tearDownClass(cls):
         # Удаляем временную директорию после всех тестов
         shutil.rmtree(temp_media_root)
         super().tearDownClass()
 
-    # --- Новая группа: Тест CRUD для отеля ---
-    def test_hotel_crud(self):
-        """CRUD тест для отеля"""
+    def setUp(self):
+        self.photo_file1 = create_test_image()
+        self.photo_file2 = create_test_image()
+        self.photo_file3 = create_test_image()
         # Создаем объект Hotel
-        hotel_data = {
+        self.hotel_data = {
             "name": "Тестовый Отель",
             "star_category": 4,
             "place": PlaceChoices.HOTEL,
@@ -42,99 +43,114 @@ class HotelAPITests(APITestCase):
             "check_out_time": time(11, 0),
         }
 
-        # Создание отеля
+        # Создаем отель
         create_url = reverse("hotels:hotel-list-create")
-        response = self.client.post(create_url, hotel_data, format="json")
+        create_data = self.hotel_data.copy()
+        response = self.client.post(create_url, create_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Сохраняем ID созданного отеля
-        self.hotel_id = response.data.get("id", None)
-        # Убедитесь, что отель был создан и ID сохранен
-        if not self.hotel_id:
-            raise ValueError("Ошибка создания отеля, ID отсутствует.")
-        print(f"Response data from hotel creation: {response.data}")
+        self.hotel_id = response.data["id"]
 
-        # Обновление отеля
+        # Добавляем первую фотографию отеля
+        photo_upload_url = reverse("hotels:hotel-photo-create", kwargs={"hotel_pk": self.hotel_id})
+        photo_data = {"photo": self.photo_file1}
+        response = self.client.post(photo_upload_url, photo_data, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Добавляем вторую фотографию отеля
+        photo_upload_url = reverse("hotels:hotel-photo-create", kwargs={"hotel_pk": self.hotel_id})
+        photo_data = {"photo": self.photo_file2}
+        response = self.client.post(photo_upload_url, photo_data, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+    def test_hotel_creation(self):
+        """Тест проверки создания отеля"""
+        hotel = Hotel.objects.get(id=self.hotel_id)
+        self.assertEqual(hotel.name, "Тестовый Отель")
+        # Проверяем, что фотографии добавлены
+        photos = hotel.hotel_photos.all()
+        self.assertEqual(photos.count(), 2)
+
+    def test_hotel_update(self):
+        """Тест проверки обновления отеля"""
         update_url = reverse("hotels:hotel-detail-update-delete", args=[self.hotel_id])
-        print("Update URL:", update_url)
-        print("Hotel ID:", self.hotel_id)
+        # Получаем текущие данные отеля
+        hotel = Hotel.objects.get(id=self.hotel_id)
 
-        update_data = hotel_data.copy()
-        update_data["name"] = "Обновленный Отель"
+        # Данные для обновления
+        update_data = {
+            "name": "Обновленный Отель",
+            "star_category": 5,
+            "amenities": [{"name": "Спа"}],  # Обновляем удобства
+            # Обязательные поля с текущими значениями
+            "country": hotel.country,
+            "city": hotel.city,
+            "address": hotel.address,
+            "description": hotel.description,
+            "user_rating": hotel.user_rating,
+        }
+
+        # Отправляем запрос на обновление
         response = self.client.put(update_url, update_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Обновленный Отель")
 
-        # Удаление отеля
+        # Проверяем, что отель обновлен
+        updated_hotel = Hotel.objects.get(id=self.hotel_id)
+        self.assertEqual(updated_hotel.name, "Обновленный Отель")
+        self.assertEqual(updated_hotel.star_category, 5)
+
+        # Проверяем, что фотография обновлена
+        photos = updated_hotel.hotel_photos.all()
+        self.assertEqual(photos.count(), 0)
+
+        # Проверяем, что удобства обновлены
+        amenities = updated_hotel.amenities.all()
+        self.assertEqual(amenities.count(), 1)
+        self.assertEqual(amenities[0].name, "Спа")
+
+    def test_hotel_list(self):
+        """Тест проверки просмотра списка отелей"""
+        # Получаем список отелей
+        list_url = reverse("hotels:hotel-list-create")
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем, что в списке есть созданный отель
+        if "results" in response.data:  # Если используется пагинация
+            hotels = response.data["results"]
+        else:
+            hotels = response.data
+
+        self.assertGreater(len(hotels), 0)  # Проверяем, что список не пуст
+        self.assertEqual(hotels[0]["name"], "Тестовый Отель")
+
+    def test_hotel_detail(self):
+        """Тест проверки просмотра конкретного отеля"""
+        # Запрашиваем данные отеля
+        detail_url = reverse("hotels:hotel-detail-update-delete", args=[self.hotel_id])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем, что данные корректны
+        self.assertEqual(response.data["name"], "Тестовый Отель")
+        self.assertEqual(response.data["star_category"], 4)
+        self.assertEqual(len(response.data["photo"]), 2)
+
+    def test_hotel_delete(self):
+        """Тест проверки удаления отеля"""
+        # Удаляем отель
         delete_url = reverse("hotels:hotel-detail-update-delete", args=[self.hotel_id])
         response = self.client.delete(delete_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Проверка, что отель удален
-        response = self.client.get(update_url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # Проверяем, что отель удален
+        with self.assertRaises(Hotel.DoesNotExist):
+            Hotel.objects.get(id=self.hotel_id)
 
-
-    # --- Существующая группа: Тесты списка и деталей отеля ---
-    def test_hotel_list(self):
-        """Тест проверки списка отелей"""
-        list_url = reverse("hotels:hotel-list-create")
-        response = self.client.get(list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreater(len(response.data), 0)
-
-    def test_hotel_detail(self):
-        """Тест проверки деталей отеля"""
-        # Создаем объект Hotel
-        hotel_data = {
-            "name": "Тестовый Отель",
-            "star_category": 4,
-            "place": PlaceChoices.HOTEL,
-            "type_of_holiday": TypeOfHolidayChoices.BEACH,
-            "country": "Тестовая Страна",
-            "city": "Тестовый Город",
-            "address": "Тестовый Адрес",
-            "description": "Тестовое описание",
-            "user_rating": 5.1,
-            "check_in_time": "15:00:00",
-            "check_out_time": "11:00:00",
-        }
-
-        # Создаем отель
-        create_url = reverse("hotels:hotel-list-create")
-        response = self.client.post(create_url, hotel_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Сохраняем ID отеля
-        hotel_id = response.data["id"]
-        # Проверяем детали отеля
-        detail_url = reverse("hotels:hotel-detail-update-delete", args=[hotel_id])
-        response = self.client.get(detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Тестовый Отель")
-
-
-    # --- Существующая группа: Тесты с удобствами ---
     def test_hotel_amenity_creation(self):
-        """Тест добавления удобств"""
-        # Создаем отель
-        hotel_data = {
-            "name": "Тестовый Отель",
-            "star_category": 4,
-            "place": PlaceChoices.HOTEL,
-            "type_of_holiday": TypeOfHolidayChoices.BEACH,
-            "country": "Тестовая Страна",
-            "city": "Тестовый Город",
-            "address": "Тестовый Адрес",
-            "description": "Тестовое описание",
-            "user_rating": 5.1,
-        }
-        create_url = reverse("hotels:hotel-list-create")
-        response = self.client.post(create_url, hotel_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # Добавляем удобства
-        hotel_id = response.data["id"]
-        amenity_url = reverse("hotels:hotel-amenity-create", args=[hotel_id])
-        amenity_data = {"name": "Бассейн"}
-        response = self.client.post(amenity_url, amenity_data, format="json")
+        url = reverse("hotels:hotel-amenity-create", args=[self.hotel_id])
+        data = {"name": "Бассейн"}
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
