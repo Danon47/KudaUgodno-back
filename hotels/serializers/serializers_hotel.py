@@ -8,9 +8,17 @@ from hotels.serializers.serializers_room import RoomBaseSerializer
 class AmenityHotelSerializer(serializers.ModelSerializer):
     """Сериализатор Удобств для отеля"""
 
+    name = serializers.CharField(max_length=50, required=True)
+
     class Meta:
         model = HotelAmenity
         fields = ("id", "name",)
+
+    def validate_name(self, value):
+        print("Validating name:", value)
+        if not value:
+            raise serializers.ValidationError("Удобство должно иметь имя.")
+        return value
 
 
 class HotelPhotoSerializer(serializers.ModelSerializer):
@@ -22,7 +30,7 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
         fields = ("photo",)
 
 class HotelBaseSerializer(serializers.ModelSerializer):
-    amenities = AmenityHotelSerializer(many=True,)
+    amenities = AmenityHotelSerializer(many=True, required=False)  # Поле больше не обязательно
     photo = HotelPhotoSerializer(source="hotel_photos", many=True, required=False)
     user_rating = serializers.FloatField()
 
@@ -48,19 +56,17 @@ class HotelBaseSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        # Извлекаем вложенные данные
+        print("Validated data before creation:", validated_data)
+
         amenities_data = validated_data.pop("amenities", [])
         photos_data = validated_data.pop("hotel_photos", [])
 
-        # Создаем объект Hotel
         hotel = Hotel.objects.create(**validated_data)
 
-        # Создаем связанные объекты Amenity
         for amenity_data in amenities_data:
-            amenity, created = HotelAmenity.objects.get_or_create(**amenity_data)
+            amenity, _ = HotelAmenity.objects.get_or_create(**amenity_data)  # Создает удобства, если их нет
             hotel.amenities.add(amenity)
 
-        # Создаем связанные объекты Photo
         for photo_data in photos_data:
             HotelPhoto.objects.create(hotel=hotel, **photo_data)
 
@@ -91,9 +97,9 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
 
 class HotelDetailSerializer(HotelBaseSerializer):
-    amenities = AmenityHotelSerializer(many=True, read_only=True, )
+    amenities = AmenityHotelSerializer(many=True, read_only=True)
     rooms = RoomBaseSerializer(many=True, read_only=True,)
-    photo = HotelPhotoSerializer(source="hotel_photos", many=True, read_only=True,)
+    photo = HotelPhotoSerializer(source="hotel_photos", many=True, read_only=True)
     user_rating = serializers.FloatField(read_only=True,)
 
     class Meta:
