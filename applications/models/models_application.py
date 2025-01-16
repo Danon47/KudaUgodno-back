@@ -4,7 +4,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from applications.choices import StatusChoices
 from applications.models.models_guest import Guest
-from hotels.models import Room
+from hotels.models.models_room import Room
 from tours.models import Tour
 from users.models import User
 

@@ -1,10 +1,8 @@
 import os
-from sys import is_stack_trampoline_active
-
 from django.core.management.base import BaseCommand
-from django.utils.timezone import is_aware
-
-from hotels.models import HotelAmenity, RoomAmenity, RoomCategory
+from hotels.models.models_hotel_amenity import HotelAmenity
+from hotels.models.models_room_amenity import RoomAmenity
+from hotels.models.models_room_caterogy import RoomCategory
 from users.models import User
 
 

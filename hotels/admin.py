@@ -1,15 +1,12 @@
 from django.contrib import admin
-
-from hotels.models import (
-    Hotel,
-    Room,
-    HotelAmenity,
-    RoomAmenity,
-    RoomCategory,
-    RoomPhoto,
-    HotelPhoto,
-    MealPlan,
-)
+from hotels.models.models_hotel import Hotel
+from hotels.models.models_hotel_amenity import HotelAmenity
+from hotels.models.models_hotel_meal import MealPlan
+from hotels.models.models_hotel_photo import HotelPhoto
+from hotels.models.models_room import Room
+from hotels.models.models_room_amenity import RoomAmenity
+from hotels.models.models_room_caterogy import RoomCategory
+from hotels.models.models_room_photo import RoomPhoto
 
 
 class RoomInline(admin.StackedInline):
