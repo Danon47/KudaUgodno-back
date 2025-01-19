@@ -14,7 +14,7 @@ class GuestTest(TestCase):
     def setUp(self):
 
         self.client = APIClient()
-        self.user = User.objects.create_user(phone_number="+79999999999", password="testpassword")
+        self.user = User.objects.create(email="test@test.ru")
         self.guest = Guest.objects.create(
             firstname="Ivan",
             lastname="Ivanov",
@@ -62,7 +62,7 @@ class GuestTest(TestCase):
             "international_passport_no": "12 3456789",
             "validity_international_passport": "2040-11-11",
         }
-        self.client.login(phone_number="+79999999999", password="testpassword")
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(Guest.objects.count(), 2)
