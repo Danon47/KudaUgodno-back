@@ -1,16 +1,10 @@
-from __future__ import absolute_import
-import os
 from celery import Celery
+import os
 
-# этот код скопирован с manage.py
-# он установит модуль настроек по умолчанию Django для приложения 'celery'.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-# здесь вы меняете имя
 app = Celery("config")
-
-# Для получения настроек Django, связываем префикс "CELERY" с настройкой celery
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# загрузка tasks.py в приложение django
+app.config_from_object("django.conf:settings", namespace="CELERY")
+app.conf.broker_url = "redis://redis:6379/0"  # Указываем Redis как брокер
+app.conf.result_backend = "redis://redis:6379/0"
 app.autodiscover_tasks()
