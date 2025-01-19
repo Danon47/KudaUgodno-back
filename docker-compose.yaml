@@ -16,7 +16,7 @@ services:
       retries: 5
       timeout: 10s
     networks:
-      - 36_kuda_ugodno_beckend
+      - backend_network
 
   app:
     container_name: 36_kuda_ugodno_backend_api_12
@@ -25,6 +25,8 @@ services:
       - "8000:8000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - .:/app:cached
@@ -36,12 +38,54 @@ services:
              python3 manage.py seed_data &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --preload'
     networks:
-      - default
-      - 36_kuda_ugodno_beckend
+      - backend_network
+
+  redis:
+    container_name: redis
+    image: redis:7.2.1-alpine3.18
+    restart: unless-stopped
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_network
+
+  celery:
+    container_name: celery_worker
+    build:
+      context: .
+    command: celery -A config worker --loglevel=info
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - backend_network
+
+  celery_beat:
+    container_name: celery_beat
+    build:
+      context: .
+    command: celery -A config beat --loglevel=info
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - backend_network
 
 networks:
-  default:
-    name: nginx_network
-    external: True
-  36_kuda_ugodno_beckend:
-    name: 36_kuda_ugodno_beckend
+  backend_network:
+    name: backend_network
