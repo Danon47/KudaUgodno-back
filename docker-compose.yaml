@@ -1,7 +1,7 @@
 services:
   db:
     container_name: 36_kuda_ugodno_backend_api_db_12
-    image: postgres:17.2-alpine3.21
+    image: postgres:16.6-alpine3.21
     restart: unless-stopped
     env_file:
       - .env
@@ -42,8 +42,8 @@ services:
       - 36_kuda_ugodno_backend
 
   redis:
-    container_name: redis
-    image: redis:7.2.1-alpine3.18
+    container_name: 36_kuda_ugodno_backend_redis
+    image: redis
     restart: unless-stopped
     expose:
       - 6379
@@ -56,7 +56,7 @@ services:
       - 36_kuda_ugodno_backend
 
   celery:
-    container_name: celery_worker
+    container_name: 36_kuda_ugodno_backend_celery_worker
     build: .
     command: celery -A config worker --loglevel=info
     depends_on:
@@ -70,7 +70,7 @@ services:
       - 36_kuda_ugodno_backend
 
   celery_beat:
-    container_name: celery_beat
+    container_name: 36_kuda_ugodno_backend_celery_beat
     build: .
     command: celery -A config beat --loglevel=info
     depends_on:
