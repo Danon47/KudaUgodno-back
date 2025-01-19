@@ -1,7 +1,7 @@
 services:
   db:
     container_name: 36_kuda_ugodno_backend_api_db_12
-    image: postgres:16-alpine3.21
+    image: postgres:17.2-alpine3.21
     restart: unless-stopped
     env_file:
       - .env
@@ -22,7 +22,7 @@ services:
     container_name: 36_kuda_ugodno_backend_api_12
     build: .
     ports:
-      - "8000:8000"
+      - "${PORT_APP}:${PORT_APP}"
     depends_on:
       db:
         condition: service_healthy
@@ -36,7 +36,7 @@ services:
       sh -c 'python3 manage.py makemigrations &&
              python3 manage.py migrate &&
              python3 manage.py seed_data &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --preload'
+             gunicorn config.wsgi:application --bind 0.0.0.0:${PORT_APP} --workers 3 --timeout 120 --preload'
     networks:
       - default
       - 36_kuda_ugodno_backend
@@ -47,8 +47,6 @@ services:
     restart: unless-stopped
     expose:
       - 6379
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -59,8 +57,7 @@ services:
 
   celery:
     container_name: celery_worker
-    build:
-      context: .
+    build: .
     command: celery -A config worker --loglevel=info
     depends_on:
       - redis
@@ -74,8 +71,7 @@ services:
 
   celery_beat:
     container_name: celery_beat
-    build:
-      context: .
+    build: .
     command: celery -A config beat --loglevel=info
     depends_on:
       - redis
