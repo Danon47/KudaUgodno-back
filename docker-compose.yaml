@@ -72,7 +72,7 @@ services:
   celery_beat:
     container_name: 36_kuda_ugodno_backend_celery_beat
     build: .
-    command: celery -A config beat --loglevel=info
+    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       - redis
       - db

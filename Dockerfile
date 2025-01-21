@@ -16,5 +16,7 @@ COPY . .
 
 # Создаём пользователя и заходим под ним
 RUN useradd -m backenduser && \
-    chown -R backenduser:backenduser /app
+    chown -R backenduser:backenduser /app && \
+    mkdir -p /app/celery_beat && \
+    chown -R backenduser:backenduser /app/celery_beat
 USER backenduser
