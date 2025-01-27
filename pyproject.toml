@@ -19,6 +19,7 @@ phonenumbers = "^8.13.52"
 celery = "^5.4.0"
 redis = "^5.2.1"
 django-celery-beat = "^2.7.0"
+django-cors-headers = "^4.6.0"
 
 
 [tool.poetry.group.dev.dependencies]

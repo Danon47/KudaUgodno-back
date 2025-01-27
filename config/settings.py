@@ -34,12 +34,14 @@ INSTALLED_APPS = [
     "flights",
     "hotels",
     "applications",
+    "corsheaders",
 ]
 
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -155,4 +157,20 @@ EMAIL_USE_SSL = True
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Разрешенные домены для CORS (кросс-доменных запросов)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://anywhere-dev.god-it.ru",
+    "http://anywhere-test.god-it.ru",
+]
+
+# Для продакшена добавляем HTTPS-домены и IP
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "https://anywhere.god-it.ru",
+        "https://anywhere-test.god-it.ru",
+        "http://82.202.137.38",
+    ]
