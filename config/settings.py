@@ -16,6 +16,7 @@ ALLOWED_HOSTS = [
     "anywhere.god-it.ru",
     "anywhere-test.god-it.ru",
     "anywhere-dev.god-it.ru",
+    "82.202.137.38",
 ]
 
 INSTALLED_APPS = [
