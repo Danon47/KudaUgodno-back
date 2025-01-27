@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from hotels.choices import PlaceChoices, TypeOfHolidayChoices
-from hotels.models.models_hotel import Hotel
+from hotels.models.hotel.models_hotel import Hotel
 from hotels.tests.fixtures.temp_image import create_test_image
 
 # Создаем временную директорию для MEDIA_ROOT
