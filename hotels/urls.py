@@ -1,11 +1,12 @@
 from django.urls import path
+from rest_framework import routers
 
 from hotels.apps import HotelsConfig
 from hotels.views.views_hotel import (
     HotelListCreateAPIView,
     HotelDetailAPIView,
     HotelAmenityCreateAPIView,
-    HotelPhotoCreateAPIView,
+    HotelPhotoCreateAPIView, HotelViewSet,
 )
 from hotels.views.views_room import (
     RoomListCreateAPIView,
@@ -14,6 +15,10 @@ from hotels.views.views_room import (
     RoomPhotoCreateAPIView,
     RoomCategoryCreateAPIView,
 )
+
+router = routers.DefaultRouter()
+router.register(r"hotels", HotelViewSet)
+
 
 app_name = HotelsConfig.name
 
