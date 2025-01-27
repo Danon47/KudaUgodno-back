@@ -163,8 +163,8 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://anywhere-dev.god-it.ru",
-    "http://anywhere-test.god-it.ru",
+    "https://anywhere-dev.god-it.ru",
+    "https://anywhere-test.god-it.ru",
 ]
 
 # Для продакшена добавляем HTTPS-домены и IP
