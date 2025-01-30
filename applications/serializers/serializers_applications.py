@@ -8,7 +8,7 @@ from tours.serializers import TourSerializer
 from users.serializers import UserSerializer
 
 
-class ApplicationCreateSerializer(serializers.ModelSerializer):
+class ApplicationDetailSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Application
     """
@@ -44,7 +44,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     quantity_rooms = RoomBaseSerializer(many=True)
     user_owner = UserSerializer()
 
-    class Meta(ApplicationCreateSerializer.Meta):
+    class Meta(ApplicationDetailSerializer.Meta):
         model = Application
-        fields = ApplicationCreateSerializer.Meta.fields
+        fields = ApplicationDetailSerializer.Meta.fields
         read_only_fields = ("tour", "quantity_guests", "quantity_rooms", "user_owner")
