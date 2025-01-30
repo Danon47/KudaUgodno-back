@@ -20,7 +20,6 @@ services:
   app:
     container_name: kuda_ugodno_backend_api
     build: .
-    user: "1001:1003"
     ports:
       - "8000:8000"
     depends_on:
@@ -30,7 +29,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:cached
-      - media_volume:/app/media
     env_file:
       - .env
     command: >

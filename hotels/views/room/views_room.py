@@ -88,6 +88,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
 )
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.select_related("category", "hotel").prefetch_related("amenities", "meal", "room_photos")
+    # parser_classes = [MultiPartParser, FormParser]
 
     def get_serializer_class(self):
         if self.action == ["create", "update", "partial_update"]:
