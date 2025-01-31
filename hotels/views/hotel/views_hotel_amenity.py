@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 from rest_framework import viewsets
 from hotels.models.hotel.models_hotel_amenity import (HotelAmenityCommon, HotelAmenityForChildren,
                                                       HotelAmenityInTheRoom, HotelAmenitySportsAndRecreation)
