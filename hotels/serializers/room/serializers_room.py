@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_amenity import RoomAmenity
-from hotels.models.room.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_category import RoomCategory
 from hotels.serializers.room.serializers_room_amenity import AmenityRoomSerializer
 from hotels.serializers.room.serializers_room_photo import RoomPhotoSerializer
 
