@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "drf_yasg",
+    "drf_spectacular",
     "phonenumber_field",
     "django_celery_beat",
     "users",
@@ -119,6 +119,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -130,21 +131,36 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-SWAGGER_SETTINGS = {
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
-    ],
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-    ],
-    "LANGUAGE_CODE": "ru",
-    "TAGS_SORTER": "alpha",
-}
-
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API приложения Куда Угодно",
+    "DESCRIPTION": "Полная документация API приложения Куда Угодно",
+    "VERSION": "0.3.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": "/api/v1/",
+    'TYPESCRIPT_GENERATOR': {
+        'TYPED_PATH_PARAMETERS': True
+    },
+    "TAGS": [
+        {"name": "3.1 Отель", "description": "Методы для работы с отелями"},
+        {"name": "3.1.1 Удобства в отеле", "description": "Методы для работы с удобствами отелей"},
+        {"name": "3.1.2 Правила в отеле", "description": "Методы для работы с правилами отелей"},
+        {"name": "3.1.3 Фотографии в отеле", "description": "Методы для работы с фотографиями отелей"},
+        {"name": "3.2 Номер", "description": "Методы для работы с номерами"},
+        {"name": "3.2.1 Категории номера", "description": "Методы для работы с категориями номеров"},
+        {"name": "3.2.2 Удобства в номере", "description": "Методы для работы с удобствами номеров"},
+        {"name": "3.2.3 Фотографии номера", "description": "Методы для работы с фотографиями номеров"},
+    ],
+    "SORT_OPERATIONS": True,  # Сортировка эндпоинтов по пути
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -171,6 +187,4 @@ CORS_ALLOWED_ORIGINS = [
 if not DEBUG:
     CORS_ALLOWED_ORIGINS += [
         "https://anywhere.god-it.ru",
-        "https://anywhere-test.god-it.ru",
-        "http://82.202.137.38",
     ]
