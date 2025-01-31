@@ -9,6 +9,7 @@ class RoomCategory(models.Model):
     name = models.CharField(
         max_length=20,
         verbose_name="Категория номера",
+        help_text="Категория номера",
     )
 
     class Meta:

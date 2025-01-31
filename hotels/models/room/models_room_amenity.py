@@ -9,6 +9,7 @@ class RoomAmenity(models.Model):
     name = models.CharField(
         max_length=50,
         verbose_name="Удобство",
+        help_text="Удобство",
     )
 
     class Meta:

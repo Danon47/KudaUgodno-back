@@ -6,7 +6,7 @@ from hotels.models.hotel.models_hotel_photo import HotelPhoto
 from hotels.models.hotel.models_hotel_rules import HotelRules
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_amenity import RoomAmenity
-from hotels.models.room.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_category import RoomCategory
 from hotels.models.room.models_room_photo import RoomPhoto
 
 

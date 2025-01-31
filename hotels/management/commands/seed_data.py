@@ -1,6 +1,6 @@
 import os
 from django.core.management.base import BaseCommand
-from hotels.models.room.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_category import RoomCategory
 from users.models import User
 
 

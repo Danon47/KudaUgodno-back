@@ -1,5 +1,5 @@
 from django.db import models
-from hotels.models.models_room import Room
+from hotels.models.room.models_room import Room
 
 
 class RoomPhoto(models.Model):
@@ -12,11 +12,13 @@ class RoomPhoto(models.Model):
         on_delete=models.CASCADE,
         related_name="room_photos",
         verbose_name="Номер",
+        help_text="Номер",
         blank=True,
     )
     photo = models.ImageField(
         upload_to="hotels/hotels/rooms/",
         verbose_name="Фотография номера",
+        help_text="Фотография номера",
         blank=True,
     )
 
