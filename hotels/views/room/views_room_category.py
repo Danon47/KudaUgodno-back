@@ -1,6 +1,6 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 from rest_framework import viewsets
-from hotels.models.room.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_category import RoomCategory
 from hotels.serializers.room.serializers_room_category import CategoryRoomSerializer
 
 # Категории номеров
