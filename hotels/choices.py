@@ -81,3 +81,38 @@ class TimeChoices:
             (time(1, 0), "01:00"),
             (time(0, 0), "00:00"),
         ]
+
+# # class AmenitiesChoices(models.TextChoices):
+# #     """
+# #     Удобства в номере
+# #     """
+#
+#     LOTS_OF_GREENERY = "Много зелени", "Много зелени"
+#     FIRST_LINE = "Первая линия", "Первая линия"
+#     FAMILY_ROOMS =
+#     AIRPORT_TRANSFER =
+#     ALA_KART_RESTAURANT =
+#     LOBBY_BAR =
+#     IT_IS_POSSIBLE_WITH_ANIMALS =
+#     WI_FI =
+#     TERRACE =
+#     TEA_STATION =
+#     DESKTOP =
+#     THE_CHAIR =
+#     SPA =
+#     POOLS_2 =
+#     TENNIS_COURTS_3 =
+#     FITNESS_CENTER =
+#     TABLE_TENNIS =
+#     BILLIARDS =
+#     AQUAPARK =
+#     CHILDRENS_CLUB =
+#     EVENING_ANIMATION =
+#     PLAYGROUND =
+
+# class RulesChoices(models.TextChoices):
+#     """
+#     Правила в отеле
+#     """
+#
+#
