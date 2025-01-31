@@ -1,8 +1,6 @@
 import os
 from django.core.management.base import BaseCommand
-from hotels.models.models_hotel_amenity import HotelAmenity
-from hotels.models.models_room_amenity import RoomAmenity
-from hotels.models.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_caterogy import RoomCategory
 from users.models import User
 
 
@@ -11,29 +9,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Данные удобств отелей, номеров, категорий
-        amenities_room = [
-            {"name": "Душ на этаже"},
-            {"name": "Душ в комнате"},
-            {"name": "Ванна"},
-            {"name": "Дополнительная кровать"},
-            {"name": "Можно с животными"},
-            {"name": "Фен"},
-            {"name": "Сейф"},
-            {"name": "Чайный набор"},
-            {"name": "Wi-Fi"},
-            {"name": "Кондиционер"},
-        ]
-
-        amenities_hotel = [
-            {"name": "Бассейн"},
-            {"name": "Собственный пляж"},
-            {"name": "Семейные номера"},
-            {"name": "Детский клуб"},
-            {"name": "Аквапарк"},
-            {"name": "Теннисный корт"},
-            {"name": "Бесплатный интернет"},
-        ]
-
         category_rooms = [
             {"name": "Стандарт"},
             {"name": "Комфорт"},
@@ -42,17 +17,9 @@ class Command(BaseCommand):
         ]
 
         # Проверяем, заполнены ли уже данные
-        if RoomAmenity.objects.exists() or HotelAmenity.objects.exists() or RoomCategory.objects.exists():
+        if RoomCategory.objects.exists():
             self.stdout.write(self.style.WARNING("=== BD already has these values ==="))
         else:
-
-            # Заполняем базу данных
-            for amenity in amenities_room:
-                RoomAmenity.objects.get_or_create(**amenity)
-
-            for amenity in amenities_hotel:
-                HotelAmenity.objects.get_or_create(**amenity)
-
             for category in category_rooms:
                 RoomCategory.objects.get_or_create(**category)
 
