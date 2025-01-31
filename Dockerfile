@@ -13,14 +13,3 @@ RUN pip install poetry && \
 
 # Копируем остальной код проекта
 COPY . .
-
-# Создаём пользователя и заходим под ним
-RUN groupadd -g 1003 backendusergroup && \
-    useradd -u 1001 -g 1003 -m -o backenduser && \
-    chown -R backenduser:backendusergroup /app && \
-    mkdir -p /app/celery_beat && \
-    chown -R backenduser:backendusergroup /app/celery_beat && \
-    mkdir -p /app/media && \
-    chown -R backenduser:backendusergroup /app/media
-
-USER backenduser
