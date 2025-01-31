@@ -191,3 +191,9 @@ if not DEBUG:
     CORS_ALLOWED_ORIGINS += [
         "https://anywhere.god-it.ru",
     ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://anywhere.god-it.ru",
+    "https://anywhere-dev.god-it.ru",
+    "https://anywhere-test.god-it.ru",
+]
