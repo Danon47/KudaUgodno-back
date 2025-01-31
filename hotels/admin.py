@@ -1,12 +1,13 @@
 from django.contrib import admin
-from hotels.models.models_hotel import Hotel
-from hotels.models.models_hotel_amenity import HotelAmenity
-from hotels.models.models_hotel_meal import MealPlan
-from hotels.models.models_hotel_photo import HotelPhoto
-from hotels.models.models_room import Room
-from hotels.models.models_room_amenity import RoomAmenity
-from hotels.models.models_room_caterogy import RoomCategory
-from hotels.models.models_room_photo import RoomPhoto
+from hotels.models.hotel.models_hotel import Hotel
+from hotels.models.hotel.models_hotel_amenity import (HotelAmenityCommon, HotelAmenityInTheRoom,
+                                                      HotelAmenitySportsAndRecreation, HotelAmenityForChildren)
+from hotels.models.hotel.models_hotel_photo import HotelPhoto
+from hotels.models.hotel.models_hotel_rules import HotelRules
+from hotels.models.room.models_room import Room
+from hotels.models.room.models_room_amenity import RoomAmenity
+from hotels.models.room.models_room_caterogy import RoomCategory
+from hotels.models.room.models_room_photo import RoomPhoto
 
 
 class RoomInline(admin.StackedInline):
@@ -17,7 +18,7 @@ class RoomInline(admin.StackedInline):
 
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ("id", "type_of_holiday", "name", "city", "address")
+    list_display = ("id", "type_of_rest", "name", "city", "address")
     list_display_links = ("id", "name")
     # Добавляем встроенный класс для номеров
     inlines = (RoomInline,)
@@ -29,18 +30,25 @@ class RoomAdmin(admin.ModelAdmin):
         "id",
         "category",
         "hotel",
-        "nightly_price_no_meals",
-        "nightly_price_ultra_all_inclusive",
-        "nightly_price_all_inclusive",
-        "nightly_price_full_board",
-        "nightly_price_half_board",
-        "nightly_price_only_breakfast",
+        "nightly_price",
     )
     list_display_links = ("id", "category")
 
 
-@admin.register(HotelAmenity)
-class HotelAmenityAdmin(admin.ModelAdmin):
+@admin.register(HotelAmenityCommon)
+class HotelAmenityCommonAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
+@admin.register(HotelAmenityInTheRoom)
+class HotelAmenityInTheRoomAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
+@admin.register(HotelAmenitySportsAndRecreation)
+class HotelAmenitySportsAndRecreationAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+
+@admin.register(HotelAmenityForChildren)
+class HotelAmenityForChildrenAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
@@ -64,6 +72,6 @@ class HotelPhotoAdmin(admin.ModelAdmin):
     list_display = ("id", "photo")
 
 
-@admin.register(MealPlan)
-class MealPlanAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "price_per_person", "hotel")
+@admin.register(HotelRules)
+class RulesAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "description")
