@@ -75,6 +75,7 @@ class Room(models.Model):
             MinValueValidator(1),
             MaxValueValidator(1000000),
         ],
+        default=0,
     )
     # Отель
     hotel = models.ForeignKey(
