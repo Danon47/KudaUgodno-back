@@ -1,8 +1,8 @@
 from django.core.validators import MaxValueValidator
 from django.db import models
 from flights.models import Flight
-from hotels.models.models_hotel import Hotel, NULLABLE
-from hotels.models.models_room import Room
+from hotels.models.hotel.models_hotel import Hotel, NULLABLE
+from hotels.models.room.models_room import Room
 from users.models import User
 
 
