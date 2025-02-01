@@ -1,7 +1,6 @@
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiExample,
     OpenApiParameter,
     OpenApiResponse,
 )
@@ -13,22 +12,30 @@ from applications.serializers.serializers_applications import (
     ApplicationDetailSerializer,
 )
 
+parameters_application = [
+            OpenApiParameter(
+                location=OpenApiParameter.PATH,
+                name="id",
+                type=int,
+                description="Уникальное целочисленное значение, идентифицирующее данную Заявки",
+                required=True,
+
+            ),
+        ]
+
+tags_application = ["5. Заявки"]
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список заявок",
         description="Получение списка всех заявок",
-        tags=["5. Заявки"],
+        tags=tags_application,
         parameters=[
             OpenApiParameter(
                 name="limit",
                 type=int,
                 description="Количество Заявок для возврата на страницу",
                 required=False,
-                examples=[
-                    OpenApiExample("Пример 1", value=10),
-                    OpenApiExample("Пример 2", value=20),
-                ],
             ),
             OpenApiParameter(
                 name="offset",
@@ -46,7 +53,7 @@ from applications.serializers.serializers_applications import (
         summary="Добавление заявки",
         description="Создание новой заявки",
         request=ApplicationDetailSerializer,
-        tags=["5. Заявки"],
+        tags=tags_application,
         responses={
             201: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -55,7 +62,8 @@ from applications.serializers.serializers_applications import (
     retrieve=extend_schema(
         summary="Информация о заявке",
         description="Получение информации о заявке через идентификатор",
-        tags=["5. Заявки"],
+        tags=tags_application,
+        parameters=parameters_application,
         responses={
             200: ApplicationSerializer,
             404: OpenApiResponse(description="Заявка не найдена"),
@@ -65,7 +73,8 @@ from applications.serializers.serializers_applications import (
         summary="Полное обновление заявки",
         description="Обновление всех полей заявки",
         request=ApplicationDetailSerializer,
-        tags=["5. Заявки"],
+        tags=tags_application,
+        parameters=parameters_application,
         responses={
             200: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -76,7 +85,8 @@ from applications.serializers.serializers_applications import (
         summary="Частичное обновление заявки",
         description="Обновление отдельных полей заявки",
         request=ApplicationDetailSerializer,
-        tags=["5. Заявки"],
+        tags=tags_application,
+        parameters=parameters_application,
         responses={
             200: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -86,7 +96,8 @@ from applications.serializers.serializers_applications import (
     destroy=extend_schema(
         summary="Удаление заявки",
         description="Полное удаление заявки",
-        tags=["5. Заявки"],
+        tags=tags_application,
+        parameters=parameters_application,
         responses={
             204: OpenApiResponse(description="Заявка удалена"),
             404: OpenApiResponse(description="Заявка не найдена"),
