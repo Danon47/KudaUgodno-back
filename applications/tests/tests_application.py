@@ -150,3 +150,4 @@ class ApplicationTest(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Application.objects.count(), 0)
+
