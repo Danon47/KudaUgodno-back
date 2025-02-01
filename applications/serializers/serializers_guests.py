@@ -6,7 +6,7 @@ from flights.validators.validators import ForbiddenWordValidator
 from users.serializers import UserSerializer
 
 
-class GuestCreateSerializer(serializers.ModelSerializer):
+class GuestDetailSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Guest
     """
