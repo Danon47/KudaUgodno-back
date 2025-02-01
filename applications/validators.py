@@ -9,9 +9,8 @@ class DateBornValidator:
     """
 
     def __call__(self, value):
-        date_born = value.get("date_born")
-        if date_born > date.today():
-            raise ValidationError("Дата рождения не может быть в будущем")
+        if value.get("date_born") and value.get("date_born") > date.today():
+                raise ValidationError("Дата рождения не может быть в будущем")
 
 class ValidityOfForeignPassportValidator:
     """
