@@ -9,14 +9,14 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    path("users/", include("users.urls")),
-    path("tours/", include("tours.urls")),
-    path("flights/", include("flights.urls")),
-    path("", include("hotels.urls.urls_hotel")),
-    path("", include("hotels.urls.urls_room")),
-    path("applications/", include("applications.urls")),
+    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/v1/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/v1/users/", include("users.urls")),
+    path("api/v1/tours/", include("tours.urls")),
+    path("api/v1/flights/", include("flights.urls")),
+    path("api/v1/", include("hotels.urls.urls_hotel")),
+    path("api/v1/", include("hotels.urls.urls_room")),
+    path("api/v1/applications/", include("applications.urls")),
 ]
 
 if settings.DEBUG:

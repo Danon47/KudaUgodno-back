@@ -146,9 +146,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.3.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SCHEMA_PATH_PREFIX": "/api/v1/",
-    'TYPESCRIPT_GENERATOR': {
-        'TYPED_PATH_PARAMETERS': True
+    "TYPESCRIPT_GENERATOR": {
+        "TYPED_PATH_PARAMETERS": True
     },
     "TAGS": [
         {"name": "3.1 Отель", "description": "Методы для работы с отелями"},
