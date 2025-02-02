@@ -19,7 +19,7 @@ class Hotel(models.Model):
         max_length=100,
         verbose_name="Название отеля",
         help_text="Название отеля",
-        unique=True,
+        # unique=True,
     )
     # Категория отеля в звёздах
     star_category = models.IntegerField(
