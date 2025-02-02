@@ -3,8 +3,8 @@ FROM python:3.12.8
 WORKDIR /app
 
 # Создаём пользователя и заходим под ним
-RUN groupadd -g 2003 backendusergroup && \
-    useradd -u 2001 -g 2003 -m -o backenduser && \
+RUN groupadd -g 1003 backendusergroup && \
+    useradd -u 1001 -g 1003 -m -o backenduser && \
     chown -R backenduser:backendusergroup /app && \
 
 USER backenduser
