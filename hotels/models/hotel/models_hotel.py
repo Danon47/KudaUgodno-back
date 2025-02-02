@@ -18,7 +18,8 @@ class Hotel(models.Model):
     name = models.CharField(
         max_length=100,
         verbose_name="Название отеля",
-        help_text="Название отеля"
+        help_text="Название отеля",
+        unique=True,
     )
     # Категория отеля в звёздах
     star_category = models.IntegerField(
@@ -28,6 +29,7 @@ class Hotel(models.Model):
             MinValueValidator(0),
             MaxValueValidator(5),
         ],
+        **NULLABLE,
     )
     # Тип размещения
     place = models.CharField(
@@ -36,24 +38,28 @@ class Hotel(models.Model):
         default=PlaceChoices.HOTEL,
         verbose_name="Тип размещения",
         help_text="Тип размещения",
+        **NULLABLE,
     )
     # Страна отеля
     country = models.CharField(
         max_length=50,
         verbose_name="Страна",
         help_text="Страна",
+        **NULLABLE,
     )
     # Город отеля
     city = models.CharField(
         max_length=50,
         verbose_name="Город",
         help_text="Город",
+        **NULLABLE,
     )
     # Адрес отеля
     address = models.CharField(
         max_length=100,
         verbose_name="Адрес отеля",
         help_text="Адрес отеля",
+        **NULLABLE,
     )
     # Расстояние до станции
     distance_to_the_station = models.IntegerField(
@@ -109,6 +115,7 @@ class Hotel(models.Model):
     description = models.TextField(
         verbose_name="Описание отеля",
         help_text="Описание отеля",
+        **NULLABLE,
     )
     # Время заселения
     check_in_time = models.TimeField(
@@ -117,6 +124,7 @@ class Hotel(models.Model):
         default=time(14, 0),
         verbose_name="Время заезда",
         help_text="Время заселения",
+        **NULLABLE,
     )
     # Время выезда
     check_out_time = models.TimeField(
@@ -125,6 +133,7 @@ class Hotel(models.Model):
         default=time(12, 0),
         verbose_name="Время выезда",
         help_text="Время выезда",
+        **NULLABLE,
     )
     # Общин удобства в отеле
     amenities_common = models.ManyToManyField(
@@ -132,7 +141,7 @@ class Hotel(models.Model):
         verbose_name="Общие",
         related_name="hotels_common",
         help_text="Общие",
-        blank=True,
+        **NULLABLE,
     )
     # Удобства в номере
     amenities_in_the_room = models.ManyToManyField(
@@ -140,7 +149,7 @@ class Hotel(models.Model):
         verbose_name="В номере",
         related_name="hotels_in_the_room",
         help_text="В номере",
-        blank=True,
+        **NULLABLE,
     )
     # Удобства спорт и номер
     amenities_sports_and_recreation = models.ManyToManyField(
@@ -148,7 +157,7 @@ class Hotel(models.Model):
         verbose_name="Спорт и отдых",
         related_name="hotels_sports_and_recreation",
         help_text="Спорт и отдых",
-        blank=True,
+        **NULLABLE,
     )
     # Удобства для детей
     amenities_for_children = models.ManyToManyField(
@@ -156,7 +165,7 @@ class Hotel(models.Model):
         verbose_name="Для детей",
         related_name="hotels_children",
         help_text="Для детей",
-        blank=True,
+        **NULLABLE,
     )
     # Тип питания Ultra All inclusive
     type_of_meals_ultra_all_inclusive = models.IntegerField(
@@ -224,14 +233,15 @@ class Hotel(models.Model):
         default=TypeOfHolidayChoices.BEACH,
         verbose_name="Тип отдыха",
         help_text="Тип отдыха",
+        **NULLABLE,
     )
     # Правила
     rules = models.ManyToManyField(
         HotelRules,
         verbose_name="Правила в отеле",
-        related_name="hotels",
+        related_name="hotels_rules",
         help_text="Правила в отеле",
-        blank=True,
+        **NULLABLE,
     )
 
 

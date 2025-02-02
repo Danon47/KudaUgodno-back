@@ -19,6 +19,23 @@ from hotels.serializers.room.serializers_room import RoomDetailSerializer
 
 
 class HotelBaseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Hotel
+        fields = ("id", "name",)
+
+
+    def create(self, validated_data):
+        hotel = Hotel.objects.create(**validated_data)
+        hotel.save()
+        return hotel
+
+
+
+
+class HotelDetailSerializer(HotelBaseSerializer):
+    rooms = RoomDetailSerializer(many=True,)
+    photo = HotelPhotoSerializer(source="hotel_photos", many=True,)
     amenities_common = HotelAmenityCommonSerializer(many=True)
     amenities_in_the_room = HotelAmenityInTheRoomSerializer(many=True)
     amenities_sports_and_recreation = HotelAmenitySportsAndRecreationSerializer(many=True)
@@ -27,7 +44,7 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hotel
-        fields = (
+        fields = HotelBaseSerializer.Meta.fields + (
             "id",
             "name",
             "star_category",
@@ -55,45 +72,9 @@ class HotelBaseSerializer(serializers.ModelSerializer):
             "user_rating",
             "type_of_rest",
             "rules",
+            "rooms",
+            "photo",
         )
-
-    def create(self, validated_data):
-        amenities_common_data = validated_data.pop("amenities_common", [])
-        amenities_in_the_room_data = validated_data.pop("amenities_in_the_room", [])
-        amenities_sports_and_recreation_data = validated_data.pop("amenities_sports_and_recreation", [])
-        amenities_for_children_data = validated_data.pop("amenities_for_children", [])
-        rules_data = validated_data.pop("rules", [])
-
-        hotel = Hotel.objects.create(**validated_data)
-
-        # Создаём связанные объекты
-        hotel.amenities_common.set(
-            [
-                HotelAmenityCommon.objects.get_or_create(**data)[0]
-                for data in amenities_common_data
-            ]
-        )
-        hotel.amenities_in_the_room.set(
-            [
-                HotelAmenityInTheRoom.objects.get_or_create(**data)[0]
-                for data in amenities_in_the_room_data
-            ]
-        )
-        hotel.amenities_sports_and_recreation.set(
-            [
-                HotelAmenitySportsAndRecreation.objects.get_or_create(**data)[0]
-                for data in amenities_sports_and_recreation_data
-            ]
-        )
-        hotel.amenities_for_children.set(
-            [
-                HotelAmenityForChildren.objects.get_or_create(**data)[0]
-                for data in amenities_for_children_data
-            ]
-        )
-        hotel.rules.set([HotelRules.objects.get_or_create(**data)[0] for data in rules_data])
-
-        return hotel
 
     def update(self, instance, validated_data):
         amenities_common_data = validated_data.pop("amenities_common", [])
@@ -144,23 +125,3 @@ class HotelBaseSerializer(serializers.ModelSerializer):
             instance.rules.set([HotelRules.objects.get_or_create(**data)[0] for data in rules_data])
 
         return instance
-
-
-class HotelDetailSerializer(HotelBaseSerializer):
-    rooms = RoomDetailSerializer(many=True,)
-    photo = HotelPhotoSerializer(source="hotel_photos", many=True,)
-
-    class Meta:
-        model = Hotel
-        fields = HotelBaseSerializer.Meta.fields + (
-            "rooms",
-            "photo",
-        )
-        read_only_fields = (
-            "photo",
-            "rooms",
-            "amenities_common",
-            "amenities_in_the_room",
-            "amenities_sports_and_recreation",
-            "amenities_for_children",
-        )

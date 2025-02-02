@@ -54,9 +54,9 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
     update=extend_schema(
         summary="Полное обновление отеля",
         description="Обновление всех полей отеля",
-        request=HotelBaseSerializer,
+        request=HotelDetailSerializer,
         responses={
-            200: HotelBaseSerializer,
+            200: HotelDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Отель не найден"),
         },
@@ -65,9 +65,9 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
     partial_update=extend_schema(
         summary="Частичное обновление отеля",
         description="Обновление отдельных полей отеля",
-        request=HotelBaseSerializer,
+        request=HotelDetailSerializer,
         responses={
-            200: HotelBaseSerializer,
+            200: HotelDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Отель не найден"),
         },
@@ -87,6 +87,7 @@ class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
+        if self.action == "create":
             return HotelBaseSerializer
-        return HotelDetailSerializer
+        else:
+            return HotelDetailSerializer
