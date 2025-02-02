@@ -1,12 +1,15 @@
-from django.urls import path
-
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+from users.views import UserViewSet
 from users.apps import UsersConfig
-
-from .views import UserListCreateView, UserDetailView
 
 app_name = UsersConfig.name
 
+# Инициализируем роутер и регистрируем наш ViewSet.
+router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='user')
+
 urlpatterns = [
-    path("", UserListCreateView.as_view(), name="user_list_create"),
-    path("<int:pk>/", UserDetailView.as_view(), name="user_name_detail")
+    # Включаем все маршруты, сгенерированные роутером.
+    path('', include(router.urls)),
 ]

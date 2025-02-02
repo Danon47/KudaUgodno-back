@@ -1,8 +1,8 @@
 import random
 
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
 from config.settings import EMAIL_HOST_USER
 from users.models import User
@@ -10,167 +10,108 @@ from users.serializers import UserSerializer
 from users.tasks import clear_user_password, send_message
 
 
-class UserListCreateView(generics.ListCreateAPIView):
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для CRUD-операций над пользователями.
 
-    queryset = User.objects.all()
+    Данный класс объединяет следующие действия:
+      - list: получение списка пользователей;
+      - retrieve: получение данных отдельного пользователя;
+      - create: создание нового пользователя (с генерацией пароля и отправкой email);
+      - update: полное обновление данных пользователя;
+      - partial_update: частичное обновление данных пользователя;
+      - destroy: удаление пользователя.
+
+    При создании пользователя генерируется случайное 4-значное число, которое устанавливается в качестве пароля.
+    Также отправляется сообщение на email пользователя с указанием кода, и запускается задача для очистки пароля через 5 минут.
+    """
+    queryset = User.objects.all().order_by("-pk")
     serializer_class = UserSerializer
 
     @swagger_auto_schema(
         operation_summary="Список пользователей",
-        operation_description="Получения списка всех пользователей",
-        tags=["1. Пользователи"],
-        manual_parameters=[
-            openapi.Parameter(
-                   name="limit",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description="Количество Пользователей для возврата на страницу",
-            ),
-            openapi.Parameter(
-                name="offset",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description="Начальный индекс, из которого возвращаются результаты",
-            ),
-        ],
-    responses={
-        200: openapi.Response(
-            description="Успешное получение списка всех пользователей",
-            schema=UserSerializer(many=True)
-        ),
-        400: "Ошибка запроса"
-    }
+        operation_description="Получение списка всех пользователей."
     )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
+    def list(self, request, *args, **kwargs):
+        """
+        Получение списка пользователей.
+        """
+        return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Добавление пользователя",
-        operation_description="Создание нового пользователя",
-        request_body=UserSerializer,
-        tags=["1. Пользователи"],
-        responses={
-            200: openapi.Response(
-                description="Успешное создание пользователя",
-                schema=UserSerializer(),
-            ),
-            400: "Ошибка запроса"
-        }
+        operation_summary="Получение пользователя",
+        operation_description="Получение данных пользователя по его идентификатору."
     )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Получение данных одного пользователя.
+        """
+        return super().retrieve(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
+    @swagger_auto_schema(
+        operation_summary="Создание пользователя",
+        operation_description="Создание нового пользователя. При этом генерируется 4-значный код, который устанавливается как пароль, и отправляется на email.",
+        request_body=UserSerializer
+    )
+    def create(self, request, *args, **kwargs):
+        """
+        Создание нового пользователя с дополнительной логикой:
+          - генерация случайного 4-значного кода;
+          - установка кода как пароля (с хэшированием через set_password);
+          - отправка email с кодом подтверждения;
+          - планирование задачи очистки пароля через 5 минут.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        # Генерация случайного 4-значного кода
         random_number = random.randint(1000, 9999)
         user.set_password(str(random_number))
         user.save(update_fields=["password"])
+
+        # Отправка email с кодом подтверждения
         send_message.delay(
             "Код для подтверждения входа",
             f"Код для входа в сервис 'Куда Угодно'. {random_number}. Никому не сообщайте его! Если вы не запрашивали код, игнорируйте сообщение.",
             EMAIL_HOST_USER,
             [user.email]
         )
+
+        # Планирование задачи очистки пароля через 5 минут (300 секунд)
         clear_user_password.apply_async((user.id,), countdown=300)
 
-
-class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @swagger_auto_schema(
-        operation_summary="Информация о пользователе",
-        operation_description="Получение информации о пользователе через идентификатор",
-        tags = ["1. Пользователи"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Пользователя",
-                required=True
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное получение информации о пользователе",
-                schema=UserSerializer()
-            ),
-            400: "Ошибка запроса"
-        }
+        operation_summary="Полное обновление пользователя",
+        operation_description="Полное обновление данных пользователя по его идентификатору.",
+        request_body=UserSerializer
     )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        """
+        Полное обновление данных пользователя.
+        """
+        return super().update(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_summary="Полное изменение пользователя",
-        operation_description="Изменение информации всех полей пользователя через идентификатор",
-        tags=["1. Пользователи"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Пользователя",
-                required=True
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное изменение всего пользователя",
-                schema=UserSerializer()
-            ),
-            400: "Ошибка запроса"
-        }
+        operation_summary="Частичное обновление пользователя",
+        operation_description="Частичное обновление данных пользователя по его идентификатору.",
+        request_body=UserSerializer
     )
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_summary="Частичное изменение пользователя",
-        operation_description="Частичное изменение данных пользователя по идентификатору",
-        tags=["1. Пользователи"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Заявки",
-                required=True
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное частичное изменение данных пользователя",
-                schema=UserSerializer()
-            ),
-            400: "Ошибка запроса"
-        }
-    )
-    def patch(self, request, *args, **kwargs):
-        return super().patch(request, *args, **kwargs)
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Частичное обновление данных пользователя.
+        """
+        return super().partial_update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_summary="Удаление пользователя",
-        operation_description="Удаление данных пользователя по идентификатору",
-        tags=["1. Пользователи"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Заявки",
-                required=True
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное удаление данных пользователя",
-            ),
-            400: "Ошибка запроса"
-        }
+        operation_description="Удаление пользователя по его идентификатору."
     )
-    def delete(self, request, *args, **kwargs):
-        return super().delete(self, request, *args, **kwargs)
+    def destroy(self, request, *args, **kwargs):
+        """
+        Удаление пользователя.
+        """
+        return super().destroy(request, *args, **kwargs)
