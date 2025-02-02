@@ -5,8 +5,11 @@ WORKDIR /app
 # Копируем только файл с зависимостями
 COPY pyproject.toml poetry.lock ./
 
-# Копируем остальной код проекта
-COPY . .
+# Устанавливаем Poetry и зависимости
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-root && \
+    pip cache purge
 
 # Создаём пользователя и заходим под ним
 RUN groupadd -g 1003 backendusergroup && \
@@ -15,10 +18,7 @@ RUN groupadd -g 1003 backendusergroup && \
 
 USER backenduser
 
-# Устанавливаем Poetry и зависимости
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-root && \
-    pip cache purge
+# Копируем остальной код проекта
+COPY . .
 
 
