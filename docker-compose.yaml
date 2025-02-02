@@ -55,33 +55,33 @@ services:
     networks:
       - 36_kuda_ugodno_backend
 
-  celery:
-    container_name: kuda_ugodno_backend_celery_worker
-    build: .
-    command: celery -A config worker --loglevel=info --concurrency=1 --max-tasks-per-child=1
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    networks:
-      - 36_kuda_ugodno_backend
-
-  celery_beat:
-    container_name: kuda_ugodno_backend_celery_beat
-    build: .
-    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    networks:
-      - 36_kuda_ugodno_backend
+#  celery:
+#    container_name: kuda_ugodno_backend_celery_worker
+#    build: .
+#    command: celery -A config worker --loglevel=info --concurrency=1 --max-tasks-per-child=1
+#    depends_on:
+#      - redis
+#      - db
+#    volumes:
+#      - .:/app
+#    env_file:
+#      - .env
+#    networks:
+#      - 36_kuda_ugodno_backend
+#
+#  celery_beat:
+#    container_name: kuda_ugodno_backend_celery_beat
+#    build: .
+#    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+#    depends_on:
+#      - redis
+#      - db
+#    volumes:
+#      - .:/app
+#    env_file:
+#      - .env
+#    networks:
+#      - 36_kuda_ugodno_backend
 
 networks:
   default:
