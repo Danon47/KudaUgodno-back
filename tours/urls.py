@@ -1,11 +1,13 @@
-from django.urls import path
-
 from tours.apps import ToursConfig
-from tours.views import TourListCreateView, TourDetailView
+from tours.views import TourViewSet
+
+from rest_framework.routers import DefaultRouter
 
 app_name = ToursConfig.name
 
+router = DefaultRouter()
+router.register("", TourViewSet)
+
 urlpatterns = [
-    path("", TourListCreateView.as_view(), name="tour_list_create"),
-    path("<int:pk>/", TourDetailView.as_view(), name="tour_detail"),
-]
+
+] + router.urls

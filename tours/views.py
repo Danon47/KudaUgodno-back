@@ -19,7 +19,7 @@ parameters_tour = [
     ),
 ]
 
-tags_tour = ["2.0 Туры"]
+tags_tour = ["Туры"]
 
 
 @extend_schema_view(
