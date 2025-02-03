@@ -29,7 +29,7 @@ class FlightTestCase(APITestCase):
         Тест проверки просмотра рейса
         """
 
-        url = reverse("flights:flight_detail", args=(self.flight.pk,))
+        url = reverse("flights:flight-detail", args=(self.flight.pk,))
         response = self.client.get(url)
         data = response.json()
 
@@ -41,7 +41,7 @@ class FlightTestCase(APITestCase):
         Тест проверки просмотра списка рейсов
         """
 
-        url = reverse("flights:flight_list_create")
+        url = reverse("flights:flight-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -50,7 +50,7 @@ class FlightTestCase(APITestCase):
         Тест проверки создания рейса методом POST
         """
 
-        url = reverse("flights:flight_list_create")
+        url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
             "airline": AirlinesChoices.AEROFLOT,
@@ -77,7 +77,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки частичного изменения рейса
         """
-        url = reverse("flights:flight_detail", args=(self.flight.pk,))
+        url = reverse("flights:flight-detail", args=(self.flight.pk,))
         data = {
             "flight_number": "SW 1246",
             "departure_date": self.flight.departure_date,
@@ -94,7 +94,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки изменения рейса методом PUT
         """
-        url = reverse("flights:flight_detail", args=(self.flight.pk,))
+        url = reverse("flights:flight-detail", args=(self.flight.pk,))
         data = {
             "flight_number": "SW 1246",
             "airline": AirlinesChoices.AEROFLOT,
@@ -119,7 +119,7 @@ class FlightTestCase(APITestCase):
         Тест проверки удаления рейса
         """
 
-        url = reverse("flights:flight_detail", args=(self.flight.pk,))
+        url = reverse("flights:flight-detail", args=(self.flight.pk,))
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -129,7 +129,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки валидатора на наличие недопустимых слов в названии
         """
-        url = reverse("flights:flight_list_create")
+        url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
             "airline": AirlinesChoices.AEROFLOT,
@@ -142,8 +142,6 @@ class FlightTestCase(APITestCase):
             "price": 6000,
         }
 
-        # Добавьте недопустимое слово в название
-
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -155,7 +153,7 @@ class FlightTestCase(APITestCase):
         """
         Тест проверки валидатора даты и времени прибытия
         """
-        url = reverse("flights:flight_list_create")
+        url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
             "airline": AirlinesChoices.AEROFLOT,
