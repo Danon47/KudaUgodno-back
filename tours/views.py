@@ -67,8 +67,8 @@ tags_tour = ["Туры"]
         },
     ),
     update=extend_schema(
-        summary="Полное обновление заявки",
-        description="Обновление всех полей заявки",
+        summary="Полное обновление тура",
+        description="Обновление всех полей тура",
         request=TourSerializer,
         tags=tags_tour,
         parameters=parameters_tour,
