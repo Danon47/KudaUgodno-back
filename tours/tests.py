@@ -21,7 +21,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки просмотра тура
         """
-        url = reverse("tours:tour_detail", args=(self.tour.pk,))
+        url = reverse("tours:tour-detail", args=(self.tour.pk,))
         response = self.client.get(url)
         data = response.json()
 
@@ -32,7 +32,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки просмотра списка туров
         """
-        url = reverse("tours:tour_list_create")
+        url = reverse("tours:tour-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)
@@ -41,7 +41,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки создания тура методом POST
         """
-        url = reverse("tours:tour_list_create")
+        url = reverse("tours:tour-list")
         data = {
             "start_date": "2029-10-01",
             "end_date": "2029-10-05",
@@ -57,7 +57,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки изменения тура методом PUT
         """
-        url = reverse("tours:tour_detail", args=(self.tour.pk,))
+        url = reverse("tours:tour-detail", args=(self.tour.pk,))
         data = {
             "start_date": "2029-10-01",
             "end_date": "2029-10-05",
@@ -77,7 +77,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки изменения тура
         """
-        url = reverse("tours:tour_detail", args=(self.tour.pk,))
+        url = reverse("tours:tour-detail", args=(self.tour.pk,))
         data = {
             "start_date": "2029-09-01",
             "end_date": "2029-09-05",
@@ -93,7 +93,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки удаления тура
         """
-        url = reverse("tours:tour_detail", args=(self.tour.pk,))
+        url = reverse("tours:tour-detail", args=(self.tour.pk,))
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -103,7 +103,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки, что дата начала тура не может быть в прошлом.
         """
-        url = reverse("tours:tour_list_create")
+        url = reverse("tours:tour-list")
         past_date = (date.today() - timedelta(days=1)).isoformat()
         data = {
             "start_date": past_date,
@@ -121,7 +121,7 @@ class TourTestCase(APITestCase):
         """
         Тест проверки, что дата окончания тура не может быть раньше даты начала.
         """
-        url = reverse("tours:tour_list_create")
+        url = reverse("tours:tour-list")
         data = {
             "start_date": "2028-08-24",
             "end_date": "2028-08-23",
