@@ -1,10 +1,8 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 from applications.choices import StatusChoices
 from applications.models.models_guest import Guest
-from hotels.models.room.models_room import Room
 from tours.models import Tour
 from users.models import User
 
@@ -32,12 +30,6 @@ class Application(models.Model):
         verbose_name="Телефон",
         help_text="Формат: +X XXX XXX XX XX",
     )
-    # Количество номеров
-    quantity_rooms = models.ManyToManyField(
-        Room,
-        verbose_name="Количество номеров",
-        blank=True,
-    )
     # Количество гостей
     quantity_guests = models.ManyToManyField(
         Guest,
@@ -45,14 +37,9 @@ class Application(models.Model):
         blank=True,
     )
     # Оформление визы
-    visa = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Оформление визы",
-        help_text="Количество виз необходимых для оформления",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(10)
-        ],
+    visa = models.BooleanField(
+        default=False,
+        verbose_name="Оформление визы"
     )
     # Страховка жизни
     med_insurance = models.BooleanField(

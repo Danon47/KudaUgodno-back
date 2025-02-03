@@ -1,5 +1,4 @@
 from django.test import TestCase
-from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
@@ -43,7 +42,7 @@ class GuestTest(TestCase):
     def test_guest_list(self):
         """Тест на вывод списка гостей"""
 
-        url = reverse("applications:guest_list_create")
+        url = reverse("applications:guest-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)
@@ -51,7 +50,7 @@ class GuestTest(TestCase):
     def test_guest_create(self):
         """Тест для создания гостя"""
 
-        url = reverse("applications:guest_list_create")
+        url = reverse("applications:guest-list")
         data = {
             "firstname": "Petr",
             "lastname": "Petrov",
@@ -70,7 +69,7 @@ class GuestTest(TestCase):
     def test_date_born_validator(self):
         """Тест на валидность даты рождения"""
 
-        url = reverse("applications:guest_list_create")
+        url = reverse("applications:guest-list")
         data = {
             "firstname": "Petr",
             "lastname": "Petrov",
@@ -85,7 +84,7 @@ class GuestTest(TestCase):
     def test_forbidden_word_validator(self):
         """Тест на проверку запрещенных слов"""
 
-        url = reverse("applications:guest_list_create")
+        url = reverse("applications:guest-list")
         data = {
             "firstname": "Petr",
             "lastname": "Petrov",
@@ -99,7 +98,7 @@ class GuestTest(TestCase):
     def test_validity_of_foreign_passport_validator(self):
         """Тест на наличие и корректность даты окончания действия загранпаспорта """
 
-        url = reverse("applications:guest_list_create")
+        url = reverse("applications:guest-list")
         data = {
             "firstname": "Petr",
             "lastname": "Petrov",
@@ -118,7 +117,7 @@ class GuestTest(TestCase):
     def test_guest_retrieve(self):
         """Тест на вывод конкретного заказа"""
 
-        url = reverse("applications:guest_detail_update_delete", args=(self.guest.pk,))
+        url = reverse("applications:guest-detail", args=(self.guest.pk,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.json()["firstname"], "Ivan")
@@ -126,7 +125,7 @@ class GuestTest(TestCase):
     def test_guest_put(self):
         """Тест на изменение заявки"""
 
-        url = reverse("applications:guest_detail_update_delete", args=(self.guest.pk,))
+        url = reverse("applications:guest-detail", args=(self.guest.pk,))
         data = {
             "firstname": "Sasha",
             "lastname": "Ivanov",
@@ -145,7 +144,7 @@ class GuestTest(TestCase):
     def test_guest_patch(self):
         """Тест для частичного изменения заявки"""
 
-        url = reverse("applications:guest_detail_update_delete", args=(self.guest.pk,))
+        url = reverse("applications:guest-detail", args=(self.guest.pk,))
         data = {
             "firstname": "Sasha",
         }
@@ -156,7 +155,7 @@ class GuestTest(TestCase):
     def test_guest_delete(self):
         """Тест на удаление заявки"""
 
-        url = reverse("applications:guest_detail_update_delete", args=(self.guest.pk,))
+        url = reverse("applications:guest-detail", args=(self.guest.pk,))
         response = self.client.delete(url)
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
         self.assertEqual(Guest.objects.count(), 0)

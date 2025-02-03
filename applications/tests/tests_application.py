@@ -5,7 +5,6 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
 from applications.models.models_application import Application, Guest
-from hotels.models import Hotel, Room, RoomCategory
 from tours.models import Tour
 from users.models import User
 
@@ -19,24 +18,8 @@ class ApplicationTest(TestCase):
         """
         Экземпляр модели Заявка
         """
-        self.user = User.objects.create_user(phone_number="+79999999999", password="testpassword")
+        self.user = User.objects.create(email="test@test.ru", password="testpassword")
         self.client = APIClient()
-        self.category = RoomCategory.objects.create(name="Стандарт")
-        self.hotel = Hotel.objects.create(
-            name="Тест Отель",
-            star_category=5,
-            country="Россия",
-            city="Москва",
-            address="Пушкина",
-            description="Тест описание",
-        )
-        self.room = Room.objects.create(
-            area=20,
-            category=self.category,
-            capacity=2,
-            nightly_price=10000,
-            hotel=self.hotel,
-        )
         self.tour = Tour.objects.create(
             start_date="2028-08-24",
             end_date="2028-08-25",
@@ -53,15 +36,15 @@ class ApplicationTest(TestCase):
             tour=self.tour,
             email="test@test.ru",
             phone_number="+7(999)999-99-99",
-            visa=1,
+            visa=False,
             med_insurance=True,
             cancellation_insurance=True,
             wishes="test wishes",
             status="Подтвержден",
             user_owner=self.user,
         )
-        self.application.quantity_rooms.add(self.room)
         self.application.quantity_guests.add(self.guest)
+        self.client.force_authenticate(user=self.user)
 
     def test_application(self):
         """
@@ -71,7 +54,7 @@ class ApplicationTest(TestCase):
         self.assertEqual(self.application.tour, self.tour),
         self.assertEqual(self.application.email, "test@test.ru"),
         self.assertEqual(self.application.phone_number, "+7(999)999-99-99"),
-        self.assertEqual(self.application.visa, 1),
+        self.assertEqual(self.application.visa, False),
         self.assertEqual(self.application.med_insurance, True),
         self.assertEqual(self.application.cancellation_insurance, True),
         self.assertEqual(self.application.wishes, "test wishes"),
@@ -80,22 +63,22 @@ class ApplicationTest(TestCase):
 
     def test_application_list(self):
         """Тест на вывод списка заявок"""
-        url = reverse("applications:application_list_create")
 
+        url = reverse("applications:application-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("results" in response.data)
 
     def test_applications_create(self):
         """Тест создания заявки"""
-        self.client.login(phone_number="+79999999999", password="testpassword")
-        url = reverse("applications:application_list_create")
 
+        self.client.login(email="test@test.ru", password="testpassword")
+
+        url = reverse("applications:application-list")
         data = {
             "tour": self.tour.id,
             "email": "user@example.com",
             "phone_number": "+79999999999",
-            "quantity_rooms": [self.room.id],
             "quantity_guests": [self.guest.id],
         }
         response = self.client.post(url, data)
@@ -104,12 +87,11 @@ class ApplicationTest(TestCase):
 
     def test_forbidden_word_validator(self):
         """Тест на проверку запрещенных слов"""
-        url = reverse("applications:application_list_create")
+        url = reverse("applications:application-list")
         data = {
             "tour": self.tour.id,
             "email": "user@example.com",
             "phone_number": "+79999999999",
-            "quantity_rooms": [self.room.id],
             "quantity_guests": [self.guest.id],
             "wishes": "плохое_слово"
         }
@@ -122,7 +104,7 @@ class ApplicationTest(TestCase):
         """Тест на вывод конкретной заявки"""
 
         url = reverse(
-            "applications:application_detail_update_delete", args=(self.application.pk,)
+            "applications:application-detail", args=(self.application.pk,)
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
@@ -131,7 +113,7 @@ class ApplicationTest(TestCase):
     def test_applications_put(self):
         """Тест на обновление заявки"""
 
-        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        url = reverse("applications:application-detail", args=(self.application.pk,))
         data = {
             "pk": 6,
             "tour": self.tour.pk,
@@ -143,7 +125,6 @@ class ApplicationTest(TestCase):
             "wishes": "test wishes new",
             "status": "Подтвержден",
             "user_owner": self.user.pk,
-            "quantity_rooms": [self.room.pk],
             "quantity_guests": [self.guest.pk]
         }
 
@@ -154,7 +135,7 @@ class ApplicationTest(TestCase):
     def test_application_patch(self):
         """Тест на частичное обновление заявки"""
 
-        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        url = reverse("applications:application-detail", args=(self.application.pk,))
         data = {
             "email": "test2@test.ru",
         }
@@ -165,7 +146,8 @@ class ApplicationTest(TestCase):
     def test_applications_delete(self):
         """Удаление заявки"""
 
-        url = reverse("applications:application_detail_update_delete", args=(self.application.pk,))
+        url = reverse("applications:application-detail", args=(self.application.pk,))
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Application.objects.count(), 0)
+

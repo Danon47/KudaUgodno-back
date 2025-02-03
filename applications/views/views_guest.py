@@ -1,149 +1,108 @@
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics
+from drf_spectacular.utils import extend_schema_view, OpenApiParameter, extend_schema, OpenApiResponse
+from rest_framework import viewsets
 
 from applications.models.models_guest import Guest
-from applications.serializers.serializers_guests import GuestCreateSerializer, GuestSerializer
+from applications.serializers.serializers_guests import GuestSerializer, GuestDetailSerializer
 
+parameters_guest = [
+            OpenApiParameter(
+                location=OpenApiParameter.PATH,
+                name="id",
+                type=int,
+                description="Уникальное целочисленное значение, идентифицирующее данную Гостя",
+                required=True,
 
-class GuestListCreateView(generics.ListCreateAPIView):
-
-    queryset = Guest.objects.all()
-
-    @swagger_auto_schema(
-        operation_description="Получение списка всех гостей",
-        operation_summary="Список гостей",
-        tags=["5.1. Гости в заявке"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="limit",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description="Количество Гостей для возврата на страницу",
             ),
-            openapi.Parameter(
+        ]
+
+tags_guest = ["5.1 Гости"]
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список гостей",
+        description="Получение списка всех гостей",
+        tags=tags_guest,
+        parameters=[
+            OpenApiParameter(
+                name="limit",
+                type=int,
+                description="Количество Гостей для возврата на страницу",
+                required=False,
+            ),
+            OpenApiParameter(
                 name="offset",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description="Начальный индекс, из которого возвращаются результаты",
-            )
+                type=int,
+                description="Начальный индекс для пагинации",
+                required=False,
+            ),
         ],
         responses={
-            200: openapi.Response(
-                description="Успешное получение списка гостей",
-                schema=GuestSerializer(many=True)
-            ),
-            400: "Ошибка запроса"
-        })
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-
-    @swagger_auto_schema(
-        operation_description="Создание нового гостя",
-        operation_summary="Добавление гостя",
-        request_body=GuestCreateSerializer,
-        tags=["5.1. Гости в заявке"],
+            200: GuestSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка запроса"),
+        },
+    ),
+    create=extend_schema(
+        summary="Добавление Гостя",
+        description="Создание нового Гостя",
+        request=GuestDetailSerializer,
+        tags=tags_guest,
         responses={
-            200: openapi.Response(
-                description="Успешное создание гостя",
-                schema=GuestCreateSerializer()
-            ),
-            400: "Ошибка запроса"
-        })
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+            201: GuestDetailSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+    ),
+    retrieve=extend_schema(
+        summary="Информация о Госте",
+        description="Получение информации о Госте через идентификатор",
+        tags=tags_guest,
+        parameters=parameters_guest,
+        responses={
+            200: GuestSerializer,
+            404: OpenApiResponse(description="Гость не найден"),
+        },
+    ),
+    update=extend_schema(
+        summary="Полное обновление Гостя",
+        description="Обновление всех полей Гостя",
+        request=GuestDetailSerializer,
+        tags=tags_guest,
+        parameters=parameters_guest,
+        responses={
+            200: GuestDetailSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+            404: OpenApiResponse(description="Гость не найден"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Частичное обновление Гостя",
+        description="Обновление отдельных полей Гостя",
+        request=GuestDetailSerializer,
+        tags=tags_guest,
+        parameters=parameters_guest,
+        responses={
+            200: GuestDetailSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+            404: OpenApiResponse(description="Гость не найден"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Удаление Гостя",
+        description="Полное удаление Гостя",
+        tags=tags_guest,
+        parameters=parameters_guest,
+        responses={
+            204: OpenApiResponse(description="Гость удален"),
+            404: OpenApiResponse(description="Гость не найден"),
+        },
+    ),
+)
+class GuestViewSet(viewsets.ModelViewSet):
+    queryset = Guest.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return GuestDetailSerializer
+        return GuestSerializer
 
     def perform_create(self, serializer):
         serializer.save(user_owner=self.request.user)
-
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return GuestCreateSerializer
-        return GuestSerializer
-
-
-
-class GuestDetailView(generics.RetrieveUpdateDestroyAPIView):
-
-    queryset = Guest.objects.all()
-    serializer_class = GuestSerializer
-
-    @swagger_auto_schema(
-        operation_description="Получение информации о госте через идентификатор",
-        operation_summary="Информация о госте",
-        tags=["5.1. Гости в заявке"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Гостя",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное получение информации о госте",
-                schema=GuestSerializer()
-            ),
-            400: "Ошибка запроса"
-        })
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-
-    @swagger_auto_schema(
-        operation_description="Изменение всей информации о госте через идентификатор",
-        operation_summary="Полное изменение гостя",
-        tags=["5.1. Гости в заявке"],
-        responses={
-            200: openapi.Response(
-                description="Успешное изменение всей заявки",
-                schema=GuestSerializer()
-            ),
-            400: "Ошибка запроса"
-        })
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
-
-
-    @swagger_auto_schema(
-        operation_description="Частичное изменение информации о госте через идентификатор",
-        operation_summary="Частичное изменение информации о госте",
-        tags=["5.1. Гости в заявке"],
-        responses={
-            200: openapi.Response(
-                description="Успешное изменение части информации о госте",
-                schema=GuestSerializer()
-            ),
-            400: "Ошибка запроса"
-        })
-    def patch(self, request, *args, **kwargs):
-        return super().patch(request, *args, **kwargs)
-
-
-    @swagger_auto_schema(
-        operation_description="Удаление гостя через идентификатор",
-        operation_summary="Удаление гостя",
-        tags=["5.1. Гости в заявке"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор Гостя",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное удаление гостя",
-                schema=GuestSerializer()
-            ),
-            400: "Ошибка запроса"
-        })
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
-
-
