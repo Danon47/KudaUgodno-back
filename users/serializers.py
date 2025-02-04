@@ -1,21 +1,24 @@
 from rest_framework import serializers
-
 from flights.validators.validators import ForbiddenWordValidator
 from users.models import User
-from users.validators import FillFieldsValidator
-
 
 class AdminSerializer(serializers.ModelSerializer):
-    """Сериализатор модели User для пользователя"""
-
+    """
+    Админский сериализатор (полное представление) + ForbiddenWordValidator
+    """
     class Meta:
         model = User
         fields = "__all__"
+        validators = [
+            # Подключаем тот же валидатор, что и в UserSerializer:
+            ForbiddenWordValidator(fields=["username", "first_name", "last_name", "email", "address", "description"]),
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор модели User для пользователя"""
-
+    """
+    "Узкий" сериализатор: только основные поля.
+    """
     class Meta:
         model = User
         fields = (
@@ -31,5 +34,4 @@ class UserSerializer(serializers.ModelSerializer):
         )
         validators = [
             ForbiddenWordValidator(fields=["username", "first_name", "last_name", "email", "address", "description"]),
-            FillFieldsValidator()
         ]
