@@ -23,7 +23,7 @@ parameters_application = [
             ),
         ]
 
-tags_application = ["5.0 Заявки"]
+tags_application = ["Заявки"]
 
 @extend_schema_view(
     list=extend_schema(

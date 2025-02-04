@@ -15,7 +15,7 @@ parameters_guest = [
             ),
         ]
 
-tags_guest = ["5.1 Гости"]
+tags_guest = ["Гости"]
 
 @extend_schema_view(
     list=extend_schema(

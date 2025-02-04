@@ -42,6 +42,4 @@ class ApplicationSerializer(serializers.ModelSerializer):
     user_owner = UserSerializer()
 
     class Meta(ApplicationDetailSerializer.Meta):
-        model = Application
-        fields = ApplicationDetailSerializer.Meta.fields
         read_only_fields = ("tour", "quantity_guests", "user_owner")

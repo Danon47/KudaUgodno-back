@@ -21,7 +21,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             200: HotelPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.1.3 Фотографии в отеле"],
+        tags=["Фотографии в отеле"],
     ),
     create=extend_schema(
         summary="Добавление фотографий отеля",
@@ -42,7 +42,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             201: HotelPhotoSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
-        tags=["3.1.3 Фотографии в отеле"],
+        tags=["Фотографии в отеле"],
     ),
     destroy=extend_schema(
         summary="Удаление фотографий отеля",
@@ -67,7 +67,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             204: OpenApiResponse(description="Тип питания в отеле удален"),
             404: OpenApiResponse(description="Тип питания в отеле не найден"),
         },
-        tags=["3.1.3 Фотографии в отеле"],
+        tags=["Фотографии в отеле"],
     ),
 )
 class HotelPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):

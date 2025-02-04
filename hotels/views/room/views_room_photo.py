@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import GenericViewSet
@@ -23,7 +23,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
             200: RoomPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2.3 Фотографии номера"],
+        tags=["Фотографии номера"],
     ),
     create=extend_schema(
         summary="Добавление фотографии номера",
@@ -44,7 +44,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
             201: RoomPhotoSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2.3 Фотографии номера"],
+        tags=["Фотографии номера"],
     ),
     destroy=extend_schema(
         summary="Удаление фотографии номера",
@@ -69,7 +69,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
             204: OpenApiResponse(description="Фотография номера удалена"),
             404: OpenApiResponse(description="Фотография номера не найдена"),
         },
-        tags=["3.2.3 Фотографии номера"],
+        tags=["Фотографии номера"],
     ),
 )
 class RoomPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):

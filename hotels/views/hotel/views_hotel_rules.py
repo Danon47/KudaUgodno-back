@@ -12,7 +12,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             200: HotelRulesSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
     create=extend_schema(
         summary="Добавление правила в отель",
@@ -22,7 +22,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             201: HotelRulesSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
     retrieve=extend_schema(
         summary="Детали правил в отеле",
@@ -31,7 +31,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             200: HotelRulesSerializer,
             404: OpenApiResponse(description="Правило в отеле не найдено"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
     update=extend_schema(
         summary="Полное обновление правил в отеле",
@@ -42,7 +42,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Правило в отеле не найдено"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
     partial_update=extend_schema(
         summary="Частичное обновление правил в отеле",
@@ -53,7 +53,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Правило в отеле не найдено"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
     destroy=extend_schema(
         summary="Удаление правила в отеле",
@@ -62,7 +62,7 @@ from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerialize
             204: OpenApiResponse(description="Правило в отеле удалено"),
             404: OpenApiResponse(description="Правило в отеле не найдено"),
         },
-        tags=["3.1.2 Правила в отеле"],
+        tags=["Правила в отеле"],
     ),
 )
 class HotelRulesViewSet(viewsets.ModelViewSet):

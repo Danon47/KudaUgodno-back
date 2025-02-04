@@ -21,7 +21,7 @@
 #             200: MealPlanSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 #     create=extend_schema(
 #         summary="Добавление типа питания в отеле",
@@ -31,7 +31,7 @@
 #             201: MealPlanSerializer,
 #             400: OpenApiResponse(description="Ошибка валидации"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 #     retrieve=extend_schema(
 #         summary="Детали типа питания в отеле",
@@ -40,7 +40,7 @@
 #             200: MealPlanSerializer,
 #             404: OpenApiResponse(description="Тип питания в отеле не найден"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 #     update=extend_schema(
 #         summary="Полное обновление типа питания в отеле",
@@ -51,7 +51,7 @@
 #             400: OpenApiResponse(description="Ошибка валидации"),
 #             404: OpenApiResponse(description="Тип питания в отеле не найден"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 #     partial_update=extend_schema(
 #         summary="Частичное обновление типа питания в отеле",
@@ -62,7 +62,7 @@
 #             400: OpenApiResponse(description="Ошибка валидации"),
 #             404: OpenApiResponse(description="Тип питания в отеле не найден"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 #     destroy=extend_schema(
 #         summary="Удаление типа питания в отеле",
@@ -71,7 +71,7 @@
 #             204: OpenApiResponse(description="Тип питания в отеле удален"),
 #             404: OpenApiResponse(description="Тип питания в отеле не найден"),
 #         },
-#         tags=["3.1.2 Питание в отеле"],
+#         tags=["Питание в отеле"],
 #     ),
 # )
 # class MealPlanViewSet(viewsets.ModelViewSet):

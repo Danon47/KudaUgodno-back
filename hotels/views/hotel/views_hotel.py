@@ -30,7 +30,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             200: HotelDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
     create=extend_schema(
         summary="Добавление отеля",
@@ -40,7 +40,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             201: HotelBaseSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
     retrieve=extend_schema(
         summary="Детали отеля",
@@ -49,7 +49,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             200: HotelDetailSerializer,
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
     update=extend_schema(
         summary="Полное обновление отеля",
@@ -60,7 +60,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
     partial_update=extend_schema(
         summary="Частичное обновление отеля",
@@ -71,7 +71,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
     destroy=extend_schema(
         summary="Удаление отеля",
@@ -80,7 +80,7 @@ from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, Hote
             204: OpenApiResponse(description="Отель удален"),
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=["3.1 Отель"],
+        tags=["Отель"],
     ),
 )
 class HotelViewSet(viewsets.ModelViewSet):
