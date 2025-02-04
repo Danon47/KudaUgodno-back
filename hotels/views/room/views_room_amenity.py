@@ -13,7 +13,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             200: AmenityRoomSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
     create=extend_schema(
         summary="Добавление удобства в номере",
@@ -23,7 +23,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             201: AmenityRoomSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
     retrieve=extend_schema(
         summary="Детали удобства в номере",
@@ -32,7 +32,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             200: AmenityRoomSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
     update=extend_schema(
         summary="Полное обновление удобства в номере",
@@ -43,7 +43,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Удобство в номере не найдено"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
     partial_update=extend_schema(
         summary="Частичное обновление удобства в номере",
@@ -54,7 +54,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Удобство в номере не найдено"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
     destroy=extend_schema(
         summary="Удаление удобства в номере",
@@ -63,7 +63,7 @@ from hotels.serializers.room.serializers_room import AmenityRoomSerializer
             204: OpenApiResponse(description="Удобство в номере удалено"),
             404: OpenApiResponse(description="Удобство в номере не найдено"),
         },
-        tags=["3.2.2 Удобства в номере"],
+        tags=["Удобства в номере"],
     ),
 )
 class RoomAmenityViewSet(viewsets.ModelViewSet):

@@ -33,7 +33,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             200: RoomDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
     create=extend_schema(
         summary="Добавление номера",
@@ -43,7 +43,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             201: RoomBaseSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
     retrieve=extend_schema(
         summary="Детали номера",
@@ -52,7 +52,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             200: RoomDetailSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
     update=extend_schema(
         summary="Полное обновление номера",
@@ -63,7 +63,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
     partial_update=extend_schema(
         summary="Частичное обновление номера",
@@ -74,7 +74,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
     destroy=extend_schema(
         summary="Удаление номера",
@@ -83,7 +83,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
             204: OpenApiResponse(description="Номер удален"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=["3.2 Номер"],
+        tags=["Номер"],
     ),
 )
 class RoomViewSet(viewsets.ModelViewSet):
