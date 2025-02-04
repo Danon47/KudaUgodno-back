@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -10,7 +11,7 @@ class User(AbstractUser):
     Модель Пользователя
     """
 
-    username =  models.CharField(
+    username = models.CharField(
         max_length=100,
         verbose_name="Название туроператора",
         help_text="Заполняется в случае если роль Туроператор",
@@ -84,3 +85,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def clean(self):
+        """
+        Проверка значений полей в зависимости от роли.
+        Вызывается при full_clean() в ModelForm, DRF ModelSerializer (если включена валидация модели)
+        или вручную при вызове instance.full_clean().
+        """
+        super().clean()
+
+        # Если роль = Пользователь
+        if self.role == RoleChoices.USER:
+            # Запрещаем заполнять поля, которые относятся к Туроператору
+            if self.username or self.address or self.description:
+                raise ValidationError(
+                    "У пользователя (role=USER) не могут быть заполнены поля: username, address, description."
+                )
+
+        # Если роль = Туроператор
+        elif self.role == RoleChoices.TOUR_OPERATOR:
+            # Запрещаем заполнять поля, которые относятся к обычному пользователю
+            if self.first_name or self.last_name:
+                raise ValidationError(
+                    "У туроператора (role=TOUR_OPERATOR) не могут быть заполнены поля: first_name, last_name."
+                )
