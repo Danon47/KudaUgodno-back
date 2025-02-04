@@ -1,61 +1,109 @@
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiResponse,
 )
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
 
 from tours.models import Tour
 from tours.serializers import TourSerializer
 
+parameters_tour = [
+    OpenApiParameter(
+        location=OpenApiParameter.PATH,
+        name="id",
+        type=int,
+        description="Уникальное целочисленное значение, идентифицирующее данный тур",
+        required=True,
+    ),
+]
 
-class TourListCreateView(ListCreateAPIView):
-    queryset = Tour.objects.all()
-    serializer_class = TourSerializer
+tags_tour = ["Туры"]
 
-    @swagger_auto_schema(
-        operation_description="Получение списка туров",
-        operation_summary="Список туров",
-        tags=["2. Тур"],
-        manual_parameters=[
-            openapi.Parameter(
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список туров",
+        description="Получение списка всех туров",
+        tags=tags_tour,
+        parameters=[
+            OpenApiParameter(
                 name="limit",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
+                type=int,
                 description="Количество туров для возврата на страницу",
+                required=False,
             ),
-            openapi.Parameter(
+            OpenApiParameter(
                 name="offset",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description="Начальный индекс, из которого возвращаются результаты",
+                type=int,
+                description="Начальный индекс для пагинации",
+                required=False,
             ),
         ],
         responses={
-            200: openapi.Response(
-                description="Успешное получение списка туров",
-                schema=TourSerializer(many=True),
-            ),
-            400: "Ошибка запроса",
+            200: TourSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка запроса"),
         },
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_description="Создание тура",
-        operation_summary="Добавление тура",
-        request_body=TourSerializer,
-        tags=["2. Тур"],
+    ),
+    create=extend_schema(
+        summary="Добавление тура",
+        description="Создание нового тура",
+        request=TourSerializer,
+        tags=tags_tour,
         responses={
-            201: openapi.Response(
-                description="Успешное создание тура", schema=TourSerializer()
-            ),
-            400: "Ошибка валидации",
+            201: TourSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
         },
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+    ),
+    retrieve=extend_schema(
+        summary="Информация о туре",
+        description="Получение информации о туре через идентификатор",
+        tags=tags_tour,
+        parameters=parameters_tour,
+        responses={
+            200: TourSerializer,
+            404: OpenApiResponse(description="Тур не найден"),
+        },
+    ),
+    update=extend_schema(
+        summary="Полное обновление тура",
+        description="Обновление всех полей тура",
+        request=TourSerializer,
+        tags=tags_tour,
+        parameters=parameters_tour,
+        responses={
+            200: TourSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+            404: OpenApiResponse(description="Тур не найден"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Частичное обновление тура",
+        description="Обновление отдельных полей тура",
+        request=TourSerializer,
+        tags=tags_tour,
+        parameters=parameters_tour,
+        responses={
+            200: TourSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+            404: OpenApiResponse(description="Тур не найден"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Удаление тура",
+        description="Полное удаление тура",
+        tags=tags_tour,
+        parameters=parameters_tour,
+        responses={
+            204: OpenApiResponse(description="Тур удален"),
+            404: OpenApiResponse(description="Тур не найден"),
+        },
+    ),
+)
+class TourViewSet(viewsets.ModelViewSet):
+    queryset = Tour.objects.all()
+    serializer_class = TourSerializer
 
     def perform_create(self, serializer):
         tour = serializer.save()
@@ -67,99 +115,3 @@ class TourListCreateView(ListCreateAPIView):
         tour.price = total_price
         tour.save()
 
-
-class TourDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Tour.objects.all()
-    serializer_class = TourSerializer
-
-    @swagger_auto_schema(
-        operation_summary="Получение детальной информации о туре",
-        operation_description="Возвращает полную информацию о туре по его идентификатору",
-        tags=["2. Тур"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор тура в базе данных",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Успешное получение информации о туре",
-                schema=TourSerializer(),
-            ),
-            404: "Тур не найден",
-        },
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_summary="Полное обновление информации о туре",
-        operation_description="Обновляет все поля тура",
-        tags=["2. Тур"],
-        request_body=TourSerializer,
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор тура в базе данных",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Тур успешно обновлен", schema=TourSerializer()
-            ),
-            400: "Ошибка валидации",
-            404: "Тур не найден",
-        },
-    )
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_summary="Частичное обновление информации о туре",
-        operation_description="Обновляет указанные поля тура",
-        tags=["2. Тур"],
-        request_body=TourSerializer,
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор тура в базе данных",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Тур успешно обновлен", schema=TourSerializer()
-            ),
-            400: "Ошибка валидации",
-            404: "Тур не найден",
-        },
-    )
-    def patch(self, request, *args, **kwargs):
-        return super().patch(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_summary="Удаление тура",
-        operation_description="Полное удаление тура по его идентификатору",
-        tags=["2. Тур"],
-        manual_parameters=[
-            openapi.Parameter(
-                name="id",
-                in_=openapi.IN_PATH,
-                type=openapi.TYPE_INTEGER,
-                description="Уникальный идентификатор тура",
-                required=True,
-            )
-        ],
-        responses={204: "Тур успешно удален", 404: "Тур не найден"},
-    )
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
