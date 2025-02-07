@@ -1,7 +1,9 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import GenericViewSet
+
+from all_fixture.fixture_views import room_id, room_id_photo, room_photo_settings
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_photo import RoomPhoto
 from hotels.serializers.room.serializers_room import RoomPhotoSerializer
@@ -10,33 +12,17 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
     list=extend_schema(
         summary="Список фотографий номера",
         description="Получение списка всех фотографий номера с пагинацией",
-        parameters=[
-            OpenApiParameter(
-                name="room_id",
-                type=int,
-                location=OpenApiParameter.PATH,  # Параметр передается в URL
-                description="ID номера, у которого получаем список всех фотографий",
-                required=True,
-            ),
-        ],
+        parameters=[room_id],
         responses={
             200: RoomPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["Фотографии номера"],
+        tags=[room_photo_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление фотографии номера",
         description="Создание новой фотографии номера",
-        parameters=[
-            OpenApiParameter(
-                name="room_id",
-                type=int,
-                location=OpenApiParameter.PATH,  # Параметр передается в URL
-                description="ID номера, к которому добавляется фотография",
-                required=True,
-            ),
-        ],
+        parameters=[room_id],
         request={
             "multipart/form-data": RoomPhotoSerializer,  # Указываем формат данных
         },
@@ -44,32 +30,17 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
             201: RoomPhotoSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=["Фотографии номера"],
+        tags=[room_photo_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление фотографии номера",
         description="Полное удаление фотографии номера",
-        parameters=[
-            OpenApiParameter(
-                name="room_id",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID номера, у которого удаляется фотография",
-                required=True,
-            ),
-            OpenApiParameter(
-                name="id",
-                type=int,
-                location=OpenApiParameter.PATH,
-                description="ID фотографий номера, которая удаляется",
-                required=True,
-            ),
-        ],
+        parameters=[room_id, room_id_photo],
         responses={
             204: OpenApiResponse(description="Фотография номера удалена"),
             404: OpenApiResponse(description="Фотография номера не найдена"),
         },
-        tags=["Фотографии номера"],
+        tags=[room_photo_settings["name"]],
     ),
 )
 class RoomPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):

@@ -35,7 +35,7 @@ from flights.serializers import FlightSerializer
         summary="Информация о рейсе",
         description="Получение информации о рейсе через идентификатор",
         tags=[flight_settings["name"]],
-        parameters=flight_id,
+        parameters=[flight_id],
         responses={
             200: FlightSerializer,
             404: OpenApiResponse(description="Заявка не найдена"),
@@ -46,7 +46,7 @@ from flights.serializers import FlightSerializer
         description="Обновление всех полей рейса",
         request=FlightSerializer,
         tags=[flight_settings["name"]],
-        parameters=flight_id,
+        parameters=[flight_id],
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -58,7 +58,7 @@ from flights.serializers import FlightSerializer
         description="Обновление отдельных полей рейса",
         request=FlightSerializer,
         tags=[flight_settings["name"]],
-        parameters=flight_id,
+        parameters=[flight_id],
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -69,7 +69,7 @@ from flights.serializers import FlightSerializer
         summary="Удаление рейса",
         description="Полное удаление рейса",
         tags=[flight_settings["name"]],
-        parameters=flight_id,
+        parameters=[flight_id],
         responses={
             204: OpenApiResponse(description="Рейса удален"),
             404: OpenApiResponse(description="Рейс не найден"),

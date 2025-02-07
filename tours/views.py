@@ -35,7 +35,7 @@ from tours.serializers import TourSerializer
         summary="Информация о туре",
         description="Получение информации о туре через идентификатор",
         tags=[tour_settings["name"]],
-        parameters=tour_id,
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             404: OpenApiResponse(description="Тур не найден"),
@@ -46,7 +46,7 @@ from tours.serializers import TourSerializer
         description="Обновление всех полей тура",
         request=TourSerializer,
         tags=[tour_settings["name"]],
-        parameters=tour_id,
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -58,7 +58,7 @@ from tours.serializers import TourSerializer
         description="Обновление отдельных полей тура",
         request=TourSerializer,
         tags=[tour_settings["name"]],
-        parameters=tour_id,
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -69,7 +69,7 @@ from tours.serializers import TourSerializer
         summary="Удаление тура",
         description="Полное удаление тура",
         tags=[tour_settings["name"]],
-        parameters=tour_id,
+        parameters=[tour_id],
         responses={
             204: OpenApiResponse(description="Тур удален"),
             404: OpenApiResponse(description="Тур не найден"),

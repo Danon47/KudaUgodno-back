@@ -111,12 +111,14 @@ class UserViewSet(viewsets.ModelViewSet):
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
         request=EmailLoginSerializer,
         responses={200: OpenApiResponse(description="Код отправлен на email")},
+        tags=[user_settings["name"]],
     ),
     partial_update=extend_schema(
         summary="Подтвердить код и получить токен",
         description="Пользователь вводит email и код, получает JWT-токены.",
         request=VerifyCodeSerializer,
         responses={200: OpenApiResponse(description="JWT-токены получены")},
+        tags=[user_settings["name"]],
     ),
 )
 class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):

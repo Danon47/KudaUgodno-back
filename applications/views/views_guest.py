@@ -43,7 +43,7 @@ from applications.serializers.serializers_guests import (
         summary="Информация о Госте",
         description="Получение информации о Госте через идентификатор",
         tags=[application_guest_settings["name"]],
-        parameters=application_guest_id,
+        parameters=[application_guest_id],
         responses={
             200: GuestSerializer,
             404: OpenApiResponse(description="Гость не найден"),
@@ -54,7 +54,7 @@ from applications.serializers.serializers_guests import (
         description="Обновление всех полей Гостя",
         request=GuestDetailSerializer,
         tags=[application_guest_settings["name"]],
-        parameters=application_guest_id,
+        parameters=[application_guest_id],
         responses={
             200: GuestDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -66,7 +66,7 @@ from applications.serializers.serializers_guests import (
         description="Обновление отдельных полей Гостя",
         request=GuestDetailSerializer,
         tags=[application_guest_settings["name"]],
-        parameters=application_guest_id,
+        parameters=[application_guest_id],
         responses={
             200: GuestDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -77,7 +77,7 @@ from applications.serializers.serializers_guests import (
         summary="Удаление Гостя",
         description="Полное удаление Гостя",
         tags=[application_guest_settings["name"]],
-        parameters=application_guest_id,
+        parameters=[application_guest_id],
         responses={
             204: OpenApiResponse(description="Гость удален"),
             404: OpenApiResponse(description="Гость не найден"),
