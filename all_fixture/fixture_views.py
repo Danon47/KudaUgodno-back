@@ -68,11 +68,19 @@ tags_application_guest_settings = {
 }
 
 # ID пользователя
-user_parameters = OpenApiParameter(
+user_id = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
     description="Уникальный идентификатор пользователя",
+    required=True,
+)
+# ID тура
+tour_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="Уникальное целочисленное значение, идентифицирующее данный тур",
     required=True,
 )
 # ID отеля
