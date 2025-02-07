@@ -12,6 +12,8 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse
 )
+
+from all_fixture.fixture_views import offset, limit, tags_user_settings
 from config.settings import EMAIL_HOST_USER
 from users.models import User
 from users.serializers import (
@@ -23,38 +25,12 @@ from users.serializers import (
 from users.tasks import clear_user_password
 
 
-# 📌 Настройки API-документирования
-user_parameters = [
-    OpenApiParameter(
-        name="id",
-        type=int,
-        location=OpenApiParameter.PATH,
-        description="Уникальный идентификатор пользователя",
-        required=True,
-    )
-]
-tags_users = ["Пользователи"]
-
-
 @extend_schema_view(
     list=extend_schema(
         summary="Список пользователей",
         description="Получение списка всех пользователей",
-        tags=tags_users,
-        parameters=[
-            OpenApiParameter(
-                name="limit",
-                type=int,
-                description="Количество пользователей для пагинации",
-                required=False
-            ),
-            OpenApiParameter(
-                name="offset",
-                type=int,
-                description="Смещение для пагинации",
-                required=False
-            ),
-        ],
+        tags=[tags_user_settings["name"]],
+        parameters=[limit, offset],
         responses={
             200: UserSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации запроса"),
@@ -63,7 +39,7 @@ tags_users = ["Пользователи"]
     create=extend_schema(
         summary="Создание пользователя",
         description="Создание нового пользователя с генерацией 4-значного пароля и отправкой на email.",
-        tags=tags_users,
+        tags=[tags_user_settings["name"]],
         request=AdminSerializer,
         responses={
             201: AdminSerializer,
@@ -209,10 +185,13 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
             from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken.for_user(user)
 
-            return Response({
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "role": user.role,  # 🔹 Добавляем роль пользователя в ответ
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "role": user.role,  # 🔹 Добавляем роль пользователя в ответ
+                },
+                status=status.HTTP_200_OK,
+            )
 
         return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
