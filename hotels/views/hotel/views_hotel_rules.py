@@ -60,3 +60,4 @@
 #     queryset = HotelRules.objects.all()
 #     serializer_class = HotelRulesSerializer
 #     pagination_class = None
+#     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options', 'trace']  # Исключаем 'patch'
