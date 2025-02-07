@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiParameter,
     OpenApiResponse
 )
 
