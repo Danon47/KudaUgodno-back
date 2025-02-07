@@ -20,35 +20,59 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "rest_framework",
-    "drf_spectacular",
-    "phonenumber_field",
-    "django_celery_beat",
-    "users",
-    "tours",
-    "flights",
-    "hotels",
-    "applications",
-    "corsheaders",
-]
+   # Стандартные Django-приложения
+   "django.contrib.admin",
+   "django.contrib.auth",
+   "django.contrib.contenttypes",
+   "django.contrib.sessions",
+   "django.contrib.messages",
+   "django.contrib.staticfiles",
 
+   # Сторонние библиотеки
+   "rest_framework",
+   "rest_framework.authtoken",
+   "rest_framework_simplejwt",
+   "dj_rest_auth",
+   "allauth",
+   "allauth.account",
+   "allauth.socialaccount",
+
+   # Подключаем OAuth-авторизацию (если нужны соцсети)
+   "allauth.socialaccount.providers.google",
+   "allauth.socialaccount.providers.vk",
+   "allauth.socialaccount.providers.yandex",
+
+   # Дополнительные библиотеки
+   "drf_spectacular",
+   "phonenumber_field",
+   "django_celery_beat",
+
+   # Наши приложения
+   "users",
+   "tours",
+   "flights",
+   "hotels",
+   "applications",
+
+   # Поддержка CORS
+   "corsheaders",
+]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+   "django.middleware.security.SecurityMiddleware",
+   "django.contrib.sessions.middleware.SessionMiddleware",
+   "corsheaders.middleware.CorsMiddleware",
+   "django.middleware.common.CommonMiddleware",
+
+   # 🔹 Добавляем сюда (ВАЖНО: перед AuthenticationMiddleware)
+   "allauth.account.middleware.AccountMiddleware",
+
+   "django.middleware.csrf.CsrfViewMiddleware",
+   "django.contrib.auth.middleware.AuthenticationMiddleware",
+   "django.contrib.messages.middleware.MessageMiddleware",
+   "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 LOGGING = {
     "version": 1,

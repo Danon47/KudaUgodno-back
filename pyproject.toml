@@ -2,7 +2,7 @@
 name = "36-kuda-ugodno-backend-api"
 version = "0.0.0"
 description = "API сервис для веб-сайта 'Куда Угодно'"
-authors = ["Антон Громов", "Никита", "Николай", "Татьяна Харламова"]
+authors = ["Антон Громов", "Никита", "Анна Боссир", "Татьяна Харламова"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -21,6 +21,10 @@ django-celery-beat = "^2.7.0"
 drf-spectacular = "^0.28.0"
 django-cors-headers = "^4.6.0"
 drf-yasg = "^1.21.8"
+dj-rest-auth = "^7.0.1"
+django-allauth = "^65.4.0"
+social-auth-app-django = "^5.4.2"
+djangorestframework-simplejwt = "^5.4.0"
 
 
 [tool.poetry.group.dev.dependencies]

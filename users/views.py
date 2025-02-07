@@ -1,20 +1,29 @@
 import random
-
-from drf_spectacular.utils import (
-    extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
-)
-from rest_framework import viewsets, status
-from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import EmailMessage
+from rest_framework import status, viewsets, mixins
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiResponse
+)
 from config.settings import EMAIL_HOST_USER
 from users.models import User
-from users.serializers import UserSerializer, AdminSerializer
-from users.tasks import clear_user_password, send_message
-from users.choices import RoleChoices
+from users.serializers import (
+    AdminSerializer,
+    EmailLoginSerializer,
+    UserSerializer,
+    VerifyCodeSerializer
+)
+from users.tasks import clear_user_password
 
-# Параметры для документации (drf-spectacular) — используем "id" вместо "pk"
+
+# 📌 Настройки API-документирования
 user_parameters = [
     OpenApiParameter(
         name="id",
@@ -24,7 +33,6 @@ user_parameters = [
         required=True,
     )
 ]
-
 tags_users = ["Пользователи"]
 
 
@@ -62,125 +70,149 @@ tags_users = ["Пользователи"]
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     ),
-    retrieve=extend_schema(
-        summary="Информация о пользователе",
-        description="Получение информации о пользователе по его идентификатору",
-        tags=tags_users,
-        parameters=user_parameters,
-        responses={
-            200: UserSerializer,
-            404: OpenApiResponse(description="Пользователь не найден"),
-        },
-    ),
-    update=extend_schema(
-        summary="Полное обновление пользователя",
-        description="Обновление всех полей пользователя по его идентификатору",
-        tags=tags_users,
-        request=AdminSerializer,
-        parameters=user_parameters,
-        responses={
-            200: AdminSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Пользователь не найден"),
-        },
-    ),
-    partial_update=extend_schema(
-        summary="Частичное обновление пользователя",
-        description="Обновление отдельных полей пользователя по его идентификатору",
-        tags=tags_users,
-        request=AdminSerializer,
-        parameters=user_parameters,
-        responses={
-            200: AdminSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Пользователь не найден"),
-        },
-    ),
-    destroy=extend_schema(
-        summary="Удаление пользователя",
-        description="Удаление пользователя по его идентификатору",
-        tags=tags_users,
-        parameters=user_parameters,
-        responses={
-            204: OpenApiResponse(description="Пользователь удалён"),
-            404: OpenApiResponse(description="Пользователь не найден"),
-        },
-    ),
 )
 class UserViewSet(viewsets.ModelViewSet):
     """
-    ViewSet для CRUD-операций над пользователями.
+    ViewSet для управления пользователями (CRUD).
     """
     queryset = User.objects.all().order_by("-pk")
     serializer_class = UserSerializer
-
-    # Ищем объект по "id", а не по "pk"
     lookup_field = "id"
     lookup_url_kwarg = "id"
 
     def get_serializer_class(self):
+        """Выбор сериализатора в зависимости от действия."""
         if self.action in ["create", "update", "partial_update"]:
             return AdminSerializer
         return UserSerializer
 
     def create(self, request, *args, **kwargs):
-        # 1. Валидируем данные сериализатора (ForbiddenWordValidator и т.д.)
+        """
+        Создание нового пользователя:
+        - Проверка валидности данных
+        - Генерация 4-значного кода
+        - Отправка кода на email
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # 2. Вызываем модельную валидацию, чтобы учесть clean()
         try:
             user.full_clean()
         except DjangoValidationError as e:
             raise DRFValidationError(e.message_dict)
 
-        # 3. Генерируем 4-значный код и устанавливаем как пароль
         random_number = random.randint(1000, 9999)
         user.set_password(str(random_number))
         user.save(update_fields=["password"])
 
-        # 4. Отправка email с кодом подтверждения
-        send_message.delay(
-            "Код для подтверждения входа",
-            f"Код для входа в сервис 'Куда Угодно': {random_number}.\n"
-            "Никому не сообщайте его! Если вы не запрашивали код, игнорируйте сообщение.",
-            EMAIL_HOST_USER,
-            [user.email]
+        # 📩 Отправляем HTML-письмо с кодом
+        email_message = EmailMessage(
+            subject="Ваш код для входа",
+            body=f"""
+                <html>
+                    <body>
+                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>: 
+                        <strong style="font-size:18px;color:#007bff;">{random_number}</strong>.</p>
+                        <p><strong>Никому не сообщайте его!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                    </body>
+                </html>
+            """,
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
         )
+        email_message.content_subtype = "html"  # Указываем HTML-формат
+        email_message.send()
 
-        # 5. Планируем задачу очистки пароля через 5 минут
+        # Очистка пароля через 5 минут
         clear_user_password.apply_async((user.id,), countdown=300)
 
-        headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def update(self, request, *args, **kwargs):
-        # Для полного обновления тоже вызываем model clean()
-        partial = False
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+@extend_schema_view(
+    create=extend_schema(
+        summary="Запросить код для входа",
+        description="Отправляет 4-значный код на email пользователя для входа в систему.",
+        request=EmailLoginSerializer,
+        responses={200: OpenApiResponse(description="Код отправлен на email")},
+    ),
+    partial_update=extend_schema(
+        summary="Подтвердить код и получить токен",
+        description="Пользователь вводит email и код, получает JWT-токены.",
+        request=VerifyCodeSerializer,
+        responses={200: OpenApiResponse(description="JWT-токены получены")},
+    ),
+)
+class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """
+    ViewSet для аутентификации по email-коду.
+    """
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        """
+        Отправляет код для входа по email:
+        - Проверяет, существует ли пользователь
+        - Генерирует 4-значный код
+        - Отправляет код на почту в HTML-формате
+        """
+        serializer = EmailLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+
+        email = serializer.validated_data["email"]
 
         try:
-            user.full_clean()
-        except DjangoValidationError as e:
-            raise DRFValidationError(e.message_dict)
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        code = random.randint(1000, 9999)
+        user.set_password(str(code))
+        user.save(update_fields=["password"])
+
+        # 📩 Отправляем email с HTML-кодом
+        email_message = EmailMessage(
+            subject="Ваш код для входа",
+            body=f"""
+                <html>
+                    <body>
+                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>: 
+                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
+                        <p><strong>Никому не сообщайте его!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                    </body>
+                </html>
+            """,
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        email_message.content_subtype = "html"
+        email_message.send()
+
+        # Очищаем пароль через 5 минут
+        clear_user_password.apply_async((user.id,), countdown=300)
+
+        return Response({"message": "Код отправлен на email"}, status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
-        # Для частичного обновления
-        partial = True
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        """
+        Проверяет код и возвращает JWT-токены + роль пользователя.
+        """
+        serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
 
-        try:
-            user.full_clean()
-        except DjangoValidationError as e:
-            raise DRFValidationError(e.message_dict)
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user = authenticate(email=email, password=str(code))
+        if user:
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "role": user.role,  # 🔹 Добавляем роль пользователя в ответ
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
