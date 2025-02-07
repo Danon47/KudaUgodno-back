@@ -46,17 +46,6 @@
 #         },
 #         tags=[tags_hotel_rules_settings["name"]],
 #     ),
-#     partial_update=extend_schema(
-#         summary="Частичное обновление правил в отеле",
-#         description="Обновление отдельных полей правил в отеле",
-#         request=HotelRulesSerializer,
-#         responses={
-#             200: HotelRulesSerializer,
-#             400: OpenApiResponse(description="Ошибка валидации"),
-#             404: OpenApiResponse(description="Правило в отеле не найдено"),
-#         },
-#         tags=[tags_hotel_rules_settings["name"]],
-#     ),
 #     destroy=extend_schema(
 #         summary="Удаление правила в отеле",
 #         description="Полное удаление правила в отеле",
