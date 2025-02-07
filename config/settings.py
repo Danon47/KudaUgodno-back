@@ -2,6 +2,12 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+from all_fixture.fixture_views import tags_user_settings, tags_tour_settings, tags_hotel_settings, \
+    tags_hotel_amenity_common_settings, tags_hotel_amenity_room_settings, tags_hotel_amenity_sport_settings, \
+    tags_hotel_amenity_children_settings, tags_hotel_rules_settings, tags_hotel_photo_settings, tags_room_settings, \
+    tags_room_category_settings, tags_room_amenity_settings, tags_room_photo_settings, tags_flight_settings, \
+    tags_application_settings, tags_application_guest_settings
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
@@ -16,7 +22,7 @@ ALLOWED_HOSTS = [
     "anywhere.god-it.ru",
     "anywhere-test.god-it.ru",
     "anywhere-dev.god-it.ru",
-    "82.202.137.38",
+    "ku.mer1d1an.ru",
 ]
 
 INSTALLED_APPS = [
@@ -170,29 +176,29 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "API приложения Куда Угодно",
     "DESCRIPTION": "Полная документация API приложения Куда Угодно",
-    "VERSION": "0.3.0",
+    "VERSION": "0.5.1",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "TYPESCRIPT_GENERATOR": {
         "TYPED_PATH_PARAMETERS": True
     },
     "TAGS": [
-        {"name": "Пользователи", "description": "Методы для работы с пользователями"},
-        {"name": "Туры", "description": "Методы для работы с турами"},
-        {"name": "Отель", "description": "Методы для работы с отелями"},
-        {"name": "Удобства общие в отеле", "description": "Методы для работы с общими удобствами отелей"},
-        {"name": "Удобства в номере в отеле", "description": "Методы для работы с удобствами в номерах отелей"},
-        {"name": "Удобства спорт и отдых в отеле", "description": "Методы для работы с удобствами спорта и отдыха"},
-        {"name": "Удобства для детей в отеле", "description": "Методы для работы с удобствами для детей"},
-        {"name": "Правила в отеле", "description": "Методы для работы с правилами отелей"},
-        {"name": "Фотографии в отеле", "description": "Методы для работы с фотографиями отелей"},
-        {"name": "Номер", "description": "Методы для работы с номерами"},
-        {"name": "Категории номера", "description": "Методы для работы с категориями номеров"},
-        {"name": "Удобства в номере", "description": "Методы для работы с удобствами номеров"},
-        {"name": "Фотографии номера", "description": "Методы для работы с фотографиями номеров"},
-        {"name": "Рейсы", "description": "Методы для работы с рейсами"},
-        {"name": "Заявки", "description": "Методы для работы с заявками"},
-        {"name": "Гости", "description": "Методы для работы с гостями"},
+        tags_user_settings,
+        tags_tour_settings,
+        tags_hotel_settings,
+        # tags_hotel_amenity_common_settings,
+        # tags_hotel_amenity_room_settings,
+        # tags_hotel_amenity_sport_settings,
+        # tags_hotel_amenity_children_settings,
+        tags_hotel_rules_settings,
+        tags_hotel_photo_settings,
+        tags_room_settings,
+        tags_room_category_settings,
+        tags_room_amenity_settings,
+        tags_room_photo_settings,
+        tags_flight_settings,
+        tags_application_settings,
+        tags_application_guest_settings,
     ],
     "SORT_OPERATIONS": True,
 }
@@ -213,6 +219,8 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "https://ku.mer1d1an.ru",
     "https://anywhere-dev.god-it.ru",
     "https://anywhere-test.god-it.ru",
 ]
@@ -224,6 +232,7 @@ if not DEBUG:
     ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://ku.mer1d1an.ru",
     "https://anywhere.god-it.ru",
     "https://anywhere-dev.god-it.ru",
     "https://anywhere-test.god-it.ru",
