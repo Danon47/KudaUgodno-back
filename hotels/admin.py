@@ -10,18 +10,11 @@ from hotels.models.room.models_room_category import RoomCategory
 from hotels.models.room.models_room_photo import RoomPhoto
 
 
-class RoomInline(admin.StackedInline):
-    model = Room
-    # Количество пустых форм для добавления новых номеров
-    extra = 1
-
 
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
     list_display = ("id", "type_of_rest", "name", "city", "address")
     list_display_links = ("id", "name")
-    # Добавляем встроенный класс для номеров
-    inlines = (RoomInline,)
 
 
 @admin.register(Room)
