@@ -1,14 +1,23 @@
 from django.db import models
 
+from hotels.models.hotel.models_hotel import Hotel, NULLABLE
+
 
 class HotelAmenityCommon(models.Model):
     """
     Общие удобства
     """
 
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        related_name="hotels_amenities_common",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     name = models.CharField(
         max_length=50,
-        unique=True,
         verbose_name="Общие удобства",
         help_text="Общие удобства"
     )
@@ -26,9 +35,16 @@ class HotelAmenityInTheRoom(models.Model):
     В номере
     """
 
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        related_name="hotels_amenities_room",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     name = models.CharField(
         max_length=50,
-        unique=True,
         verbose_name="В номере",
         help_text="В номере"
     )
@@ -46,9 +62,16 @@ class HotelAmenitySportsAndRecreation(models.Model):
     Спорт и отдых
     """
 
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        related_name="hotels_amenities_sports",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     name = models.CharField(
         max_length=50,
-        unique=True,
         verbose_name="Спорт и отдых",
         help_text="Спорт и отдых"
     )
@@ -66,9 +89,16 @@ class HotelAmenityForChildren(models.Model):
     Для детей
     """
 
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        related_name="hotels_amenities_children",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     name = models.CharField(
         max_length=50,
-        unique=True,
         verbose_name="Для детей",
         help_text="Для детей"
     )
