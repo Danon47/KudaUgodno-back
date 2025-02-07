@@ -1,46 +1,21 @@
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiParameter,
     OpenApiResponse,
 )
 from rest_framework import viewsets
 
+from all_fixture.fixture_views import tags_flight_settings, limit, offset, flight_id
 from flights.models import Flight
 from flights.serializers import FlightSerializer
-
-parameters_tour = [
-    OpenApiParameter(
-        location=OpenApiParameter.PATH,
-        name="id",
-        type=int,
-        description="Уникальное целочисленное значение, идентифицирующее данный Рейс",
-        required=True,
-    ),
-]
-
-tags_flight = ["Рейсы"]
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список рейсов",
         description="Получение списка всех рейсов",
-        tags=tags_flight,
-        parameters=[
-            OpenApiParameter(
-                name="limit",
-                type=int,
-                description="Количество рейсов для возврата на страницу",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="offset",
-                type=int,
-                description="Начальный индекс для пагинации",
-                required=False,
-            ),
-        ],
+        tags=[tags_flight_settings["name"]],
+        parameters=[limit, offset],
         responses={
             200: FlightSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -50,7 +25,7 @@ tags_flight = ["Рейсы"]
         summary="Добавление рейса",
         description="Создание новой рейса",
         request=FlightSerializer,
-        tags=tags_flight,
+        tags=[tags_flight_settings["name"]],
         responses={
             201: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -59,8 +34,8 @@ tags_flight = ["Рейсы"]
     retrieve=extend_schema(
         summary="Информация о рейсе",
         description="Получение информации о рейсе через идентификатор",
-        tags=tags_flight,
-        parameters=parameters_tour,
+        tags=[tags_flight_settings["name"]],
+        parameters=flight_id,
         responses={
             200: FlightSerializer,
             404: OpenApiResponse(description="Заявка не найдена"),
@@ -70,8 +45,8 @@ tags_flight = ["Рейсы"]
         summary="Полное обновление рейса",
         description="Обновление всех полей рейса",
         request=FlightSerializer,
-        tags=tags_flight,
-        parameters=parameters_tour,
+        tags=[tags_flight_settings["name"]],
+        parameters=flight_id,
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -82,8 +57,8 @@ tags_flight = ["Рейсы"]
         summary="Частичное обновление рейса",
         description="Обновление отдельных полей рейса",
         request=FlightSerializer,
-        tags=tags_flight,
-        parameters=parameters_tour,
+        tags=[tags_flight_settings["name"]],
+        parameters=flight_id,
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -93,8 +68,8 @@ tags_flight = ["Рейсы"]
     destroy=extend_schema(
         summary="Удаление рейса",
         description="Полное удаление рейса",
-        tags=tags_flight,
-        parameters=parameters_tour,
+        tags=[tags_flight_settings["name"]],
+        parameters=flight_id,
         responses={
             204: OpenApiResponse(description="Рейса удален"),
             404: OpenApiResponse(description="Рейс не найден"),
