@@ -1,9 +1,19 @@
 from django.db import models
 
+from hotels.models.hotel.models_hotel import Hotel, NULLABLE
+
 
 class HotelRules(models.Model):
     """ Правила в отеле"""
 
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        related_name="hotels_rules",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     name = models.CharField(
         max_length=100,
         verbose_name="Правила в отеле",

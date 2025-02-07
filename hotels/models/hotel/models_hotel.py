@@ -1,10 +1,7 @@
-from datetime import time
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from hotels.choices import TypeOfHolidayChoices, PlaceChoices, TimeChoices
-from hotels.models.hotel.models_hotel_amenity import (HotelAmenityForChildren, HotelAmenitySportsAndRecreation,
-                                                      HotelAmenityInTheRoom, HotelAmenityCommon)
-from hotels.models.hotel.models_hotel_rules import HotelRules
+from hotels.choices import TypeOfHolidayChoices, PlaceChoices
+from users.models import User
 
 NULLABLE = {"blank": True, "null": True}
 
@@ -66,7 +63,7 @@ class Hotel(models.Model):
         verbose_name="Расстояние до вокзала",
         help_text="Введите расстояние до вокзала в метрах",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(200000),
         ],
         **NULLABLE,
@@ -76,7 +73,7 @@ class Hotel(models.Model):
         verbose_name="Расстояние до моря",
         help_text="Введите расстояние до моря в метрах",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(200000),
         ],
         **NULLABLE,
@@ -86,7 +83,7 @@ class Hotel(models.Model):
         verbose_name="Расстояние до центра",
         help_text="Введите расстояние до центра в метрах",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(200000),
         ],
         **NULLABLE,
@@ -96,7 +93,7 @@ class Hotel(models.Model):
         verbose_name="Расстояние до метро",
         help_text="Введите расстояние до метро в метрах",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(200000),
         ],
         **NULLABLE,
@@ -106,7 +103,7 @@ class Hotel(models.Model):
         verbose_name="Расстояние до аэропорта",
         help_text="Введите расстояние до аэропорта в метрах",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(200000),
         ],
         **NULLABLE,
@@ -119,51 +116,45 @@ class Hotel(models.Model):
     )
     # Время заселения
     check_in_time = models.TimeField(
-        max_length=8,
-        choices=TimeChoices.in_time(),
-        default=time(14, 0),
-        verbose_name="Время заезда",
+        verbose_name="Время заселения",
         help_text="Время заселения",
         **NULLABLE,
     )
     # Время выезда
     check_out_time = models.TimeField(
-        max_length=8,
-        choices=TimeChoices.out_time(),
-        default=time(12, 0),
         verbose_name="Время выезда",
         help_text="Время выезда",
         **NULLABLE,
     )
     # Общин удобства в отеле
     amenities_common = models.ManyToManyField(
-        HotelAmenityCommon,
+        "HotelAmenityCommon",
         verbose_name="Общие",
-        related_name="hotels_common",
+        related_name="hotels_amenities_common",
         help_text="Общие",
         blank=True,
     )
     # Удобства в номере
     amenities_in_the_room = models.ManyToManyField(
-        HotelAmenityInTheRoom,
+        "HotelAmenityInTheRoom",
         verbose_name="В номере",
-        related_name="hotels_in_the_room",
+        related_name="hotels_amenities_room",
         help_text="В номере",
         blank=True,
     )
     # Удобства спорт и номер
     amenities_sports_and_recreation = models.ManyToManyField(
-        HotelAmenitySportsAndRecreation,
+        "HotelAmenitySportsAndRecreation",
         verbose_name="Спорт и отдых",
-        related_name="hotels_sports_and_recreation",
+        related_name="hotels_amenities_sports",
         help_text="Спорт и отдых",
         blank=True,
     )
     # Удобства для детей
     amenities_for_children = models.ManyToManyField(
-        HotelAmenityForChildren,
+        "HotelAmenityForChildren",
         verbose_name="Для детей",
-        related_name="hotels_children",
+        related_name="hotels_amenities_children",
         help_text="Для детей",
         blank=True,
     )
@@ -237,13 +228,24 @@ class Hotel(models.Model):
     )
     # Правила
     rules = models.ManyToManyField(
-        HotelRules,
+        "HotelRules",
         verbose_name="Правила в отеле",
         related_name="hotels_rules",
         help_text="Правила в отеле",
         blank=True,
     )
-
+    is_active = models.BooleanField(
+        default=False,
+        verbose_name="Отель работает?",
+        help_text="Отель работает?",
+    )
+    # created_by = models.ForeignKey(
+    #     User,
+    #     on_delete=models.SET_NULL,
+    #     verbose_name="Создал отель",
+    #     help_text="Создал отель",
+    #     **NULLABLE,
+    # )
 
     class Meta:
         verbose_name = "Отель"
@@ -252,3 +254,4 @@ class Hotel(models.Model):
 
     def __str__(self):
         return self.name
+ё
