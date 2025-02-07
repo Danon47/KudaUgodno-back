@@ -2,67 +2,67 @@ from drf_spectacular.utils import OpenApiParameter, OpenApiExample
 
 
 # Теги для settings
-tags_user_settings = {
+user_settings = {
     "name": "Пользователи",
     "description": "Методы для работы с пользователями"
 }
-tags_tour_settings = {
+tour_settings = {
     "name": "Туры",
     "description": "Методы для работы с турами"
 }
-tags_hotel_settings = {
+hotel_settings = {
     "name": "Отель",
     "description": "Методы для работы с отелями"
 }
-tags_hotel_amenity_common_settings = {
+hotel_amenity_common_settings = {
     "name": "Удобства общие в отеле",
     "description": "Методы для работы с общими удобствами отелей",
 }
-tags_hotel_amenity_room_settings = {
+hotel_amenity_room_settings = {
     "name": "Удобства в номере в отеле",
     "description": "Методы для работы с удобствами в номерах отелей",
 }
-tags_hotel_amenity_sport_settings = {
+hotel_amenity_sport_settings = {
     "name": "Удобства спорт и отдых в отеле",
     "description": "Методы для работы с удобствами спорта и отдыха",
 }
-tags_hotel_amenity_children_settings = {
+hotel_amenity_children_settings = {
     "name": "Удобства для детей в отеле",
     "description": "Методы для работы с удобствами для детей",
 }
-tags_hotel_rules_settings = {
+hotel_rules_settings = {
     "name": "Правила в отеле",
     "description": "Методы для работы с правилами отелей",
 }
-tags_hotel_photo_settings = {
+hotel_photo_settings = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
 }
-tags_room_settings = {
+room_settings = {
     "name": "Номер",
     "description": "Методы для работы с номерами"
 }
-tags_room_category_settings = {
+room_category_settings = {
     "name": "Категории номера",
     "description": "Методы для работы с категориями номеров",
 }
-tags_room_amenity_settings = {
+room_amenity_settings = {
     "name": "Удобства в номере",
     "description": "Методы для работы с удобствами номеров",
 }
-tags_room_photo_settings = {
+room_photo_settings = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
 }
-tags_flight_settings = {
+flight_settings = {
     "name": "Рейсы",
     "description": "Методы для работы с рейсами"
 }
-tags_application_settings = {
+application_settings = {
     "name": "Заявки",
     "description": "Методы для работы с заявками"
 }
-tags_application_guest_settings = {
+application_guest_settings = {
     "name": "Гости",
     "description": "Методы для работы с гостями"
 }
@@ -162,7 +162,15 @@ application_id = OpenApiParameter(
     type=int,
     description="ID Заявки",
     required=True,
-),
+)
+# ID гостя
+application_guest_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Гостя в заявке",
+    required=True,
+)
 
 # Для пагинации
 limit = OpenApiParameter(

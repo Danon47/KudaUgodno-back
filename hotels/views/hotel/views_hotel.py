@@ -4,7 +4,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 from rest_framework import viewsets
-from all_fixture.fixture_views import offset, limit, id_hotel, tags_hotel_settings
+from all_fixture.fixture_views import offset, limit, id_hotel, hotel_settings
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.serializers.hotel.serializers_hotel import (
     HotelBaseSerializer,
@@ -47,7 +47,7 @@ class CreatedByUserFilterMixin:
             200: HotelDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_hotel_settings["name"]],
+        tags=[hotel_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление отеля",
@@ -57,7 +57,7 @@ class CreatedByUserFilterMixin:
             201: HotelBaseSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
-        tags=[tags_hotel_settings["name"]],
+        tags=[hotel_settings["name"]],
     ),
     retrieve=extend_schema(
         summary="Детали отеля",
@@ -67,7 +67,7 @@ class CreatedByUserFilterMixin:
             200: HotelDetailSerializer,
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=[tags_hotel_settings["name"]],
+        tags=[hotel_settings["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление отеля",
@@ -79,7 +79,7 @@ class CreatedByUserFilterMixin:
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=[tags_hotel_settings["name"]],
+        tags=[hotel_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление отеля",
@@ -89,7 +89,7 @@ class CreatedByUserFilterMixin:
             204: OpenApiResponse(description="Отель удален"),
             404: OpenApiResponse(description="Отель не найден"),
         },
-        tags=[tags_hotel_settings["name"]],
+        tags=[hotel_settings["name"]],
     ),
 )
 class HotelViewSet(viewsets.ModelViewSet):

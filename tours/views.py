@@ -5,7 +5,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import tags_tour_settings, offset, limit, tour_id
+from all_fixture.fixture_views import tour_settings, offset, limit, tour_id
 from tours.models import Tour
 from tours.serializers import TourSerializer
 
@@ -14,7 +14,7 @@ from tours.serializers import TourSerializer
     list=extend_schema(
         summary="Список туров",
         description="Получение списка всех туров",
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         parameters=[limit, offset],
         responses={
             200: TourSerializer(many=True),
@@ -25,7 +25,7 @@ from tours.serializers import TourSerializer
         summary="Добавление тура",
         description="Создание нового тура",
         request=TourSerializer,
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         responses={
             201: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -34,7 +34,7 @@ from tours.serializers import TourSerializer
     retrieve=extend_schema(
         summary="Информация о туре",
         description="Получение информации о туре через идентификатор",
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         parameters=tour_id,
         responses={
             200: TourSerializer,
@@ -45,7 +45,7 @@ from tours.serializers import TourSerializer
         summary="Полное обновление тура",
         description="Обновление всех полей тура",
         request=TourSerializer,
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         parameters=tour_id,
         responses={
             200: TourSerializer,
@@ -57,7 +57,7 @@ from tours.serializers import TourSerializer
         summary="Частичное обновление тура",
         description="Обновление отдельных полей тура",
         request=TourSerializer,
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         parameters=tour_id,
         responses={
             200: TourSerializer,
@@ -68,7 +68,7 @@ from tours.serializers import TourSerializer
     destroy=extend_schema(
         summary="Удаление тура",
         description="Полное удаление тура",
-        tags=[tags_tour_settings["name"]],
+        tags=[tour_settings["name"]],
         parameters=tour_id,
         responses={
             204: OpenApiResponse(description="Тур удален"),

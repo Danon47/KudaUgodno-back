@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from all_fixture.fixture_views import tags_user_settings, tags_tour_settings, tags_hotel_settings, \
-    tags_hotel_amenity_common_settings, tags_hotel_amenity_room_settings, tags_hotel_amenity_sport_settings, \
-    tags_hotel_amenity_children_settings, tags_hotel_rules_settings, tags_hotel_photo_settings, tags_room_settings, \
-    tags_room_category_settings, tags_room_amenity_settings, tags_room_photo_settings, tags_flight_settings, \
-    tags_application_settings, tags_application_guest_settings
+from all_fixture.fixture_views import user_settings, tour_settings, hotel_settings, \
+    hotel_amenity_common_settings, hotel_amenity_room_settings, hotel_amenity_sport_settings, \
+    hotel_amenity_children_settings, hotel_rules_settings, hotel_photo_settings, room_settings, \
+    room_category_settings, room_amenity_settings, room_photo_settings, flight_settings, \
+    application_settings, application_guest_settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -183,22 +183,22 @@ SPECTACULAR_SETTINGS = {
         "TYPED_PATH_PARAMETERS": True
     },
     "TAGS": [
-        tags_user_settings,
-        tags_tour_settings,
-        tags_hotel_settings,
-        # tags_hotel_amenity_common_settings,
-        # tags_hotel_amenity_room_settings,
-        # tags_hotel_amenity_sport_settings,
-        # tags_hotel_amenity_children_settings,
-        tags_hotel_rules_settings,
-        tags_hotel_photo_settings,
-        tags_room_settings,
-        tags_room_category_settings,
-        tags_room_amenity_settings,
-        tags_room_photo_settings,
-        tags_flight_settings,
-        tags_application_settings,
-        tags_application_guest_settings,
+        user_settings,
+        tour_settings,
+        hotel_settings,
+        # hotel_amenity_common_settings,
+        # hotel_amenity_room_settings,
+        # hotel_amenity_sport_settings,
+        # hotel_amenity_children_settings,
+        hotel_rules_settings,
+        hotel_photo_settings,
+        room_settings,
+        room_category_settings,
+        room_amenity_settings,
+        room_photo_settings,
+        flight_settings,
+        application_settings,
+        application_guest_settings,
     ],
     "SORT_OPERATIONS": True,
 }

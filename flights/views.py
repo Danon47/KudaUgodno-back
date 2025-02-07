@@ -5,7 +5,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import tags_flight_settings, limit, offset, flight_id
+from all_fixture.fixture_views import flight_settings, limit, offset, flight_id
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 
@@ -14,7 +14,7 @@ from flights.serializers import FlightSerializer
     list=extend_schema(
         summary="Список рейсов",
         description="Получение списка всех рейсов",
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         parameters=[limit, offset],
         responses={
             200: FlightSerializer(many=True),
@@ -25,7 +25,7 @@ from flights.serializers import FlightSerializer
         summary="Добавление рейса",
         description="Создание новой рейса",
         request=FlightSerializer,
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         responses={
             201: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -34,7 +34,7 @@ from flights.serializers import FlightSerializer
     retrieve=extend_schema(
         summary="Информация о рейсе",
         description="Получение информации о рейсе через идентификатор",
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         parameters=flight_id,
         responses={
             200: FlightSerializer,
@@ -45,7 +45,7 @@ from flights.serializers import FlightSerializer
         summary="Полное обновление рейса",
         description="Обновление всех полей рейса",
         request=FlightSerializer,
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         parameters=flight_id,
         responses={
             200: FlightSerializer,
@@ -57,7 +57,7 @@ from flights.serializers import FlightSerializer
         summary="Частичное обновление рейса",
         description="Обновление отдельных полей рейса",
         request=FlightSerializer,
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         parameters=flight_id,
         responses={
             200: FlightSerializer,
@@ -68,7 +68,7 @@ from flights.serializers import FlightSerializer
     destroy=extend_schema(
         summary="Удаление рейса",
         description="Полное удаление рейса",
-        tags=[tags_flight_settings["name"]],
+        tags=[flight_settings["name"]],
         parameters=flight_id,
         responses={
             204: OpenApiResponse(description="Рейса удален"),
