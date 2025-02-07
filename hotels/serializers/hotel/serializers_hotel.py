@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.models_hotel_amenity import (
@@ -9,9 +10,9 @@ from hotels.models.hotel.models_hotel_amenity import (
 from hotels.models.hotel.models_hotel_rules import HotelRules
 from hotels.serializers.hotel.serializers_hotel_amenity import (
     HotelAmenityCommonSerializer,
-    HotelAmenityInTheRoomSerializer,
-    HotelAmenitySportsAndRecreationSerializer,
-    HotelAmenityForChildrenSerializer,
+    HotelAmenityRoomSerializer,
+    HotelAmenitySportsSerializer,
+    HotelAmenityChildrenSerializer,
 )
 from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
 from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerializer
@@ -22,29 +23,34 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hotel
-        fields = ("id", "name",)
-
+        fields = (
+            "id",
+            "name",
+        )
 
     def create(self, validated_data):
-        hotel = Hotel.objects.create(**validated_data)
-        hotel.save()
-        return hotel
+        return Hotel.objects.create(**validated_data)
 
 
-
-
-class HotelDetailSerializer(HotelBaseSerializer):
-    rooms = RoomDetailSerializer(many=True,)
-    photo = HotelPhotoSerializer(source="hotel_photos", many=True,)
-    amenities_common = HotelAmenityCommonSerializer(many=True)
-    amenities_in_the_room = HotelAmenityInTheRoomSerializer(many=True)
-    amenities_sports_and_recreation = HotelAmenitySportsAndRecreationSerializer(many=True)
-    amenities_for_children = HotelAmenityForChildrenSerializer(many=True)
+class HotelDetailSerializer(serializers.ModelSerializer):
+    amenities_common = HotelAmenityCommonSerializer(
+        many=True,
+    )
+    amenities_in_the_room = HotelAmenityRoomSerializer(
+        many=True,
+    )
+    amenities_sports_and_recreation = HotelAmenitySportsSerializer(
+        many=True,
+    )
+    amenities_for_children = HotelAmenityChildrenSerializer(
+        many=True,
+    )
     rules = HotelRulesSerializer(many=True)
+    user_rating = serializers.FloatField()
 
     class Meta:
         model = Hotel
-        fields = HotelBaseSerializer.Meta.fields + (
+        fields = (
             "id",
             "name",
             "star_category",
@@ -72,56 +78,78 @@ class HotelDetailSerializer(HotelBaseSerializer):
             "user_rating",
             "type_of_rest",
             "rules",
-            "rooms",
-            "photo",
+            "is_active",
         )
 
     def update(self, instance, validated_data):
-        amenities_common_data = validated_data.pop("amenities_common", [])
-        amenities_in_the_room_data = validated_data.pop("amenities_in_the_room", [])
-        amenities_sports_and_recreation_data = validated_data.pop("amenities_sports_and_recreation", [])
-        amenities_for_children_data = validated_data.pop("amenities_for_children", [])
-        rules_data = validated_data.pop("rules", [])
+        # Обновляем связанные поля, используя корректные ключи
+        self._update_related_field(
+            instance, validated_data, "amenities_common", HotelAmenityCommon
+        )
+        self._update_related_field(
+            instance, validated_data, "amenities_in_the_room", HotelAmenityInTheRoom
+        )
+        self._update_related_field(
+            instance,
+            validated_data,
+            "amenities_sports_and_recreation",
+            HotelAmenitySportsAndRecreation,
+        )
+        self._update_related_field(
+            instance, validated_data, "amenities_for_children", HotelAmenityForChildren
+        )
+        self._update_related_field(instance, validated_data, "rules", HotelRules)
 
+        # Обновляем остальные поля (только те, которые не являются связанными)
         for attr, value in validated_data.items():
+            # Опционально: проверить, является ли поле ManyToMany
+            try:
+                field = instance._meta.get_field(attr)
+                if isinstance(field, models.ManyToManyField):
+                    # Если это ManyToManyField, то пропускаем его, т.к. он уже обработан
+                    continue
+            except Exception:
+                # Если поле не найдено в модели – пропускаем
+                continue
             setattr(instance, attr, value)
+
         instance.save()
-
-        if amenities_common_data:
-            instance.amenities_common.clear()
-            instance.amenities_common.set(
-                [
-                    HotelAmenityCommon.objects.get_or_create(**data)[0]
-                    for data in amenities_common_data
-                ]
-            )
-
-        if amenities_in_the_room_data:
-            instance.amenities_in_the_room.clear()
-            instance.amenities_in_the_room.set(
-                [HotelAmenityInTheRoom.objects.get_or_create(**data)[0] for data in amenities_in_the_room_data]
-            )
-
-        if amenities_sports_and_recreation_data:
-            instance.amenities_sports_and_recreation.clear()
-            instance.amenities_sports_and_recreation.set(
-                [
-                    HotelAmenitySportsAndRecreation.objects.get_or_create(**data)[0]
-                    for data in amenities_sports_and_recreation_data
-                ]
-            )
-
-        if amenities_for_children_data:
-            instance.amenities_for_children.clear()
-            instance.amenities_for_children.set(
-                [
-                    HotelAmenityForChildren.objects.get_or_create(**data)[0]
-                    for data in amenities_for_children_data
-                ]
-            )
-
-        if rules_data:
-            instance.rules.clear()
-            instance.rules.set([HotelRules.objects.get_or_create(**data)[0] for data in rules_data])
-
         return instance
+
+    def _update_related_field(self, instance, validated_data, field_name, model):
+        """
+        Обновляет ManyToMany или обратные отношения (для правил) с использованием .set()
+        """
+        if field_name in validated_data:
+            items_data = validated_data.pop(field_name)
+            items = []
+            for item_data in items_data:
+                # Создаем или получаем связанный объект с учетом отеля
+                item, _ = model.objects.get_or_create(hotel=instance, **item_data)
+                items.append(item)
+            # Обновляем поле через менеджер
+            getattr(instance, field_name).set(items)
+
+
+class HotelListSerializer(HotelDetailSerializer):
+    photo = HotelPhotoSerializer(
+        source="hotel_photos",
+        many=True,
+        read_only=True,
+    )
+    rooms = RoomDetailSerializer(
+        many=True,
+        read_only=True,
+    )
+    # created_by = serializers.SerializerMethodField()
+
+    class Meta(HotelDetailSerializer.Meta):
+        fields = HotelDetailSerializer.Meta.fields + (
+            "photo",
+            "rooms",
+            # "created_by",
+        )
+
+    # def get_created_by(self, obj):
+    #     # Например, возвращаем email пользователя
+    #     return obj.created_by.email if obj.created_by else None

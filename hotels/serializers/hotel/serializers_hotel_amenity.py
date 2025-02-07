@@ -1,6 +1,10 @@
 from rest_framework import serializers
-from hotels.models.hotel.models_hotel_amenity import HotelAmenityCommon, HotelAmenityForChildren, \
-    HotelAmenitySportsAndRecreation, HotelAmenityInTheRoom
+from hotels.models.hotel.models_hotel_amenity import (
+    HotelAmenityCommon,
+    HotelAmenityForChildren,
+    HotelAmenitySportsAndRecreation,
+    HotelAmenityInTheRoom,
+)
 
 
 class HotelAmenityCommonSerializer(serializers.ModelSerializer):
@@ -12,13 +16,8 @@ class HotelAmenityCommonSerializer(serializers.ModelSerializer):
         model = HotelAmenityCommon
         fields = ("name",)
 
-    # def validate_name(self, value):
-    #     print("Validating name:", value)
-    #     if not value:
-    #         raise serializers.ValidationError("Удобство должно иметь имя.")
-    #     return value
 
-class HotelAmenityInTheRoomSerializer(serializers.ModelSerializer):
+class HotelAmenityRoomSerializer(serializers.ModelSerializer):
     """Сериализатор Удобств для отеля"""
 
     name = serializers.CharField(max_length=50, required=True)
@@ -28,7 +27,7 @@ class HotelAmenityInTheRoomSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class HotelAmenitySportsAndRecreationSerializer(serializers.ModelSerializer):
+class HotelAmenitySportsSerializer(serializers.ModelSerializer):
     """Сериализатор Удобств для отеля"""
 
     name = serializers.CharField(max_length=50, required=True)
@@ -38,7 +37,7 @@ class HotelAmenitySportsAndRecreationSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class HotelAmenityForChildrenSerializer(serializers.ModelSerializer):
+class HotelAmenityChildrenSerializer(serializers.ModelSerializer):
     """Сериализатор Удобств для отеля"""
 
     name = serializers.CharField(max_length=50, required=True)
@@ -46,5 +45,3 @@ class HotelAmenityForChildrenSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelAmenityForChildren
         fields = ("name",)
-
-

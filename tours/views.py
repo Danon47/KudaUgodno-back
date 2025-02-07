@@ -1,46 +1,21 @@
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiParameter,
     OpenApiResponse,
 )
 from rest_framework import viewsets
 
+from all_fixture.fixture_views import tour_settings, offset, limit, tour_id
 from tours.models import Tour
 from tours.serializers import TourSerializer
-
-parameters_tour = [
-    OpenApiParameter(
-        location=OpenApiParameter.PATH,
-        name="id",
-        type=int,
-        description="Уникальное целочисленное значение, идентифицирующее данный тур",
-        required=True,
-    ),
-]
-
-tags_tour = ["Туры"]
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список туров",
         description="Получение списка всех туров",
-        tags=tags_tour,
-        parameters=[
-            OpenApiParameter(
-                name="limit",
-                type=int,
-                description="Количество туров для возврата на страницу",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="offset",
-                type=int,
-                description="Начальный индекс для пагинации",
-                required=False,
-            ),
-        ],
+        tags=[tour_settings["name"]],
+        parameters=[limit, offset],
         responses={
             200: TourSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -50,7 +25,7 @@ tags_tour = ["Туры"]
         summary="Добавление тура",
         description="Создание нового тура",
         request=TourSerializer,
-        tags=tags_tour,
+        tags=[tour_settings["name"]],
         responses={
             201: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -59,8 +34,8 @@ tags_tour = ["Туры"]
     retrieve=extend_schema(
         summary="Информация о туре",
         description="Получение информации о туре через идентификатор",
-        tags=tags_tour,
-        parameters=parameters_tour,
+        tags=[tour_settings["name"]],
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             404: OpenApiResponse(description="Тур не найден"),
@@ -70,8 +45,8 @@ tags_tour = ["Туры"]
         summary="Полное обновление тура",
         description="Обновление всех полей тура",
         request=TourSerializer,
-        tags=tags_tour,
-        parameters=parameters_tour,
+        tags=[tour_settings["name"]],
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -82,8 +57,8 @@ tags_tour = ["Туры"]
         summary="Частичное обновление тура",
         description="Обновление отдельных полей тура",
         request=TourSerializer,
-        tags=tags_tour,
-        parameters=parameters_tour,
+        tags=[tour_settings["name"]],
+        parameters=[tour_id],
         responses={
             200: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -93,8 +68,8 @@ tags_tour = ["Туры"]
     destroy=extend_schema(
         summary="Удаление тура",
         description="Полное удаление тура",
-        tags=tags_tour,
-        parameters=parameters_tour,
+        tags=[tour_settings["name"]],
+        parameters=[tour_id],
         responses={
             204: OpenApiResponse(description="Тур удален"),
             404: OpenApiResponse(description="Тур не найден"),
@@ -114,4 +89,3 @@ class TourViewSet(viewsets.ModelViewSet):
             total_price += (tour.flight_to.price + tour.flight_from.price) * tour.guests_number
         tour.price = total_price
         tour.save()
-

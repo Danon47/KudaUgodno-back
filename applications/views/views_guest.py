@@ -1,41 +1,29 @@
-from drf_spectacular.utils import extend_schema_view, OpenApiParameter, extend_schema, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiResponse,
+)
 from rest_framework import viewsets
 
+from all_fixture.fixture_views import (
+    application_guest_settings,
+    offset,
+    limit,
+    application_guest_id,
+)
 from applications.models.models_guest import Guest
-from applications.serializers.serializers_guests import GuestSerializer, GuestDetailSerializer
+from applications.serializers.serializers_guests import (
+    GuestSerializer,
+    GuestDetailSerializer,
+)
 
-parameters_guest = [
-            OpenApiParameter(
-                location=OpenApiParameter.PATH,
-                name="id",
-                type=int,
-                description="Уникальное целочисленное значение, идентифицирующее данную Гостя",
-                required=True,
-
-            ),
-        ]
-
-tags_guest = ["Гости"]
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список гостей",
         description="Получение списка всех гостей",
-        tags=tags_guest,
-        parameters=[
-            OpenApiParameter(
-                name="limit",
-                type=int,
-                description="Количество Гостей для возврата на страницу",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="offset",
-                type=int,
-                description="Начальный индекс для пагинации",
-                required=False,
-            ),
-        ],
+        tags=[application_guest_settings["name"]],
+        parameters=[limit, offset],
         responses={
             200: GuestSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -45,7 +33,7 @@ tags_guest = ["Гости"]
         summary="Добавление Гостя",
         description="Создание нового Гостя",
         request=GuestDetailSerializer,
-        tags=tags_guest,
+        tags=[application_guest_settings["name"]],
         responses={
             201: GuestDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -54,8 +42,8 @@ tags_guest = ["Гости"]
     retrieve=extend_schema(
         summary="Информация о Госте",
         description="Получение информации о Госте через идентификатор",
-        tags=tags_guest,
-        parameters=parameters_guest,
+        tags=[application_guest_settings["name"]],
+        parameters=[application_guest_id],
         responses={
             200: GuestSerializer,
             404: OpenApiResponse(description="Гость не найден"),
@@ -65,8 +53,8 @@ tags_guest = ["Гости"]
         summary="Полное обновление Гостя",
         description="Обновление всех полей Гостя",
         request=GuestDetailSerializer,
-        tags=tags_guest,
-        parameters=parameters_guest,
+        tags=[application_guest_settings["name"]],
+        parameters=[application_guest_id],
         responses={
             200: GuestDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -77,8 +65,8 @@ tags_guest = ["Гости"]
         summary="Частичное обновление Гостя",
         description="Обновление отдельных полей Гостя",
         request=GuestDetailSerializer,
-        tags=tags_guest,
-        parameters=parameters_guest,
+        tags=[application_guest_settings["name"]],
+        parameters=[application_guest_id],
         responses={
             200: GuestDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -88,8 +76,8 @@ tags_guest = ["Гости"]
     destroy=extend_schema(
         summary="Удаление Гостя",
         description="Полное удаление Гостя",
-        tags=tags_guest,
-        parameters=parameters_guest,
+        tags=[application_guest_settings["name"]],
+        parameters=[application_guest_id],
         responses={
             204: OpenApiResponse(description="Гость удален"),
             404: OpenApiResponse(description="Гость не найден"),
