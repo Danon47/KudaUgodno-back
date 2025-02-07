@@ -190,7 +190,7 @@ SPECTACULAR_SETTINGS = {
         # hotel_amenity_room_settings,
         # hotel_amenity_sport_settings,
         # hotel_amenity_children_settings,
-        hotel_rules_settings,
+        # hotel_rules_settings,
         hotel_photo_settings,
         room_settings,
         room_category_settings,

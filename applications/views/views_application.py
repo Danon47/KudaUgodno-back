@@ -43,7 +43,7 @@ from applications.serializers.serializers_applications import (
         summary="Информация о заявке",
         description="Получение информации о заявке через идентификатор",
         tags=[application_settings["name"]],
-        parameters=application_id,
+        parameters=[application_id],
         responses={
             200: ApplicationSerializer,
             404: OpenApiResponse(description="Заявка не найдена"),
@@ -54,7 +54,7 @@ from applications.serializers.serializers_applications import (
         description="Обновление всех полей заявки",
         request=ApplicationDetailSerializer,
         tags=[application_settings["name"]],
-        parameters=application_id,
+        parameters=[application_id],
         responses={
             200: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -66,7 +66,7 @@ from applications.serializers.serializers_applications import (
         description="Обновление отдельных полей заявки",
         request=ApplicationDetailSerializer,
         tags=[application_settings["name"]],
-        parameters=application_id,
+        parameters=[application_id],
         responses={
             200: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -77,7 +77,7 @@ from applications.serializers.serializers_applications import (
         summary="Удаление заявки",
         description="Полное удаление заявки",
         tags=[application_settings["name"]],
-        parameters=application_id,
+        parameters=[application_id],
         responses={
             204: OpenApiResponse(description="Заявка удалена"),
             404: OpenApiResponse(description="Заявка не найдена"),

@@ -13,7 +13,6 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
     list=extend_schema(
         summary="Список типов фотографий отеля",
         description="Получение списка всех фотографий отеля",
-        parameters=[hotel_id],
         responses={
             200: HotelPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
