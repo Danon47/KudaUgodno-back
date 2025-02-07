@@ -6,7 +6,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import (
-    tags_application_settings,
+    application_settings,
     offset,
     limit,
     application_id,
@@ -22,7 +22,7 @@ from applications.serializers.serializers_applications import (
     list=extend_schema(
         summary="Список заявок",
         description="Получение списка всех заявок",
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         parameters=[limit, offset],
         responses={
             200: ApplicationSerializer(many=True),
@@ -33,7 +33,7 @@ from applications.serializers.serializers_applications import (
         summary="Добавление заявки",
         description="Создание новой заявки",
         request=ApplicationDetailSerializer,
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         responses={
             201: ApplicationDetailSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -42,7 +42,7 @@ from applications.serializers.serializers_applications import (
     retrieve=extend_schema(
         summary="Информация о заявке",
         description="Получение информации о заявке через идентификатор",
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         parameters=application_id,
         responses={
             200: ApplicationSerializer,
@@ -53,7 +53,7 @@ from applications.serializers.serializers_applications import (
         summary="Полное обновление заявки",
         description="Обновление всех полей заявки",
         request=ApplicationDetailSerializer,
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         parameters=application_id,
         responses={
             200: ApplicationDetailSerializer,
@@ -65,7 +65,7 @@ from applications.serializers.serializers_applications import (
         summary="Частичное обновление заявки",
         description="Обновление отдельных полей заявки",
         request=ApplicationDetailSerializer,
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         parameters=application_id,
         responses={
             200: ApplicationDetailSerializer,
@@ -76,7 +76,7 @@ from applications.serializers.serializers_applications import (
     destroy=extend_schema(
         summary="Удаление заявки",
         description="Полное удаление заявки",
-        tags=[tags_application_settings["name"]],
+        tags=[application_settings["name"]],
         parameters=application_id,
         responses={
             204: OpenApiResponse(description="Заявка удалена"),

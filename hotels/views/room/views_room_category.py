@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import id_room_category, tags_room_category_settings
+from all_fixture.fixture_views import id_room_category, room_category_settings
 from hotels.models.room.models_room_category import RoomCategory
 from hotels.serializers.room.serializers_room_category import CategoryRoomSerializer
 
@@ -15,7 +15,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
             200: CategoryRoomSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_category_settings["name"]],
+        tags=[room_category_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление категории номера",
@@ -25,7 +25,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
             201: CategoryRoomSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_category_settings["name"]],
+        tags=[room_category_settings["name"]],
     ),
     retrieve=extend_schema(
         summary="Детали категорий номеров",
@@ -35,7 +35,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
             200: CategoryRoomSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_category_settings["name"]],
+        tags=[room_category_settings["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление категорий в номере",
@@ -46,7 +46,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Категория номера не найдена"),
         },
-        tags=[tags_room_category_settings["name"]],
+        tags=[room_category_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление категории номера",
@@ -55,7 +55,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
             204: OpenApiResponse(description="Категория номера удалено"),
             404: OpenApiResponse(description="Категория номера не найдена"),
         },
-        tags=[tags_room_category_settings["name"]],
+        tags=[room_category_settings["name"]],
     ),
 )
 class RoomCategoryViewSet(viewsets.ModelViewSet):

@@ -12,7 +12,7 @@ from drf_spectacular.utils import (
     OpenApiResponse
 )
 
-from all_fixture.fixture_views import offset, limit, tags_user_settings
+from all_fixture.fixture_views import offset, limit, user_settings
 from config.settings import EMAIL_HOST_USER
 from users.models import User
 from users.serializers import (
@@ -28,7 +28,7 @@ from users.tasks import clear_user_password
     list=extend_schema(
         summary="Список пользователей",
         description="Получение списка всех пользователей",
-        tags=[tags_user_settings["name"]],
+        tags=[user_settings["name"]],
         parameters=[limit, offset],
         responses={
             200: UserSerializer(many=True),
@@ -38,7 +38,7 @@ from users.tasks import clear_user_password
     create=extend_schema(
         summary="Создание пользователя",
         description="Создание нового пользователя с генерацией 4-значного пароля и отправкой на email.",
-        tags=[tags_user_settings["name"]],
+        tags=[user_settings["name"]],
         request=AdminSerializer,
         responses={
             201: AdminSerializer,

@@ -10,7 +10,7 @@ from all_fixture.fixture_views import (
     offset,
     limit,
     id_room,
-    tags_room_settings,
+    room_settings,
 )
 from hotels.models.room.models_room import Room
 from hotels.serializers.room.serializers_room import (
@@ -29,7 +29,7 @@ from hotels.serializers.room.serializers_room import (
             200: RoomDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_settings["name"]],
+        tags=[room_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление номера",
@@ -40,7 +40,7 @@ from hotels.serializers.room.serializers_room import (
             201: RoomBaseSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_settings["name"]],
+        tags=[room_settings["name"]],
     ),
     retrieve=extend_schema(
         summary="Детали номера",
@@ -50,7 +50,7 @@ from hotels.serializers.room.serializers_room import (
             200: RoomDetailSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_room_settings["name"]],
+        tags=[room_settings["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление номера",
@@ -62,7 +62,7 @@ from hotels.serializers.room.serializers_room import (
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[tags_room_settings["name"]],
+        tags=[room_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление номера",
@@ -72,7 +72,7 @@ from hotels.serializers.room.serializers_room import (
             204: OpenApiResponse(description="Номер удален"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[tags_room_settings["name"]],
+        tags=[room_settings["name"]],
     ),
 )
 class RoomViewSet(viewsets.ModelViewSet):

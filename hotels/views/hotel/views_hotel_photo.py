@@ -4,7 +4,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 from rest_framework import viewsets
-from all_fixture.fixture_views import hotel_id, hotel_id_photo, tags_hotel_photo_settings
+from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings
 from hotels.models.hotel.models_hotel_photo import HotelPhoto
 from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
 
@@ -18,7 +18,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             200: HotelPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[tags_hotel_photo_settings["name"]],
+        tags=[hotel_photo_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление фотографий отеля",
@@ -31,7 +31,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             201: HotelPhotoSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
-        tags=[tags_hotel_photo_settings["name"]],
+        tags=[hotel_photo_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление фотографий отеля",
@@ -41,7 +41,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
             204: OpenApiResponse(description="Тип питания в отеле удален"),
             404: OpenApiResponse(description="Тип питания в отеле не найден"),
         },
-        tags=[tags_hotel_photo_settings["name"]],
+        tags=[hotel_photo_settings["name"]],
     ),
 )
 class HotelPhotoViewSet(viewsets.ModelViewSet):
