@@ -72,7 +72,7 @@ user_id = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="ID пользователя",
+    description="ID Пользователя",
     required=True,
 )
 # ID тура
@@ -80,7 +80,7 @@ tour_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
-    description="ID тура",
+    description="ID Тура",
     required=True,
 )
 # ID отеля
@@ -88,7 +88,7 @@ hotel_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="hotel_id",
     type=int,
-    description="ID отеля",
+    description="ID Отеля",
     required=False,
 )
 # ID номера
@@ -96,7 +96,7 @@ room_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="room_id",
     type=int,
-    description="ID номера",
+    description="ID Номера",
     required=False,
 )
 # ID фотографии в номере
@@ -104,7 +104,7 @@ room_id_photo = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
-    description="ID фотографии номера",
+    description="ID Фотографии номера",
     required=True,
 )
 # ID фотографии в отеле
@@ -112,7 +112,7 @@ hotel_id_photo = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="ID фотографий отеля",
+    description="ID Фотографий отеля",
     required=True,
 )
 # ID в отеле
@@ -120,7 +120,7 @@ id_hotel = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
-    description="ID отеля",
+    description="ID Отеля",
     required=False,
 )
 # ID номера
@@ -128,7 +128,7 @@ id_room = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="ID номера",
+    description="ID Номера",
     required=True,
 )
 # ID удобства
@@ -136,7 +136,7 @@ id_room_amenity = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="ID удобства",
+    description="ID Удобств",
     required=True,
 )
 # ID категории номера
@@ -144,7 +144,7 @@ id_room_category = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="ID категории номера",
+    description="ID Категории номера",
     required=True,
 )
 # ID тура
@@ -152,9 +152,17 @@ flight_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
-    description="ID тура",
+    description="ID Рейса",
     required=True,
 )
+# ID заявки
+application_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Заявки",
+    required=True,
+),
 
 # Для пагинации
 limit = OpenApiParameter(
