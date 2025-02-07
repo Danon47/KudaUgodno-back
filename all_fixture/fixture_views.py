@@ -72,7 +72,7 @@ user_id = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
-    description="Уникальный идентификатор пользователя",
+    description="ID пользователя",
     required=True,
 )
 # ID тура
@@ -80,7 +80,7 @@ tour_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
-    description="Уникальное целочисленное значение, идентифицирующее данный тур",
+    description="ID тура",
     required=True,
 )
 # ID отеля
@@ -145,6 +145,14 @@ id_room_category = OpenApiParameter(
     type=int,
     location=OpenApiParameter.PATH,
     description="ID категории номера",
+    required=True,
+)
+# ID тура
+flight_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID тура",
     required=True,
 )
 
