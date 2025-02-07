@@ -58,17 +58,6 @@
 #         },
 #         tags=[tags_hotel_amenity_common_settings["name"]],
 #     ),
-#     partial_update=extend_schema(
-#         summary="Частичное обновление общего удобства в отеле",
-#         description="Обновление отдельных полей общего удобства в отеле",
-#         request=HotelAmenityCommonSerializer,
-#         responses={
-#             200: HotelAmenityCommonSerializer,
-#             400: OpenApiResponse(description="Ошибка валидации"),
-#             404: OpenApiResponse(description="Общее удобство в отеле не найдено"),
-#         },
-#         tags=[tags_hotel_amenity_common_settings["name"]],
-#     ),
 #     destroy=extend_schema(
 #         summary="Удаление общего удобства в отеле",
 #         description="Полное удаление общего удобства в отеле",
@@ -117,17 +106,6 @@
 #     update=extend_schema(
 #         summary="Полное обновление удобств номера в отеле",
 #         description="Обновление всех полей удобств номера в отеле",
-#         request=HotelAmenityRoomSerializer,
-#         responses={
-#             200: HotelAmenityRoomSerializer,
-#             400: OpenApiResponse(description="Ошибка валидации"),
-#             404: OpenApiResponse(description="Удобство номера в отеле не найдено"),
-#         },
-#         tags=[tags_hotel_amenity_room_settings["name"]],
-#     ),
-#     partial_update=extend_schema(
-#         summary="Частичное обновление удобств номера в отеле",
-#         description="Обновление отдельных полей удобств номера в отеле",
 #         request=HotelAmenityRoomSerializer,
 #         responses={
 #             200: HotelAmenityRoomSerializer,
@@ -186,19 +164,6 @@
 #     update=extend_schema(
 #         summary="Полное обновление удобств спорт и отдых в отеле",
 #         description="Обновление всех полей удобств спорт и отдых в отеле",
-#         request=HotelAmenitySportsSerializer,
-#         responses={
-#             200: HotelAmenitySportsSerializer,
-#             400: OpenApiResponse(description="Ошибка валидации"),
-#             404: OpenApiResponse(
-#                 description="Удобство спорт и отдых в отеле не найдено"
-#             ),
-#         },
-#         tags=[tags_hotel_amenity_sport_settings["name"]],
-#     ),
-#     partial_update=extend_schema(
-#         summary="Частичное обновление удобств спорт и отдых в отеле",
-#         description="Обновление отдельных полей удобств спорт и отдых в отеле",
 #         request=HotelAmenitySportsSerializer,
 #         responses={
 #             200: HotelAmenitySportsSerializer,
@@ -268,17 +233,6 @@
 #             404: OpenApiResponse(description="Удобство для детей в отеле не найдено"),
 #         },
 #         tags=[tags_hotel_amenity_common_settings["name"]],
-#     ),
-#     partial_update=extend_schema(
-#         summary="Частичное обновление удобств для детей в отеле",
-#         description="Обновление отдельных полей удобств для детей в отеле",
-#         request=HotelAmenitySportsSerializer,
-#         responses={
-#             200: HotelAmenitySportsSerializer,
-#             400: OpenApiResponse(description="Ошибка валидации"),
-#             404: OpenApiResponse(description="Удобство для детей в отеле не найдено"),
-#         },
-#         tags=[tags_hotel_amenity_children_settings["name"]],
 #     ),
 #     destroy=extend_schema(
 #         summary="Удаление удобств для детей в отеле",
