@@ -17,7 +17,10 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "category",
+            "food_is_a_must",
+            "type_of_meal",
             "smoking",
+            "pet",
             "area",
             "amenities",
             "capacity",
@@ -29,7 +32,6 @@ class RoomBaseSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Извлекаем вложенные данные
         amenities_data = validated_data.pop("amenities", [])
-        # meal_data = validated_data.pop("meal", [])
 
         # Передача имени категории
         category_name = validated_data.pop("category")
@@ -42,19 +44,7 @@ class RoomBaseSerializer(serializers.ModelSerializer):
             category=category_instance,
             **validated_data
         )
-
-        # # Добавляем остальные типы питания
-        # for meal in meal_data:
-        #     meal_instance, created = MealPlan.objects.get_or_create(
-        #         name=meal.get("name"),
-        #         price_per_person=meal.get("price_per_person")
-        #     )
-        #     room.meal.add(meal_instance)
         room.save()
-
-        # Рассчитываем цены с учетом типов питания и сохраняем
-        # calculate_nightly_prices(room)
-        # room.save()
 
         # Создаем связанные объекты amenities
         for amenity_data in amenities_data:
@@ -67,7 +57,6 @@ class RoomBaseSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Извлекаем вложенные данные
         amenities_data = validated_data.pop("amenities", [])
-        # meal_data = validated_data.pop("meal", [])
 
         # Обновляем категорию
         category_name = validated_data.pop("category")
@@ -79,18 +68,7 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         # Обновляем остальные поля
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
-        # for meal in meal_data:
-        #     meal_instance, created = MealPlan.objects.get_or_create(
-        #         name=meal.get("name"),
-        #         price_per_person=meal.get("price_per_person")
-        #     )
-        #     instance.meal.add(meal_instance)
         instance.save()
-
-        # Рассчитываем цены с учетом типов питания и сохраняем
-        # calculate_nightly_prices(instance)
-        # instance.save()
 
         # Обновляем связанные объекты amenities
         instance.amenities.clear()  # Удаляем все существующие удобства
@@ -104,7 +82,6 @@ class RoomBaseSerializer(serializers.ModelSerializer):
 
 class RoomDetailSerializer(RoomBaseSerializer):
     photo = RoomPhotoSerializer(source="room_photos", many=True, read_only=True,)
-    # meal = MealPlanSerializer(many=True, read_only=True, )
 
 
     class Meta(RoomBaseSerializer.Meta):
