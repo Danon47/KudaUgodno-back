@@ -6,5 +6,6 @@ class RoleChoices(models.TextChoices):
     Выбор роли пользователя
     """
 
-    USER = "Пользователь", "Пользователь"
-    TOUR_OPERATOR = "Туроператор", "Туроператор"
+    USER = "USER", "Пользователь"
+    TOUR_OPERATOR = "TOUR_OPERATOR", "Туроператор"
+    HOTELIER = "HOTELIER", "Отельер"
