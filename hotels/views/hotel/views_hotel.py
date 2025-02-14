@@ -5,6 +5,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from all_fixture.fixture_views import offset, limit, id_hotel, hotel_settings
+from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.serializers.hotel.serializers_hotel import (
     HotelBaseSerializer,
@@ -42,9 +43,9 @@ class CreatedByUserFilterMixin:
     list=extend_schema(
         summary="Список отелей",
         description="Получение списка всех отелей с пагинацией",
-        parameters=[limit, offset],
+        parameters=[offset, limit],
         responses={
-            200: HotelDetailSerializer(many=True),
+            200: HotelListSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[hotel_settings["name"]],
@@ -64,7 +65,7 @@ class CreatedByUserFilterMixin:
         description="Получение полной информации об отеле",
         parameters=[id_hotel],
         responses={
-            200: HotelDetailSerializer,
+            200: HotelListSerializer,
             404: OpenApiResponse(description="Отель не найден"),
         },
         tags=[hotel_settings["name"]],
@@ -94,6 +95,7 @@ class CreatedByUserFilterMixin:
 )
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
+    pagination_class = CustomLOPagination
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options', 'trace']  # Исключаем 'patch'
 
     def get_serializer_class(self):

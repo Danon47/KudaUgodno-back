@@ -4,6 +4,8 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 from rest_framework import viewsets
+
+from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
 from all_fixture.fixture_views import (
     hotel_id,
@@ -76,6 +78,7 @@ from hotels.serializers.room.serializers_room import (
     ),
 )
 class RoomViewSet(viewsets.ModelViewSet):
+    pagination_class = CustomLOPagination
     def get_serializer_class(self):
         # Исправляем проверку действия
         if self.action in ["create", "update", "partial_update"]:

@@ -3,7 +3,8 @@ from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModel
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import GenericViewSet
 
-from all_fixture.fixture_views import room_id, room_id_photo, room_photo_settings
+from all_fixture.fixture_views import room_id, room_id_photo, room_photo_settings, offset, limit
+from all_fixture.pagination import CustomLOPagination
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_photo import RoomPhoto
 from hotels.serializers.room.serializers_room import RoomPhotoSerializer
@@ -12,7 +13,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
     list=extend_schema(
         summary="Список фотографий номера",
         description="Получение списка всех фотографий номера с пагинацией",
-        parameters=[room_id],
+        parameters=[limit, offset, room_id],
         responses={
             200: RoomPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -45,7 +46,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
 )
 class RoomPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     serializer_class = RoomPhotoSerializer
-    pagination_class = None
+    pagination_class = CustomLOPagination
 
     def get_queryset(self):
         room_id = self.kwargs["room_id"]
