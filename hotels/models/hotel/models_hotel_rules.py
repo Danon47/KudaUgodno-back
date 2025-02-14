@@ -18,10 +18,12 @@ class HotelRules(models.Model):
         max_length=100,
         verbose_name="Правила в отеле",
         help_text="Правила в отеле",
+        **NULLABLE,
     )
     description = models.TextField(
         verbose_name="Описание правил",
         help_text="Описание правил",
+        **NULLABLE,
     )
 
     class Meta:

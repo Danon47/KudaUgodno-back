@@ -1,7 +1,7 @@
 from django.urls import path
 from hotels.views.room.views_room import RoomViewSet
-from hotels.views.room.views_room_amenity import RoomAmenityViewSet
-from hotels.views.room.views_room_category import RoomCategoryViewSet
+# from hotels.views.room.views_room_amenity import RoomAmenityViewSet
+# from hotels.views.room.views_room_category import RoomCategoryViewSet
 from hotels.views.room.views_room_photo import RoomPhotoViewSet
 
 
@@ -25,41 +25,41 @@ urlpatterns = [
         name="rooms-detail",
     ),
     # Добавление и просмотр всех категорий номеров
-    path(
-        "rooms/categories",
-        RoomCategoryViewSet.as_view({"get": "list", "post": "create"}),
-        name="rooms-list",
-    ),
-    # Обновление, детальный просмотр и удаление категорий номеров
-    path(
-        "rooms/categories/<int:pk>/",
-        RoomCategoryViewSet.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "delete": "destroy",
-            }
-        ),
-        name="rooms-detail",
-    ),
-    # Добавление и просмотр всех удобств в номере
-    path(
-        "rooms/amenities",
-        RoomAmenityViewSet.as_view({"get": "list", "post": "create"}),
-        name="rooms-list",
-    ),
-    # Обновление, детальный просмотр и удаление удобств в номере
-    path(
-        "rooms/amenities/<int:pk>/",
-        RoomAmenityViewSet.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "delete": "destroy",
-            }
-        ),
-        name="rooms-detail",
-    ),
+    # path(
+    #     "rooms/categories",
+    #     RoomCategoryViewSet.as_view({"get": "list", "post": "create"}),
+    #     name="rooms-list",
+    # ),
+    # # Обновление, детальный просмотр и удаление категорий номеров
+    # path(
+    #     "rooms/categories/<int:pk>/",
+    #     RoomCategoryViewSet.as_view(
+    #         {
+    #             "get": "retrieve",
+    #             "put": "update",
+    #             "delete": "destroy",
+    #         }
+    #     ),
+    #     name="rooms-detail",
+    # ),
+    # # Добавление и просмотр всех удобств в номере
+    # path(
+    #     "rooms/amenities",
+    #     RoomAmenityViewSet.as_view({"get": "list", "post": "create"}),
+    #     name="rooms-amenities",
+    # ),
+    # # Обновление, детальный просмотр и удаление удобств в номере
+    # path(
+    #     "rooms/amenities/<int:pk>/",
+    #     RoomAmenityViewSet.as_view(
+    #         {
+    #             "get": "retrieve",
+    #             "put": "update",
+    #             "delete": "destroy",
+    #         }
+    #     ),
+    #     name="rooms-amenities-detail",
+    # ),
     # Добавление и просмотр всех фотографий в номер
     path(
         "rooms/<int:room_id>/photos/",
