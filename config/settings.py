@@ -2,11 +2,25 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from all_fixture.fixture_views import user_settings, tour_settings, hotel_settings, \
-    hotel_amenity_common_settings, hotel_amenity_room_settings, hotel_amenity_sport_settings, \
-    hotel_amenity_children_settings, hotel_rules_settings, hotel_photo_settings, room_settings, \
-    room_category_settings, room_amenity_settings, room_photo_settings, flight_settings, \
-    application_settings, application_guest_settings
+from all_fixture.fixture_views import (
+    user_settings,
+    tour_settings,
+    hotel_settings,
+    hotel_photo_settings,
+    room_settings,
+    room_photo_settings,
+    flight_settings,
+    application_settings,
+    application_guest_settings,
+    # room_category_settings,
+    # room_amenity_settings,
+    # hotel_amenity_children_settings,
+    # hotel_rules_settings,
+    # hotel_amenity_common_settings,
+    # hotel_amenity_room_settings,
+    # hotel_amenity_sport_settings,
+)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -162,8 +176,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
@@ -176,9 +188,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.5.1",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "TYPESCRIPT_GENERATOR": {
-        "TYPED_PATH_PARAMETERS": True
-    },
+    "TYPESCRIPT_GENERATOR": {"TYPED_PATH_PARAMETERS": True},
     "TAGS": [
         user_settings,
         tour_settings,
@@ -190,8 +200,8 @@ SPECTACULAR_SETTINGS = {
         # hotel_rules_settings,
         hotel_photo_settings,
         room_settings,
-        room_category_settings,
-        room_amenity_settings,
+        # room_category_settings,
+        # room_amenity_settings,
         room_photo_settings,
         flight_settings,
         application_settings,
@@ -229,8 +239,11 @@ if not DEBUG:
     ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
     "https://ku.mer1d1an.ru",
     "https://anywhere.god-it.ru",
     "https://anywhere-dev.god-it.ru",
     "https://anywhere-test.god-it.ru",
 ]
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000

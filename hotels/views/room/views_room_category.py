@@ -1,9 +1,10 @@
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import id_room_category, room_category_settings
+from all_fixture.fixture_views import id_room_category, room_category_settings, limit, offset
+from all_fixture.pagination import CustomLOPagination
 from hotels.models.room.models_room_category import RoomCategory
-from hotels.serializers.room.serializers_room_category import CategoryRoomSerializer
+from hotels.serializers.room.serializers_room_category import RoomCategorySerializer
 
 
 # Категории номеров
@@ -11,8 +12,9 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
     list=extend_schema(
         summary="Список категорий номеров",
         description="Получение списка всех категорий в номере",
+        parameters=[limit, offset],
         responses={
-            200: CategoryRoomSerializer(many=True),
+            200: RoomCategorySerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_category_settings["name"]],
@@ -20,9 +22,9 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
     create=extend_schema(
         summary="Добавление категории номера",
         description="Создание новой категории номера",
-        request=CategoryRoomSerializer,
+        request=RoomCategorySerializer,
         responses={
-            201: CategoryRoomSerializer,
+            201: RoomCategorySerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_category_settings["name"]],
@@ -32,7 +34,7 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
         description="Получение информации категорий номеров",
         parameters=[id_room_category],
         responses={
-            200: CategoryRoomSerializer,
+            200: RoomCategorySerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_category_settings["name"]],
@@ -40,9 +42,9 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
     update=extend_schema(
         summary="Полное обновление категорий в номере",
         description="Обновление всех полей категорий в номере",
-        request=CategoryRoomSerializer,
+        request=RoomCategorySerializer,
         responses={
-            200: CategoryRoomSerializer,
+            200: RoomCategorySerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Категория номера не найдена"),
         },
@@ -60,6 +62,6 @@ from hotels.serializers.room.serializers_room_category import CategoryRoomSerial
 )
 class RoomCategoryViewSet(viewsets.ModelViewSet):
     queryset = RoomCategory.objects.all()
-    serializer_class = CategoryRoomSerializer
-    pagination_class = None
+    serializer_class = RoomCategorySerializer
+    pagination_class = CustomLOPagination
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options', 'trace']  # Исключаем 'patch'

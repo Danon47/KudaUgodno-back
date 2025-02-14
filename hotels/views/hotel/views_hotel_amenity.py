@@ -2,7 +2,8 @@
 # from rest_framework import viewsets
 #
 # from all_fixture.fixture_views import hotel_amenity_common_settings, hotel_amenity_room_settings, \
-#     hotel_amenity_sport_settings, hotel_amenity_children_settings
+#     hotel_amenity_sport_settings, hotel_amenity_children_settings, limit, offset
+# from all_fixture.pagination import CustomLOPagination
 # from hotels.models.hotel.models_hotel_amenity import (
 #     HotelAmenityCommon,
 #     HotelAmenityForChildren,
@@ -22,6 +23,7 @@
 #     list=extend_schema(
 #         summary="Список общих удобств в отеле",
 #         description="Получение списка всех общих удобств в отеле",
+#         parameters=[limit, offset],
 #         responses={
 #             200: HotelAmenityCommonSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
@@ -70,14 +72,15 @@
 # )
 # class HotelAmenityCommonViewSet(CreatedByUserFilterMixin, viewsets.ModelViewSet):
 #     queryset = HotelAmenityCommon.objects.all()
+#     pagination_class = CustomLOPagination
 #     serializer_class = HotelAmenityCommonSerializer
-#     pagination_class = None
 #
 #
 # @extend_schema_view(
 #     list=extend_schema(
 #         summary="Список удобств номера в отеле",
 #         description="Получение списка всех удобств номера в отеле",
+#         parameters=[limit, offset],
 #         responses={
 #             200: HotelAmenityRoomSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
@@ -126,14 +129,15 @@
 # )
 # class HotelAmenityInTheRoomViewSet(CreatedByUserFilterMixin, viewsets.ModelViewSet):
 #     queryset = HotelAmenityInTheRoom.objects.all()
+#     pagination_class = CustomLOPagination
 #     serializer_class = HotelAmenityRoomSerializer
-#     pagination_class = None
 #
 #
 # @extend_schema_view(
 #     list=extend_schema(
 #         summary="Список удобств спорта и отдыха в отеле",
 #         description="Получение списка всех удобств спорта и отдыха в отеле",
+#         parameters=[limit, offset],
 #         responses={
 #             200: HotelAmenitySportsSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
@@ -186,18 +190,17 @@
 #         tags=[hotel_amenity_sport_settings["name"]],
 #     ),
 # )
-# class HotelAmenitySportsAndRecreationViewSet(
-#     CreatedByUserFilterMixin, viewsets.ModelViewSet
-# ):
+# class HotelAmenitySportsAndRecreationViewSet(CreatedByUserFilterMixin, viewsets.ModelViewSet):
 #     queryset = HotelAmenitySportsAndRecreation.objects.all()
+#     pagination_class = CustomLOPagination
 #     serializer_class = HotelAmenitySportsSerializer
-#     pagination_class = None
 #
 #
 # @extend_schema_view(
 #     list=extend_schema(
 #         summary="Список удобств для детей в отеле",
 #         description="Получение списка всех удобств для детей в отеле",
+#         parameters=[limit, offset],
 #         responses={
 #             200: HotelAmenitySportsSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
@@ -246,5 +249,5 @@
 # )
 # class HotelAmenityForChildrenViewSet(CreatedByUserFilterMixin, viewsets.ModelViewSet):
 #     queryset = HotelAmenityForChildren.objects.all()
+#     pagination_class = CustomLOPagination
 #     serializer_class = HotelAmenityChildrenSerializer
-#     pagination_class = None

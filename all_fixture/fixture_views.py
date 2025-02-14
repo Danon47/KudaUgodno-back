@@ -14,26 +14,26 @@ hotel_settings = {
     "name": "Отель",
     "description": "Методы для работы с отелями"
 }
-hotel_amenity_common_settings = {
-    "name": "Удобства общие в отеле",
-    "description": "Методы для работы с общими удобствами отелей",
-}
-hotel_amenity_room_settings = {
-    "name": "Удобства в номере в отеле",
-    "description": "Методы для работы с удобствами в номерах отелей",
-}
-hotel_amenity_sport_settings = {
-    "name": "Удобства спорт и отдых в отеле",
-    "description": "Методы для работы с удобствами спорта и отдыха",
-}
-hotel_amenity_children_settings = {
-    "name": "Удобства для детей в отеле",
-    "description": "Методы для работы с удобствами для детей",
-}
-hotel_rules_settings = {
-    "name": "Правила в отеле",
-    "description": "Методы для работы с правилами отелей",
-}
+# hotel_amenity_common_settings = {
+#     "name": "Удобства общие в отеле",
+#     "description": "Методы для работы с общими удобствами отелей",
+# }
+# hotel_amenity_room_settings = {
+#     "name": "Удобства в номере в отеле",
+#     "description": "Методы для работы с удобствами в номерах отелей",
+# }
+# hotel_amenity_sport_settings = {
+#     "name": "Удобства спорт и отдых в отеле",
+#     "description": "Методы для работы с удобствами спорта и отдыха",
+# }
+# hotel_amenity_children_settings = {
+#     "name": "Удобства для детей в отеле",
+#     "description": "Методы для работы с удобствами для детей",
+# }
+# hotel_rules_settings = {
+#     "name": "Правила в отеле",
+#     "description": "Методы для работы с правилами отелей",
+# }
 hotel_photo_settings = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
@@ -42,14 +42,14 @@ room_settings = {
     "name": "Номер",
     "description": "Методы для работы с номерами"
 }
-room_category_settings = {
-    "name": "Категории номера",
-    "description": "Методы для работы с категориями номеров",
-}
-room_amenity_settings = {
-    "name": "Удобства в номере",
-    "description": "Методы для работы с удобствами номеров",
-}
+# room_category_settings = {
+#     "name": "Категории номера",
+#     "description": "Методы для работы с категориями номеров",
+# }
+# room_amenity_settings = {
+#     "name": "Удобства в номере",
+#     "description": "Методы для работы с удобствами номеров",
+# }
 room_photo_settings = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
@@ -178,10 +178,6 @@ limit = OpenApiParameter(
     type=int,
     description="Количество номеров для возврата на страницу",
     required=False,
-    examples=[
-        OpenApiExample("Пример 1", value=10),
-        OpenApiExample("Пример 2", value=20),
-    ],
 )
 offset = OpenApiParameter(
     name="offset",

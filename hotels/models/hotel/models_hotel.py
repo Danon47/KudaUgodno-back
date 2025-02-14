@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from hotels.choices import TypeOfHolidayChoices, PlaceChoices
@@ -30,9 +31,7 @@ class Hotel(models.Model):
     )
     # Тип размещения
     place = models.CharField(
-        max_length=13,
-        choices=PlaceChoices.choices,
-        default=PlaceChoices.HOTEL,
+        max_length=100,
         verbose_name="Тип размещения",
         help_text="Тип размещения",
         **NULLABLE,
@@ -127,36 +126,36 @@ class Hotel(models.Model):
         **NULLABLE,
     )
     # Общин удобства в отеле
-    amenities_common = models.ManyToManyField(
-        "HotelAmenityCommon",
+    amenities_common = ArrayField(
+        models.CharField(max_length=100),
         verbose_name="Общие",
-        related_name="hotels_amenities_common",
         help_text="Общие",
-        blank=True,
+        default=list,
+        **NULLABLE,
     )
     # Удобства в номере
-    amenities_in_the_room = models.ManyToManyField(
-        "HotelAmenityInTheRoom",
+    amenities_in_the_room = ArrayField(
+        models.CharField(max_length=100),
         verbose_name="В номере",
-        related_name="hotels_amenities_room",
         help_text="В номере",
-        blank=True,
+        default=list,
+        **NULLABLE,
     )
     # Удобства спорт и номер
-    amenities_sports_and_recreation = models.ManyToManyField(
-        "HotelAmenitySportsAndRecreation",
+    amenities_sports_and_recreation = ArrayField(
+        models.CharField(max_length=100),
         verbose_name="Спорт и отдых",
-        related_name="hotels_amenities_sports",
         help_text="Спорт и отдых",
-        blank=True,
+        default=list,
+        **NULLABLE,
     )
     # Удобства для детей
-    amenities_for_children = models.ManyToManyField(
-        "HotelAmenityForChildren",
+    amenities_for_children = ArrayField(
+        models.CharField(max_length=100),
         verbose_name="Для детей",
-        related_name="hotels_amenities_children",
         help_text="Для детей",
-        blank=True,
+        default=list,
+        **NULLABLE,
     )
     # Тип питания Ultra All inclusive
     type_of_meals_ultra_all_inclusive = models.IntegerField(
@@ -234,6 +233,7 @@ class Hotel(models.Model):
         help_text="Правила в отеле",
         blank=True,
     )
+    # Отель работает?
     is_active = models.BooleanField(
         default=False,
         verbose_name="Отель работает?",
@@ -246,6 +246,13 @@ class Hotel(models.Model):
     #     help_text="Создал отель",
     #     **NULLABLE,
     # )
+    # Категории в отеле
+    room_categories = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Категории номеров в отеле",
+        help_text="Категории номеров в отеле",
+        **NULLABLE,
+    )
 
     class Meta:
         verbose_name = "Отель"

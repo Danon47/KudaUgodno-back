@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from hotels.models.hotel.models_hotel import NULLABLE, Hotel
@@ -8,63 +9,56 @@ class Room(models.Model):
     """
     Класс номера отеля
     """
-
-    # Категория номера
-    category = models.ForeignKey(
-        RoomCategory,
-        on_delete=models.CASCADE,
+    # Отель
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
         related_name="rooms",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
+    # Категория номера
+    category = models.CharField(
+        max_length=100,
         verbose_name="Категория номера",
         help_text="Категория номера",
-        default=1,
     )
-    # Бронь возможна только с выбором типа питания
-    food_is_a_must = models.BooleanField(
-        default=False,
-        verbose_name="Бронь возможна только с выбором типа питания",
-    )
-    # Тип питания из отеля
-    type_of_meal = models.JSONField(
-        blank=True,
-        null=True,
-        verbose_name="Тип питания",
-        help_text="Тип питания из отеля (словарь)",
-    )
-    # Курение
-    smoking = models.BooleanField(
-        default=False,
-        verbose_name="Курение разрешено?",
-    )
-    # С животными
-    pet = models.BooleanField(
-        default=False,
-        verbose_name="С животными разрешено?",
-    )
-    # Площадь номера
-    area = models.IntegerField(
-        verbose_name="Площадь номера",
-        help_text="Площадь номера",
+    # Цена за ночь
+    price = models.IntegerField(
+        verbose_name="Цена за ночь",
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(1000),
+            MaxValueValidator(1000000),
         ],
+        default=0,
     )
-    # Удобства в номере
-    amenities = models.ManyToManyField(
-        "RoomAmenity",
-        verbose_name="Удобства в номере",
-        help_text="Удобства в номере",
-        related_name="rooms_amenities",
-        blank=True,
+    # Тип питания из отеля
+    type_of_meal = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Тип питания",
+        help_text="Тип питания из отеля (словарь)",
+        **NULLABLE,
     )
-    # Количество проживающих людей
-    capacity = models.IntegerField(
-        verbose_name="Количество проживающих людей",
-        help_text="Количество проживающих людей",
+    # Количество проживающих взрослых
+    number_of_adults = models.IntegerField(
+        verbose_name="Количество проживающих взрослых",
+        help_text="Количество проживающих взрослых",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10),
         ],
+        **NULLABLE,
+    )
+    # Количество проживающих детей
+    number_of_children = models.IntegerField(
+        verbose_name="Количество проживающих детей",
+        help_text="Количество проживающих детей",
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],
+        **NULLABLE,
     )
     # Односпальная кровать
     single_bed = models.IntegerField(
@@ -86,22 +80,67 @@ class Room(models.Model):
         ],
         **NULLABLE,
     )
-    # Цена за ночь
-    nightly_price = models.IntegerField(
-        verbose_name="Цена за ночь",
+    # Площадь номера
+    area = models.IntegerField(
+        verbose_name="Площадь номера",
+        help_text="Площадь номера",
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(1000000),
+            MaxValueValidator(1000),
+        ],
+    )
+    # Количество номеров данного типа
+    quantity_rooms = models.IntegerField(
+        verbose_name="Количество номеров данного типа",
+        help_text="Количество номеров данного типа",
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(500),
         ],
         default=0,
     )
-    # Отель
-    hotel = models.ForeignKey(
-        Hotel,
-        on_delete=models.SET_NULL,
-        related_name="rooms",
-        verbose_name="Отель",
-        help_text="Отель",
+    # Скидка на номер
+    discount = models.ManyToManyField(
+        "RoomDiscount",
+        verbose_name="Скидки",
+        help_text="Скидки",
+        related_name="rooms_discount",
+        blank=True,
+    )
+    # Недоступность номера
+    unavailable = models.ManyToManyField(
+        "RoomUnavailable",
+        verbose_name="Недоступность номера",
+        help_text="Недоступность номера",
+        related_name="rooms_unavailable",
+        blank=True,
+    )
+    # Общие удобства в номере
+    amenities_common = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Общие удобства в номере",
+        help_text="Общие удобства в номере",
+        **NULLABLE,
+    )
+    # Удобства кофе станции в номере
+    amenities_coffee = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Удобства кофе станции в номере",
+        help_text="Удобства кофе станции в номере",
+        **NULLABLE,
+    )
+    # Удобства ванной комнаты в номере
+    amenities_bathroom = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Удобства ванной комнаты в номере",
+        help_text="Удобства ванной комнаты в номере",
+        **NULLABLE,
+    )
+    # Удобства вид в номере
+    amenities_view = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name="Удобства вид в номере",
+        help_text="Удобства вид в номере",
         **NULLABLE,
     )
 
@@ -112,15 +151,3 @@ class Room(models.Model):
 
     def __str__(self):
         return f"{self.id} {self.category}"
-
-    def save(self, *args, **kwargs):
-        if self.hotel:
-            # Передаем значения типов питания из отеля в словарь
-            self.type_of_meal = {
-                "ultra_all_inclusive": self.hotel.type_of_meals_ultra_all_inclusive,
-                "all_inclusive": self.hotel.type_of_meals_all_inclusive,
-                "full_board": self.hotel.type_of_meals_full_board,
-                "half_board": self.hotel.type_of_meals_half_board,
-                "only_breakfast": self.hotel.type_of_meals_only_breakfast,
-            }
-        super().save(*args, **kwargs)

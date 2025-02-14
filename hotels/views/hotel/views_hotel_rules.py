@@ -1,7 +1,8 @@
 # from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
 # from rest_framework import viewsets
 #
-# from all_fixture.fixture_views import hotel_rules_settings
+# from all_fixture.fixture_views import hotel_rules_settings, limit, offset
+# from all_fixture.pagination import CustomLOPagination
 # from hotels.models.hotel.models_hotel_rules import HotelRules
 # from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerializer
 #
@@ -10,6 +11,7 @@
 #     list=extend_schema(
 #         summary="Список правил в отеле",
 #         description="Получение списка всех правил с пагинацией",
+#         parameters=[limit, offset],
 #         responses={
 #             200: HotelRulesSerializer(many=True),
 #             400: OpenApiResponse(description="Ошибка запроса"),
@@ -59,5 +61,5 @@
 # class HotelRulesViewSet(viewsets.ModelViewSet):
 #     queryset = HotelRules.objects.all()
 #     serializer_class = HotelRulesSerializer
-#     pagination_class = None
+#     pagination_class = CustomLOPagination
 #     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace",]  # Исключаем 'patch'
