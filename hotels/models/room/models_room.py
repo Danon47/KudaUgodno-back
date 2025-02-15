@@ -34,7 +34,7 @@ class Room(models.Model):
         default=0,
     )
     # Тип питания из отеля
-    type_of_meal = ArrayField(
+    type_of_meals = ArrayField(
         models.CharField(max_length=100),
         verbose_name="Тип питания",
         help_text="Тип питания из отеля (словарь)",
