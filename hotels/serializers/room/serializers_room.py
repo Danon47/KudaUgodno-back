@@ -6,7 +6,7 @@ from hotels.models.room.models_room_amenity import (
     RoomAmenityBathroom,
     RoomAmenityView,
 )
-from hotels.models.room.models_room_category import RoomCategory
+# from hotels.models.room.models_room_category import RoomCategory
 from hotels.serializers.room.serializers_room_discount import RoomDiscountSerializer
 # from hotels.serializers.room.serializers_room_amenity import (
 #     RoomAmenityCommonSerializer,
@@ -49,22 +49,22 @@ class RoomBaseSerializer(serializers.ModelSerializer):
             "amenities_view",
         )
 
-    def create(self, validated_data):
+    # def create(self, validated_data):
         # Извлекаем вложенные данные
         # amenities_common_data = validated_data.pop("amenities_common", [])
         # amenities_coffee_station_data = validated_data.pop("amenities_coffee_station", [])
         # amenities_bathroom_data = validated_data.pop("amenities_bathroom", [])
         # amenities_view_data = validated_data.pop("amenities_view", [])
 
-        # Передача имени категории
-        category_name = validated_data.pop("category")
-        category_instance, created = RoomCategory.objects.get_or_create(
-            name=category_name
-        )
-
-        # Создаем объект Room
-        room = Room.objects.create(category=category_instance, **validated_data)
-        room.save()
+        # # Передача имени категории
+        # category_name = validated_data.pop("category")
+        # category_instance, created = RoomCategory.objects.get_or_create(
+        #     name=category_name
+        # )
+        #
+        # # Создаем объект Room
+        # room = Room.objects.create(category=category_instance, **validated_data)
+        # room.save()
 
         # # Создаем связанные объекты общих удобств
         # for amenity_data in amenities_common_data:
@@ -95,24 +95,24 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         #     room.amenities.add(amenities_view)
         # return room
 
-    def update(self, instance, validated_data):
+    # def update(self, instance, validated_data):
         # Извлекаем вложенные данные
         # amenities_common_data = validated_data.pop("amenities_common", [])
         # amenities_coffee_station_data = validated_data.pop("amenities_coffee_station", [])
         # amenities_bathroom_data = validated_data.pop("amenities_bathroom", [])
         # amenities_view_data = validated_data.pop("amenities_view", [])
 
-        # Обновляем категорию
-        category_name = validated_data.pop("category")
-        category_instance, created = RoomCategory.objects.get_or_create(
-            name=category_name
-        )
-        instance.category = category_instance
-
-        # Обновляем остальные поля
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+        # # Обновляем категорию
+        # category_name = validated_data.pop("category")
+        # category_instance, created = RoomCategory.objects.get_or_create(
+        #     name=category_name
+        # )
+        # instance.category = category_instance
+        #
+        # # Обновляем остальные поля
+        # for attr, value in validated_data.items():
+        #     setattr(instance, attr, value)
+        # instance.save()
 
         # # Обновляем связанные объекты amenities
         # instance.amenities.clear()  # Удаляем все существующие удобства
