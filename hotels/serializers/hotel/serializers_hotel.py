@@ -79,6 +79,7 @@ class HotelDetailSerializer(serializers.ModelSerializer):
             "type_of_rest",
             "rules",
             "is_active",
+            "room_categories",
         )
 
     # def update(self, instance, validated_data):
