@@ -54,7 +54,7 @@ class Room(models.Model):
         verbose_name="Количество проживающих детей",
         help_text="Количество проживающих детей",
         validators=[
-            MinValueValidator(1),
+            MinValueValidator(0),
             MaxValueValidator(10),
         ],
         **NULLABLE,

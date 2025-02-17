@@ -30,6 +30,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:cached
+      - ${APP_VOLUME_PATH}:/app/static
     env_file:
       - .env
     command: >
@@ -90,3 +91,6 @@ networks:
     external: True
   36_kuda_ugodno_backend:
     name: 36_kuda_ugodno_backend
+
+volumes:
+  static_volume:

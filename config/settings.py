@@ -12,13 +12,6 @@ from all_fixture.fixture_views import (
     flight_settings,
     application_settings,
     application_guest_settings,
-    # room_category_settings,
-    # room_amenity_settings,
-    # hotel_amenity_children_settings,
-    # hotel_rules_settings,
-    # hotel_amenity_common_settings,
-    # hotel_amenity_room_settings,
-    # hotel_amenity_sport_settings,
 )
 
 
@@ -30,14 +23,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "anywhere.god-it.ru",
-    "anywhere-test.god-it.ru",
-    "anywhere-dev.god-it.ru",
-    "ku.mer1d1an.ru",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = [
    # Стандартные Django-приложения
@@ -193,15 +179,8 @@ SPECTACULAR_SETTINGS = {
         user_settings,
         tour_settings,
         hotel_settings,
-        # hotel_amenity_common_settings,
-        # hotel_amenity_room_settings,
-        # hotel_amenity_sport_settings,
-        # hotel_amenity_children_settings,
-        # hotel_rules_settings,
         hotel_photo_settings,
         room_settings,
-        # room_category_settings,
-        # room_amenity_settings,
         room_photo_settings,
         flight_settings,
         application_settings,

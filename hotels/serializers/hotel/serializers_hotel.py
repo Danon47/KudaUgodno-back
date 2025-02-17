@@ -1,19 +1,5 @@
-from django.db import models
 from rest_framework import serializers
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.models_hotel_amenity import (
-    HotelAmenityCommon,
-    HotelAmenityInTheRoom,
-    HotelAmenitySportsAndRecreation,
-    HotelAmenityForChildren,
-)
-from hotels.models.hotel.models_hotel_rules import HotelRules
-# from hotels.serializers.hotel.serializers_hotel_amenity import (
-#     HotelAmenityCommonSerializer,
-#     HotelAmenityRoomSerializer,
-#     HotelAmenitySportsSerializer,
-#     HotelAmenityChildrenSerializer,
-# )
 from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
 from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerializer
 from hotels.serializers.room.serializers_room import RoomDetailSerializer
@@ -33,20 +19,8 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
 
 class HotelDetailSerializer(serializers.ModelSerializer):
-    # amenities_common = HotelAmenityCommonSerializer(
-    #     many=True,
-    # )
-    # amenities_in_the_room = HotelAmenityRoomSerializer(
-    #     many=True,
-    # )
-    # amenities_sports_and_recreation = HotelAmenitySportsSerializer(
-    #     many=True,
-    # )
-    # amenities_for_children = HotelAmenityChildrenSerializer(
-    #     many=True,
-    # )
     rules = HotelRulesSerializer(many=True, source="hotels_rules")
-    user_rating = serializers.FloatField()
+    user_rating = serializers.FloatField(required=False)
 
     class Meta:
         model = Hotel
@@ -82,54 +56,21 @@ class HotelDetailSerializer(serializers.ModelSerializer):
             "room_categories",
         )
 
-    # def update(self, instance, validated_data):
-    #     # Обновляем связанные поля, используя корректные ключи
-    #     self._update_related_field(
-    #         instance, validated_data, "amenities_common", HotelAmenityCommon
-    #     )
-    #     self._update_related_field(
-    #         instance, validated_data, "amenities_in_the_room", HotelAmenityInTheRoom
-    #     )
-    #     self._update_related_field(
-    #         instance,
-    #         validated_data,
-    #         "amenities_sports_and_recreation",
-    #         HotelAmenitySportsAndRecreation,
-    #     )
-    #     self._update_related_field(
-    #         instance, validated_data, "amenities_for_children", HotelAmenityForChildren
-    #     )
-    #     self._update_related_field(instance, validated_data, "rules", HotelRules)
-    #
-    #     # Обновляем остальные поля (только те, которые не являются связанными)
-    #     for attr, value in validated_data.items():
-    #         # Опционально: проверить, является ли поле ManyToMany
-    #         try:
-    #             field = instance._meta.get_field(attr)
-    #             if isinstance(field, models.ManyToManyField):
-    #                 # Если это ManyToManyField, то пропускаем его, т.к. он уже обработан
-    #                 continue
-    #         except Exception:
-    #             # Если поле не найдено в модели – пропускаем
-    #             continue
-    #         setattr(instance, attr, value)
-    #
-    #     instance.save()
-    #     return instance
-    #
-    # def _update_related_field(self, instance, validated_data, field_name, model):
-    #     """
-    #     Обновляет ManyToMany или обратные отношения (для правил) с использованием .set()
-    #     """
-    #     if field_name in validated_data:
-    #         items_data = validated_data.pop(field_name)
-    #         items = []
-    #         for item_data in items_data:
-    #             # Создаем или получаем связанный объект с учетом отеля
-    #             item, _ = model.objects.get_or_create(hotel=instance, **item_data)
-    #             items.append(item)
-    #         # Обновляем поле через менеджер
-    #         getattr(instance, field_name).set(items)
+    def update(self, instance, validated_data):
+        # Удаляем вложенные данные из validated_data
+        rules_data = validated_data.pop('hotels_rules', None)
+
+        # Обновляем основные поля
+        instance = super().update(instance, validated_data)
+
+        # Обновляем вложенные поля, если они предоставлены
+        if rules_data is not None:
+            instance.hotels_rules.all().delete()  # Удаляем старые правила
+            for rule_data in rules_data:
+                instance.hotels_rules.create(**rule_data)
+
+        return instance
+
 
 
 class HotelListSerializer(HotelDetailSerializer):
