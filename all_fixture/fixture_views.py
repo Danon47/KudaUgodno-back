@@ -14,26 +14,6 @@ hotel_settings = {
     "name": "Отель",
     "description": "Методы для работы с отелями"
 }
-# hotel_amenity_common_settings = {
-#     "name": "Удобства общие в отеле",
-#     "description": "Методы для работы с общими удобствами отелей",
-# }
-# hotel_amenity_room_settings = {
-#     "name": "Удобства в номере в отеле",
-#     "description": "Методы для работы с удобствами в номерах отелей",
-# }
-# hotel_amenity_sport_settings = {
-#     "name": "Удобства спорт и отдых в отеле",
-#     "description": "Методы для работы с удобствами спорта и отдыха",
-# }
-# hotel_amenity_children_settings = {
-#     "name": "Удобства для детей в отеле",
-#     "description": "Методы для работы с удобствами для детей",
-# }
-# hotel_rules_settings = {
-#     "name": "Правила в отеле",
-#     "description": "Методы для работы с правилами отелей",
-# }
 hotel_photo_settings = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
@@ -42,14 +22,6 @@ room_settings = {
     "name": "Номер",
     "description": "Методы для работы с номерами"
 }
-# room_category_settings = {
-#     "name": "Категории номера",
-#     "description": "Методы для работы с категориями номеров",
-# }
-# room_amenity_settings = {
-#     "name": "Удобства в номере",
-#     "description": "Методы для работы с удобствами номеров",
-# }
 room_photo_settings = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
@@ -131,23 +103,7 @@ id_room = OpenApiParameter(
     description="ID Номера",
     required=True,
 )
-# ID удобства
-id_room_amenity = OpenApiParameter(
-    name="id",
-    type=int,
-    location=OpenApiParameter.PATH,
-    description="ID Удобств",
-    required=True,
-)
-# ID категории номера
-id_room_category = OpenApiParameter(
-    name="id",
-    type=int,
-    location=OpenApiParameter.PATH,
-    description="ID Категории номера",
-    required=True,
-)
-# ID тура
+# ID Рейса
 flight_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
