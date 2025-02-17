@@ -5,6 +5,7 @@ from django.core.mail import EmailMessage
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+<<<<<<< users/views.py
     OpenApiResponse,
 )
 from rest_framework import status, viewsets, mixins
@@ -14,6 +15,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from all_fixture.fixture_views import user_settings, offset, limit, entreprise, auth
 from all_fixture.pagination import CustomLOPagination
+=======
+    OpenApiResponse
+)
+
+from all_fixture.fixture_views import offset, limit, user_settings
+>>>>>>> users/views.py
 from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
 from users.models import User
@@ -28,6 +35,7 @@ from users.tasks import clear_user_password
 
 @extend_schema_view(
     list=extend_schema(
+<<<<<<< users/views.py
         summary="Список пользователей (обычные)",
         description="Получение списка всех обычных пользователей",
         tags=[user_settings["name"]],
@@ -40,6 +48,26 @@ from users.tasks import clear_user_password
         tags=[user_settings["name"]],
         request=UserSerializer,
         responses={201: UserSerializer},
+=======
+        summary="Список пользователей",
+        description="Получение списка всех пользователей",
+        tags=[user_settings["name"]],
+        parameters=[limit, offset],
+        responses={
+            200: UserSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка валидации запроса"),
+        },
+    ),
+    create=extend_schema(
+        summary="Создание пользователя",
+        description="Создание нового пользователя с генерацией 4-значного пароля и отправкой на email.",
+        tags=[user_settings["name"]],
+        request=AdminSerializer,
+        responses={
+            201: AdminSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+>>>>>>> users/views.py
     ),
 )
 class UserViewSet(viewsets.ModelViewSet):
@@ -89,7 +117,26 @@ class AuthViewSet(
         tags=[auth["name"]],
         request=EmailLoginSerializer,
         responses={200: OpenApiResponse(description="Код отправлен на email")},
+<<<<<<< users/views.py
     )
+=======
+        tags=[user_settings["name"]],
+    ),
+    partial_update=extend_schema(
+        summary="Подтвердить код и получить токен",
+        description="Пользователь вводит email и код, получает JWT-токены.",
+        request=VerifyCodeSerializer,
+        responses={200: OpenApiResponse(description="JWT-токены получены")},
+        tags=[user_settings["name"]],
+    ),
+)
+class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """
+    ViewSet для аутентификации по email-коду.
+    """
+    permission_classes = [AllowAny]
+
+>>>>>>> users/views.py
     def create(self, request, *args, **kwargs):
         serializer = EmailLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -150,11 +197,19 @@ class AuthViewSet(
         user = authenticate(email=email, password=str(code))
         if user:
             refresh = RefreshToken.for_user(user)
+<<<<<<< users/views.py
+=======
+
+>>>>>>> users/views.py
             return Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
+<<<<<<< users/views.py
                     "role": user.role,
+=======
+                    "role": user.role,  # 🔹 Добавляем роль пользователя в ответ
+>>>>>>> users/views.py
                 },
                 status=status.HTTP_200_OK,
             )
