@@ -22,28 +22,28 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ("email", "first_name", "last_name")
     ordering = ("-date_joined",)
     readonly_fields = ("last_login", "date_joined")
-
     # Добавляем возможность управлять группами
     filter_horizontal = ("groups",)
 
 
-class TourOperatorAdmin(CustomUserAdmin):
-    """Админка только для Туроператоров."""
-
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(role="TOUR_OPERATOR")
+        """Фильтруем пользователей в зависимости от группы администратора"""
+        qs = super().get_queryset(request)
+        # Суперадмин видит всех
+        if request.user.is_superuser:
+            return qs
+        # Админ не видит суперадминов
+        if request.user.groups.filter(name="Admin").exists():
+            return qs.exclude(role="Super Admin")
+        # Туроператоры видят только туроператоров
+        if request.user.groups.filter(name="Tour Operators").exists():
+            return qs.filter(role="TOUR_OPERATOR")
+        # Отельеры видят только отельеров
+        if request.user.groups.filter(name="Hoteliers").exists():
+            return qs.filter(role="HOTELIER")
+        # Обычные пользователи не видят никого
+        return qs.none()
 
 
-class HotelierAdmin(CustomUserAdmin):
-    """Админка только для Отельеров."""
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(role="HOTELIER")
-
-
-# Регистрируем пользователей и группы в админке
-admin.site.register(User, CustomUserAdmin)
-admin.site.register(User, TourOperatorAdmin, name="Туроператоры")
-admin.site.register(User, HotelierAdmin, name="Отельеры")
-# Добавляем управление группами в Django Admin
+# Группы в админке
 admin.site.register(Group)
