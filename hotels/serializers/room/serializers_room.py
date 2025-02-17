@@ -1,30 +1,17 @@
 from rest_framework import serializers
 from hotels.models.room.models_room import Room
-from hotels.models.room.models_room_amenity import (
-    RoomAmenityCommon,
-    RoomAmenityCoffeeStation,
-    RoomAmenityBathroom,
-    RoomAmenityView,
-)
-# from hotels.models.room.models_room_category import RoomCategory
+from hotels.models.room.models_room_discount import RoomDiscount
+from hotels.models.room.models_room_unavailable import RoomUnavailable
 from hotels.serializers.room.serializers_room_discount import RoomDiscountSerializer
-# from hotels.serializers.room.serializers_room_amenity import (
-#     RoomAmenityCommonSerializer,
-#     RoomAmenityViewSerializer,
-#     RoomAmenityBathroomSerializer,
-#     RoomAmenityCoffeeStationSerializer,
-# )
 from hotels.serializers.room.serializers_room_photo import RoomPhotoSerializer
-from hotels.serializers.room.serializers_room_unavaliable import RoomUnavailableSerializer
+from hotels.serializers.room.serializers_room_unavaliable import (
+    RoomUnavailableSerializer,
+)
 
 
 class RoomBaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор номера"""
 
-    # amenities_common = RoomAmenityCommonSerializer(many=True, required=False)
-    # amenities_coffee_station = RoomAmenityCoffeeStationSerializer(many=True, required=False)
-    # amenities_bathroom = RoomAmenityBathroomSerializer(many=True, required=False)
-    # amenities_view = RoomAmenityViewSerializer(many=True, required=False)
     discount = RoomDiscountSerializer(many=True, required=False)
     unavailable = RoomUnavailableSerializer(many=True, required=False)
 
@@ -49,98 +36,39 @@ class RoomBaseSerializer(serializers.ModelSerializer):
             "amenities_view",
         )
 
-    # def create(self, validated_data):
-        # Извлекаем вложенные данные
-        # amenities_common_data = validated_data.pop("amenities_common", [])
-        # amenities_coffee_station_data = validated_data.pop("amenities_coffee_station", [])
-        # amenities_bathroom_data = validated_data.pop("amenities_bathroom", [])
-        # amenities_view_data = validated_data.pop("amenities_view", [])
+    def create(self, validated_data):
+        discount_data = validated_data.pop('discount', [])
+        unavailable_data = validated_data.pop('unavailable', [])
 
-        # # Передача имени категории
-        # category_name = validated_data.pop("category")
-        # category_instance, created = RoomCategory.objects.get_or_create(
-        #     name=category_name
-        # )
-        #
-        # # Создаем объект Room
-        # room = Room.objects.create(category=category_instance, **validated_data)
-        # room.save()
+        room = Room.objects.create(**validated_data)
 
-        # # Создаем связанные объекты общих удобств
-        # for amenity_data in amenities_common_data:
-        #     amenities_common, created = RoomAmenityCommon.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     room.amenities.add(amenities_common)
-        #
-        # # Создаем связанные объекты удобства кофе станции
-        # for amenity_data in amenities_coffee_station_data:
-        #     amenities_coffee_station, created = RoomAmenityCoffeeStation.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     room.amenities.add(amenities_coffee_station)
-        #
-        # # Создаем связанные объекты удобства ванной комнаты
-        # for amenity_data in amenities_bathroom_data:
-        #     amenities_bathroom, created = RoomAmenityBathroom.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     room.amenities.add(amenities_bathroom)
-        #
-        # # Создаем связанные объекты удобства вид
-        # for amenity_data in amenities_view_data:
-        #     amenities_view, created = RoomAmenityView.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     room.amenities.add(amenities_view)
-        # return room
+        # Создаем связанные объекты, но добавляем через ManyToManyField
+        discount_objs = [RoomDiscount.objects.create(**item) for item in discount_data]
+        unavailable_objs = [RoomUnavailable.objects.create(**item) for item in unavailable_data]
 
-    # def update(self, instance, validated_data):
-        # Извлекаем вложенные данные
-        # amenities_common_data = validated_data.pop("amenities_common", [])
-        # amenities_coffee_station_data = validated_data.pop("amenities_coffee_station", [])
-        # amenities_bathroom_data = validated_data.pop("amenities_bathroom", [])
-        # amenities_view_data = validated_data.pop("amenities_view", [])
+        room.discount.set(discount_objs)
+        room.unavailable.set(unavailable_objs)
 
-        # # Обновляем категорию
-        # category_name = validated_data.pop("category")
-        # category_instance, created = RoomCategory.objects.get_or_create(
-        #     name=category_name
-        # )
-        # instance.category = category_instance
-        #
-        # # Обновляем остальные поля
-        # for attr, value in validated_data.items():
-        #     setattr(instance, attr, value)
-        # instance.save()
+        return room
 
-        # # Обновляем связанные объекты amenities
-        # instance.amenities.clear()  # Удаляем все существующие удобства
-        # for amenity_data in amenities_common_data:
-        #     amenity, created = RoomAmenityCommon.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     instance.amenities.add(amenity)
-        #
-        # for amenity_data in amenities_coffee_station_data:
-        #     amenity, created = RoomAmenityCoffeeStation.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     instance.amenities.add(amenity)
-        #
-        # for amenity_data in amenities_bathroom_data:
-        #     amenity, created = RoomAmenityBathroom.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     instance.amenities.add(amenity)
-        #
-        # for amenity_data in amenities_view_data:
-        #     amenity, created = RoomAmenityView.objects.get_or_create(
-        #         name=amenity_data.get("name")
-        #     )
-        #     instance.amenities.add(amenity)
-        #
-        # return instance
+    def update(self, instance, validated_data):
+        discount_data = validated_data.pop('discount', None)
+        unavailable_data = validated_data.pop('unavailable', None)
+
+        instance = super().update(instance, validated_data)
+
+        if discount_data is not None:
+            instance.discount.clear()
+            discount_objs = [RoomDiscount.objects.create(**item) for item in discount_data]
+            instance.discount.set(discount_objs)
+
+        if unavailable_data is not None:
+            instance.unavailable.clear()
+            unavailable_objs = [RoomUnavailable.objects.create(**item) for item in unavailable_data]
+            instance.unavailable.set(unavailable_objs)
+
+        return instance
+
 
 class RoomDetailSerializer(RoomBaseSerializer):
     photo = RoomPhotoSerializer(
