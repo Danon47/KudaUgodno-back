@@ -71,16 +71,16 @@ class Command(BaseCommand):
         amenities_view = ["Море", "Горы", "Сад"]
 
         for hotel in hotels:
-            for _ in range(random.randint(1, 3)):  # Для каждого отеля создаем от 1 до 5 номеров
+            for _ in range(random.randint(1, 3)):  # Для каждого отеля создаем от 1 до 3 номеров
                 Room.objects.create(
                     hotel=hotel,
                     category=random.choice(room_categories),
                     price=random.randint(1000, 50000),
-                    type_of_meal=["Breakfast", "Half Board", "All Inclusive"],
+                    type_of_meals=["Только завтраки", "Полупансион", "Ультра всё включено"],
                     number_of_adults=random.randint(1, 4),
-                    number_of_children=random.randint(0, 2),
-                    single_bed=random.randint(0, 2),
-                    double_bed=random.randint(0, 2),
+                    number_of_children=random.randint(1, 4),
+                    single_bed=random.randint(1, 3),
+                    double_bed=random.randint(1, 3),
                     area=random.randint(20, 100),
                     quantity_rooms=random.randint(1, 10),
                     amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
