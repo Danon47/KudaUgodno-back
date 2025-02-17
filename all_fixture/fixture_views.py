@@ -1,4 +1,4 @@
-from drf_spectacular.utils import OpenApiParameter, OpenApiExample
+from drf_spectacular.utils import OpenApiParameter
 
 
 # Теги для settings
