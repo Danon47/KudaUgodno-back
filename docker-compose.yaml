@@ -30,10 +30,12 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:cached
+      - ${APP_VOLUME_PATH}:/app/static
     env_file:
       - .env
     command: >
-      sh -c 'python3 manage.py makemigrations --noinput &&
+      sh -c 'python3 manage.py collectstatic --noinput &&
+             python3 manage.py makemigrations --noinput &&
              python3 manage.py migrate &&
              python3 manage.py seed_data &&
              gunicorn config.wsgi:application --bind 0.0.0.0:${PORT_APP} --workers 3 --timeout 120 --preload'
@@ -55,33 +57,33 @@ services:
     networks:
       - 36_kuda_ugodno_backend
 
-#  celery:
-#    container_name: kuda_ugodno_backend_celery_worker
-#    build: .
-#    command: celery -A config worker --loglevel=info --concurrency=1 --max-tasks-per-child=1
-#    depends_on:
-#      - redis
-#      - db
-#    volumes:
-#      - .:/app
-#    env_file:
-#      - .env
-#    networks:
-#      - 36_kuda_ugodno_backend
-#
-#  celery_beat:
-#    container_name: kuda_ugodno_backend_celery_beat
-#    build: .
-#    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-#    depends_on:
-#      - redis
-#      - db
-#    volumes:
-#      - .:/app
-#    env_file:
-#      - .env
-#    networks:
-#      - 36_kuda_ugodno_backend
+  celery:
+    container_name: kuda_ugodno_backend_celery_worker
+    build: .
+    command: celery -A config worker --loglevel=info --concurrency=1 --max-tasks-per-child=1
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - 36_kuda_ugodno_backend
+
+  celery_beat:
+    container_name: kuda_ugodno_backend_celery_beat
+    build: .
+    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - 36_kuda_ugodno_backend
 
 networks:
   default:
