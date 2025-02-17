@@ -4,51 +4,69 @@ from django.core.mail import EmailMessage
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse
+
 from users.models import User
-from users.serializers import AdminSerializer, UserSerializer, EmailLoginSerializer, VerifyCodeSerializer
+from users.serializers import (
+    UserSerializer, CompanyUserSerializer, EmailLoginSerializer, VerifyCodeSerializer
+)
+from users.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
 from users.tasks import clear_user_password
-from users.pagination import CustomLOPagination
+from users.choices import RoleChoices
 
 
 @extend_schema_view(
-   list=extend_schema(
-       summary="Список пользователей с возможностью кастомной пагинации",
-       description="Получение списка всех пользователей",
-       parameters=[
-           OpenApiParameter(name="limit", type=int, description="Количество пользователей для пагинации", required=False),
-           OpenApiParameter(name="offset", type=int, description="Смещение для пагинации", required=False),
-       ],
-       responses={200: UserSerializer(many=True)},
-   ),
-   create=extend_schema(
-       summary="Создание пользователя",
-       description="Создание нового пользователя с указанием email и пароля",
-       request=AdminSerializer,
-       responses={201: AdminSerializer},
-   ),
+    list=extend_schema(
+        summary="Список пользователей (обычные)",
+        description="Получение списка всех обычных пользователей",
+        parameters=[
+            OpenApiParameter(name="limit", type=int, description="Количество пользователей для пагинации", required=False),
+            OpenApiParameter(name="offset", type=int, description="Смещение для пагинации", required=False),
+        ],
+        responses={200: UserSerializer(many=True)},
+    ),
+    create=extend_schema(
+        summary="Создание пользователя",
+        description="Создание нового пользователя с указанием email и пароля",
+        request=UserSerializer,
+        responses={201: UserSerializer},
+    ),
 )
 class UserViewSet(viewsets.ModelViewSet):
-   """
-   ViewSet для управления пользователями (CRUD).
-   """
-   queryset = User.objects.all().order_by("-pk")
-   pagination_class = CustomLOPagination  # Добавляем кастомную пагинацию
+    """ViewSet для обычных пользователей."""
+    queryset = User.objects.filter(role=RoleChoices.USER).order_by("-pk")
+    serializer_class = UserSerializer
+    pagination_class = CustomLOPagination
 
-   def get_serializer_class(self):
-       """Выбор сериализатора в зависимости от действия."""
-       if self.action in ["create", "update", "partial_update"]:
-           return AdminSerializer
-       return UserSerializer
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список компаний (Туроператоры и Отельеры)",
+        description="Получение списка всех компаний (Туроператоры и Отельеры)",
+        parameters=[
+            OpenApiParameter(name="limit", type=int, description="Количество пользователей для пагинации", required=False),
+            OpenApiParameter(name="offset", type=int, description="Смещение для пагинации", required=False),
+        ],
+        responses={200: CompanyUserSerializer(many=True)},
+    ),
+    create=extend_schema(
+        summary="Создание компании",
+        description="Создание нового Туроператора или Отельера",
+        request=CompanyUserSerializer,
+        responses={201: CompanyUserSerializer},
+    ),
+)
+class CompanyUserViewSet(viewsets.ModelViewSet):
+    """ViewSet для Туроператоров и Отельеров."""
+    queryset = User.objects.filter(role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]).order_by("-pk")
+    serializer_class = CompanyUserSerializer
+    pagination_class = CustomLOPagination
 
 
 class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-    """
-    ViewSet для аутентификации по email-коду:
-    - Генерация кода и отправка на email
-    - Проверка кода и выдача JWT-токенов
-    """
+    """ViewSet для аутентификации по email-коду."""
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -78,15 +96,15 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
 
     @staticmethod
     def send_email(email, code):
-        """Отправка email с кодом для входа."""
+        """Отправка email с кодом."""
         email_message = EmailMessage(
             subject="Ваш код для входа",
             body=f"""
                 <html>
                     <body>
-                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
-                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
-                        <p><strong>Никому не сообщайте этот код!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                       <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
+                       <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
+                       <p><strong>Никому не сообщайте этот код!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
                     </body>
                 </html>
             """,
@@ -111,7 +129,6 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
 
         user = authenticate(email=email, password=str(code))
         if user:
-            from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken.for_user(user)
             return Response({
                 "refresh": str(refresh),
