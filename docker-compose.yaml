@@ -91,6 +91,3 @@ networks:
     external: True
   36_kuda_ugodno_backend:
     name: 36_kuda_ugodno_backend
-
-volumes:
-  static_volume:
