@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group
 
 from users.models import User
 
@@ -44,6 +43,3 @@ class CustomUserAdmin(UserAdmin):
         # Обычные пользователи не видят никого
         return qs.none()
 
-
-# Группы в админке
-admin.site.register(Group)
