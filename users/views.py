@@ -1,29 +1,29 @@
 import random
+
 from django.contrib.auth import authenticate
 from django.core.mail import EmailMessage
-from rest_framework import status, viewsets, mixins
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiParameter,
     OpenApiResponse,
 )
+from rest_framework import status, viewsets, mixins
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from all_fixture.fixture_views import user_settings, offset, limit, entreprise, auth
+from config.settings import EMAIL_HOST_USER
+from users.choices import RoleChoices
 from users.models import User
+from users.pagination import CustomLOPagination
 from users.serializers import (
     UserSerializer,
     CompanyUserSerializer,
     EmailLoginSerializer,
     VerifyCodeSerializer,
 )
-from users.pagination import CustomLOPagination
-from config.settings import EMAIL_HOST_USER
 from users.tasks import clear_user_password
-from users.choices import RoleChoices
 
 
 @extend_schema_view(
