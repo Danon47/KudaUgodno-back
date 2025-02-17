@@ -13,10 +13,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from all_fixture.fixture_views import user_settings, offset, limit, entreprise, auth
+from all_fixture.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
 from users.models import User
-from users.pagination import CustomLOPagination
 from users.serializers import (
     UserSerializer,
     CompanyUserSerializer,

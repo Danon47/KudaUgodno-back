@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
+
 from users.choices import RoleChoices
 
 
@@ -9,12 +10,7 @@ class User(AbstractUser):
     """
     Базовая модель Пользователя с расширением для Туроператора и Отельера.
     """
-    username = models.CharField(
-        max_length=150,
-        verbose_name="Логин (необязательное поле)",
-        blank=True,
-        null=True,
-    )
+    username = None
 
     # Общие поля для всех пользователей
     first_name = models.CharField(max_length=100, verbose_name="Имя")
@@ -22,13 +18,13 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name="Email")
     phone_number = PhoneNumberField(region="RU", verbose_name="Телефон",
                                     help_text="Телефон в формате: +7 (XXX) XXX-XX-XX")
-    avatar = models.ImageField(upload_to='users/', null=True, blank=True, verbose_name="Аватар")
-    birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")  # Добавляем поле даты рождения
+    avatar = models.ImageField(upload_to="users/", null=True, blank=True, verbose_name="Аватар")
+    birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
 
     # Поля для Туроператора и Отельера
     company_name = models.CharField(max_length=150, verbose_name="Название компании", blank=True, null=True)
-    documents = models.FileField(upload_to='documents/', null=True, blank=True,
-                                 verbose_name="Документы")  # Поле для загрузки документов
+    documents = models.FileField(upload_to="documents/", null=True, blank=True,
+                                 verbose_name="Документы")
 
     # Роль пользователя
     role = models.CharField(choices=RoleChoices.choices, default=RoleChoices.USER, verbose_name="Роль пользователя")
