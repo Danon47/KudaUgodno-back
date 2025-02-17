@@ -1,31 +1,54 @@
 import random
+
 from django.contrib.auth import authenticate
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import EmailMessage
-from rest_framework import status, viewsets, mixins
-from rest_framework.exceptions import ValidationError as DRFValidationError
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+<<<<<<< users/views.py
+    OpenApiResponse,
+)
+from rest_framework import status, viewsets, mixins
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from all_fixture.fixture_views import user_settings, offset, limit, entreprise, auth
+from all_fixture.pagination import CustomLOPagination
+=======
     OpenApiResponse
 )
 
 from all_fixture.fixture_views import offset, limit, user_settings
+>>>>>>> users/views.py
 from config.settings import EMAIL_HOST_USER
+from users.choices import RoleChoices
 from users.models import User
 from users.serializers import (
-    AdminSerializer,
-    EmailLoginSerializer,
     UserSerializer,
-    VerifyCodeSerializer
+    CompanyUserSerializer,
+    EmailLoginSerializer,
+    VerifyCodeSerializer,
 )
 from users.tasks import clear_user_password
 
 
 @extend_schema_view(
     list=extend_schema(
+<<<<<<< users/views.py
+        summary="Список пользователей (обычные)",
+        description="Получение списка всех обычных пользователей",
+        tags=[user_settings["name"]],
+        parameters=[limit, offset],
+        responses={200: UserSerializer(many=True)},
+    ),
+    create=extend_schema(
+        summary="Создание пользователя",
+        description="Создание нового пользователя с указанием email и пароля",
+        tags=[user_settings["name"]],
+        request=UserSerializer,
+        responses={201: UserSerializer},
+=======
         summary="Список пользователей",
         description="Получение списка всех пользователей",
         tags=[user_settings["name"]],
@@ -44,73 +67,59 @@ from users.tasks import clear_user_password
             201: AdminSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
         },
+>>>>>>> users/views.py
     ),
 )
 class UserViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet для управления пользователями (CRUD).
-    """
-    queryset = User.objects.all().order_by("-pk")
+    """ViewSet для обычных пользователей."""
+
+    queryset = User.objects.filter(role=RoleChoices.USER).order_by("-pk")
     serializer_class = UserSerializer
-    lookup_field = "id"
-    lookup_url_kwarg = "id"
-
-    def get_serializer_class(self):
-        """Выбор сериализатора в зависимости от действия."""
-        if self.action in ["create", "update", "partial_update"]:
-            return AdminSerializer
-        return UserSerializer
-
-    def create(self, request, *args, **kwargs):
-        """
-        Создание нового пользователя:
-        - Проверка валидности данных
-        - Генерация 4-значного кода
-        - Отправка кода на email
-        """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        try:
-            user.full_clean()
-        except DjangoValidationError as e:
-            raise DRFValidationError(e.message_dict)
-
-        random_number = random.randint(1000, 9999)
-        user.set_password(str(random_number))
-        user.save(update_fields=["password"])
-
-        # 📩 Отправляем HTML-письмо с кодом
-        email_message = EmailMessage(
-            subject="Ваш код для входа",
-            body=f"""
-                <html>
-                    <body>
-                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>: 
-                        <strong style="font-size:18px;color:#007bff;">{random_number}</strong>.</p>
-                        <p><strong>Никому не сообщайте его!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
-                    </body>
-                </html>
-            """,
-            from_email=EMAIL_HOST_USER,
-            to=[user.email],
-        )
-        email_message.content_subtype = "html"  # Указываем HTML-формат
-        email_message.send()
-
-        # Очистка пароля через 5 минут
-        clear_user_password.apply_async((user.id,), countdown=300)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    pagination_class = CustomLOPagination
 
 
 @extend_schema_view(
+    list=extend_schema(
+        summary="Список компаний (Туроператоры и Отельеры)",
+        description="Получение списка всех компаний (Туроператоры и Отельеры)",
+        tags=[entreprise["name"]],
+        parameters=[limit, offset],
+        responses={200: CompanyUserSerializer(many=True)},
+    ),
     create=extend_schema(
+        summary="Создание компании",
+        description="Создание нового Туроператора или Отельера",
+        tags=[entreprise["name"]],
+        request=CompanyUserSerializer,
+        responses={201: CompanyUserSerializer},
+    ),
+)
+class CompanyUserViewSet(viewsets.ModelViewSet):
+    """ViewSet для Туроператоров и Отельеров."""
+
+    queryset = User.objects.filter(
+        role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]
+    ).order_by("-pk")
+    serializer_class = CompanyUserSerializer
+    pagination_class = CustomLOPagination
+
+
+class AuthViewSet(
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
+    """ViewSet для аутентификации по email-коду."""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
         summary="Запросить код для входа",
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
+        tags=[auth["name"]],
         request=EmailLoginSerializer,
         responses={200: OpenApiResponse(description="Код отправлен на email")},
+<<<<<<< users/views.py
+    )
+=======
         tags=[user_settings["name"]],
     ),
     partial_update=extend_schema(
@@ -127,54 +136,58 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
     """
     permission_classes = [AllowAny]
 
+>>>>>>> users/views.py
     def create(self, request, *args, **kwargs):
-        """
-        Отправляет код для входа по email:
-        - Проверяет, существует ли пользователь
-        - Генерирует 4-значный код
-        - Отправляет код на почту в HTML-формате
-        """
         serializer = EmailLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
-
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         code = random.randint(1000, 9999)
         user.set_password(str(code))
         user.save(update_fields=["password"])
 
-        # 📩 Отправляем email с HTML-кодом
+        self.send_email(user.email, code)
+        clear_user_password.apply_async((user.id,), countdown=300)
+
+        return Response(
+            {"message": "Код отправлен на email"}, status=status.HTTP_200_OK
+        )
+
+    @staticmethod
+    def send_email(email, code):
+        """Отправка email с кодом."""
         email_message = EmailMessage(
             subject="Ваш код для входа",
             body=f"""
                 <html>
                     <body>
-                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>: 
-                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
-                        <p><strong>Никому не сообщайте его!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                       <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
+                       <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
+                       <p><strong>Никому не сообщайте этот код!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
                     </body>
                 </html>
             """,
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[email],
         )
         email_message.content_subtype = "html"
         email_message.send()
 
-        # Очищаем пароль через 5 минут
-        clear_user_password.apply_async((user.id,), countdown=300)
-
-        return Response({"message": "Код отправлен на email"}, status=status.HTTP_200_OK)
-
+    @extend_schema(
+        summary="Подтвердить код и получить токены",
+        description="Проверка кода и выдача JWT-токенов + роль пользователя.",
+        tags=[auth["name"]],
+        request=VerifyCodeSerializer,
+        responses={200: OpenApiResponse(description="JWT-токены получены")},
+    )
     def partial_update(self, request, *args, **kwargs):
-        """
-        Проверяет код и возвращает JWT-токены + роль пользователя.
-        """
         serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -183,14 +196,20 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
 
         user = authenticate(email=email, password=str(code))
         if user:
-            from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken.for_user(user)
+<<<<<<< users/views.py
+=======
 
+>>>>>>> users/views.py
             return Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
+<<<<<<< users/views.py
+                    "role": user.role,
+=======
                     "role": user.role,  # 🔹 Добавляем роль пользователя в ответ
+>>>>>>> users/views.py
                 },
                 status=status.HTTP_200_OK,
             )

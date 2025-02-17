@@ -1,10 +1,18 @@
-from drf_spectacular.utils import OpenApiParameter, OpenApiExample
+from drf_spectacular.utils import OpenApiParameter
 
 
 # Теги для settings
 user_settings = {
     "name": "Пользователи",
     "description": "Методы для работы с пользователями"
+}
+entreprise = {
+    "name": "Компании",
+    "description": "Методы для работы с компаниями"
+}
+auth = {
+    "name": "Авторизация",
+    "description": "Методы для работы с авторизацией"
 }
 tour_settings = {
     "name": "Туры",

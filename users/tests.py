@@ -1,7 +1,7 @@
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
-
+from rest_framework.test import APITestCase
 from users.models import User
 
 
@@ -13,119 +13,95 @@ class UserAPITests(APITestCase):
     """
 
     def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create(
-            email="test@test.ru",
-            password="test_password",
-            phone_number="+79999999999",
-            is_active=True
-        )
-        # Если нужно, чтобы тесты считали нас авторизованными этим пользователем:
-        self.client.force_authenticate(user=self.user)
+        self.user_data = {
+            "username": "ivanov_username",
+            "first_name": "Иван",
+            "last_name": "Иванов",
+            "email": "ivanov@example.com",
+            "phone_number": "+79999999999",
+            "birth_date": "1990-01-01",
+            "password": "password123"
+        }
+        self.user = User.objects.create_user(**self.user_data)
 
-    def test_user(self):
+    def test_user_attributes(self):
         """Тест базовых атрибутов самой модели Пользователя"""
-        self.assertEqual(self.user.email, "test@test.ru")
-        self.assertEqual(self.user.phone_number, "+79999999999")
-        self.assertFalse(self.user.first_name)
-        self.assertFalse(self.user.last_name)
-        self.assertFalse(self.user.description)
-        self.assertFalse(self.user.address)
-        self.assertFalse(self.user.avatar)
-        self.assertEqual(self.user.role, "Пользователь")
+        self.assertEqual(self.user.first_name, "Иван")
+        self.assertEqual(self.user.last_name, "Иванов")
+        self.assertEqual(self.user.email, "ivanov@example.com")
+        self.assertEqual(self.user.phone_number.as_e164, "+79999999999")
 
-    def test_user_list(self):
-        url = reverse("users:user-list")
-        response = self.client.get(url)
-
-        # status 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # При пагинации DRF:
-        # 'count' = всего записей
-        # 'results' = список пользователей
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(len(response.data["results"]), 1)
-
-        # Убедимся, что в базе 1 пользователь
-        self.assertEqual(User.objects.count(), 1)
-
-    def test_user_create(self):
+    def test_create_user(self):
         """Тест создания пользователя (POST /users/)"""
         url = reverse("users:user-list")
-        data = {
-            "email": "user@example.com",
+        new_user_data = {
+            "username": "smirnov_username",
+            "first_name": "Мария",
+            "last_name": "Смирнова",
+            "email": "smirnova@example.com",
+            "phone_number": "+79999999988",
+            "birth_date": "1985-05-15",
+            "password": "newpassword123"
         }
-        response = self.client.post(url, data)
+        response = self.client.post(url, new_user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 2)
 
     def test_forbidden_word_validator(self):
-        """
-        Тест на проверку запрещенных слов.
-        Если в first_name будет "плохое_слово", ForbiddenWordValidator должен вернуть 400.
-        """
+        """Тест на проверку запрещённых слов."""
         url = reverse("users:user-list")
         data = {
-            "email": "test1@test.ru",
-            "first_name": "плохое_слово",  # Должно вызывать 400
+            "username": "badword_username",
+            "first_name": "запрещенное_слово",
+            "last_name": "Петров",
+            "email": "forbidden@example.com",
+            "phone_number": "+79999999944",
+            "birth_date": "1980-01-01",
+            "password": "password123"
         }
         response = self.client.post(url, data)
-        # Ожидаем код 400, если валидация срабатывает
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # Проверяем, что в тексте ошибки есть фрагмент про «недопустимое слово»
         self.assertIn("Введено недопустимое слово", str(response.data))
 
-    def test_fill_fields_validator(self):
-        """
-        Тест на проверку заполнения полей в зависимости от роли (model.clean()).
-        Для role=USER нельзя заполнять username, address, description.
-        """
-        url = reverse("users:user-list")
-        data = {
-            "email": "test1@test.ru",
-            "description": "test",  # Должно быть нельзя при role=USER
-        }
-        response = self.client.post(url, data)
-        # Ожидаем код 400 при некорректном заполнении
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # Текст ошибки из model.clean()
-        self.assertIn(
-            "У пользователя (role=USER) не могут быть заполнены поля",
-            str(response.data)
-        )
+    def test_clean_method_role_user(self):
+        """Тест на проверку заполнения полей в зависимости от роли (model.clean())."""
+        self.user.role = "USER"
+        self.user.company_name = "Тестовая компания"
+        with self.assertRaisesMessage(ValidationError, "У обычного пользователя не могут быть заполнены поля: company_name, documents."):
+            self.user.full_clean()
 
-    def test_user_retrieve(self):
+    def test_get_user_detail(self):
         """Тест получения данных одного пользователя (GET /users/{id}/)"""
         url = reverse("users:user-detail", args=[self.user.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['phone_number'], self.user.phone_number)
+        self.assertEqual(response.data["email"], "ivanov@example.com")
 
-    def test_user_put(self):
+    def test_update_user_put(self):
         """Тест полного обновления пользователя (PUT /users/{id}/)"""
         url = reverse("users:user-detail", args=[self.user.id])
-        data = {
-            "email": "user@example.com",
-            "phone_number": "+79999999988",
+        update_data = {
+            "username": "updated_username",
+            "first_name": "Алексей",
+            "last_name": "Смирнов",
+            "email": "smirnov@example.com",
+            "phone_number": "+79999999977",
+            "birth_date": "1985-05-15"
         }
-        response = self.client.put(url, data)
+        response = self.client.put(url, update_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["phone_number"], "+79999999988")
+        self.assertEqual(response.data["email"], "smirnov@example.com")
 
-    def test_user_patch(self):
+    def test_partial_update_user_patch(self):
         """Тест частичного обновления пользователя (PATCH /users/{id}/)"""
         url = reverse("users:user-detail", args=[self.user.id])
-        data = {
-            "phone_number": "+79999999988",
-        }
-        response = self.client.patch(url, data)
+        response = self.client.patch(url, {"first_name": "Алексей"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["phone_number"], "+79999999988")
+        self.assertEqual(response.data["first_name"], "Алексей")
 
-    def test_user_destroy(self):
+    def test_delete_user(self):
         """Тест на удаление пользователя (DELETE /users/{id}/)"""
         url = reverse("users:user-detail", args=[self.user.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(User.objects.exists())  # Пользователь удалён
+        self.assertFalse(User.objects.filter(id=self.user.id).exists())

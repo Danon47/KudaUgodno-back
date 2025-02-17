@@ -1,14 +1,11 @@
-from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 
-from users.choices import RoleChoices
+class ForbiddenWordValidator:
+    """Валидатор для проверки запрещённых слов в текстовых полях."""
 
-
-class FillFieldsValidator:
-    """Проверка на заполнение полей в зависимости от роли"""
+    FORBIDDEN_WORDS = {"запрещенное_слово", "недопустимое_имя"}
 
     def __call__(self, value):
-
-        if value.get("role") == RoleChoices.USER and value.get("username") or value.get("address") or value.get("description"):
-                raise ValidationError("У пользователя не могут быть заполнены поля: username, address, description")
-        if value.get("role") == RoleChoices.TOUR_OPERATOR and value.get("first_name") or value.get("last_name"):
-                raise ValidationError("У туроператора не могут быть заполнены поля: first_name, last_name")
+        for word in self.FORBIDDEN_WORDS:
+            if word in value.lower():
+                raise serializers.ValidationError(f"Введено недопустимое слово: '{word}'")
