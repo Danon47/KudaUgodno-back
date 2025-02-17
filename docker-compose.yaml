@@ -30,7 +30,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:cached
-      - ${APP_VOLUME_PATH}/static:app/static
+      - ${APP_VOLUME_PATH}/static:/app/static
     env_file:
       - .env
     command: >
