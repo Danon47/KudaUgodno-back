@@ -1,11 +1,21 @@
 from django.db import models
 
+from hotels.models.hotel.models_hotel import NULLABLE
+
 
 class RoomUnavailable(models.Model):
     """
     Недоступность номера
     """
 
+    room = models.ForeignKey(
+        "Room",
+        on_delete=models.CASCADE,
+        related_name="unavailables",
+        verbose_name="Номер",
+        help_text="Номер, который недоступен",
+        **NULLABLE
+    )
     reason = models.CharField(
         verbose_name="Причина недоступности номера",
         help_text="Причина недоступности номера",

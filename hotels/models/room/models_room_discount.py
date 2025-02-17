@@ -1,12 +1,22 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from hotels.models.hotel.models_hotel import NULLABLE
+
 
 class RoomDiscount(models.Model):
     """
     Скидка
     """
 
+    room = models.ForeignKey(
+        "Room",
+        on_delete=models.CASCADE,
+        related_name="discounts",
+        verbose_name="Номер",
+        help_text="Номер, к которому применяется скидка",
+        **NULLABLE
+    )
     name = models.CharField(
         verbose_name="Название скидки",
         help_text="Название скидки",
