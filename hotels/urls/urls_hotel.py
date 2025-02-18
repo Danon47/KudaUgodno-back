@@ -33,6 +33,6 @@ urlpatterns = [
     path(
         "hotels/<int:hotel_id>/photos/<int:pk>/",
         HotelPhotoViewSet.as_view({"delete": "destroy"}),
-        name="hotels-photo-detail",
+        name="hotels-photos-detail",
     ),
 ]
