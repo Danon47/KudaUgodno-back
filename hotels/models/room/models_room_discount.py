@@ -1,7 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-from hotels.models.hotel.models_hotel import NULLABLE
+from all_fixture.fixture_views import NULLABLE
 
 
 class RoomDiscount(models.Model):
