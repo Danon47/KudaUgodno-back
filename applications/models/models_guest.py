@@ -9,34 +9,28 @@ class Guest(models.Model):
     Модель Гостя
     """
 
-    # Имя
     firstname = models.CharField(
         max_length=50,
         verbose_name="Имя",
     )
-    # Фамилия
     lastname = models.CharField(
         max_length=50,
         verbose_name="Фамилия",
     )
-    # Отчество
     surname = models.CharField(
         max_length=50,
         verbose_name="Отчество",
         blank=True,
         null=True,
     )
-    # Дата рождения
     date_born = models.DateField(
         verbose_name="Дата рождения",
-        help_text="Формат: YYYY-MM-DD",
+        help_text="Формат: DD-MM-YYYY",
     )
-    # Гражданство
     citizenship = models.CharField(
         max_length=100,
         verbose_name="Гражданство",
     )
-    # Серия/номер российского паспорта
     russian_passport_no = models.CharField(
         verbose_name="Серия/номер российского паспорта",
         help_text="Формат: XXXX XXXXXX",
@@ -49,7 +43,6 @@ class Guest(models.Model):
             )
         ],
     )
-    # Серия/номер иностранного паспорта
     international_passport_no = models.CharField(
         verbose_name="Серия/номер иностранного паспорта",
         help_text="Формат: XX XXXXXXXX",
@@ -62,10 +55,9 @@ class Guest(models.Model):
             )
         ],
     )
-    # Срок действия иностранного паспорта
     validity_international_passport = models.DateField(
         verbose_name="Срок действия иностранного паспорта",
-        help_text="Формат: YYYY-MM-DD",
+        help_text="Формат: DD-MM-YYYY",
         blank=True,
         null=True
     )

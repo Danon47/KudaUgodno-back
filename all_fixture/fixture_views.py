@@ -1,6 +1,7 @@
 from drf_spectacular.utils import OpenApiParameter
 
 
+NULLABLE = {"blank": True, "null": True}
 # Теги для settings
 user_settings = {
     "name": "Пользователи",

@@ -1,7 +1,9 @@
 from django.core.validators import MaxValueValidator
 from django.db import models
+
+from all_fixture.fixture_views import NULLABLE
 from flights.models import Flight
-from hotels.models.hotel.models_hotel import Hotel, NULLABLE
+from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.room.models_room import Room
 from users.models import User
 
@@ -11,15 +13,12 @@ class Tour(models.Model):
     Модель для хранения информации о турах
     """
 
-    # Дата начала тура
     start_date = models.DateField(
         verbose_name="Дата начала тура"
     )
-    # Дата окончания тура
     end_date = models.DateField(
         verbose_name="Дата окончания тура"
     )
-    # Рейс туда
     flight_to = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
@@ -27,20 +26,17 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-    # Рейс обратно
     flight_from = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
         verbose_name="Рейс обратно",
         **NULLABLE,
     )
-    # Город вылета
     departure_city = models.CharField(
         max_length=50,
         verbose_name="Город вылета",
         **NULLABLE,
     )
-    # Туроператор
     tour_operator = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -48,7 +44,6 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-    # Отель
     hotel = models.ForeignKey(
         Hotel,
         on_delete=models.SET_NULL,
@@ -56,14 +51,12 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-    # Номера
     room = models.ManyToManyField(
         Room,
         verbose_name="Номер",
         related_name="tours",
         blank=True,
     )
-    # Количество человек
     guests_number = models.PositiveIntegerField(
         verbose_name="Количество человек",
         default=2,
@@ -72,8 +65,6 @@ class Tour(models.Model):
         ],
         **NULLABLE,
     )
-
-    # Стоимость тура
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
