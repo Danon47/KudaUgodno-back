@@ -19,7 +19,7 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
 
 class HotelDetailSerializer(serializers.ModelSerializer):
-    rules = HotelRulesSerializer(many=True, source="hotels_rules")
+    rules = HotelRulesSerializer(many=True, source="hotels_rules", required=False)
     user_rating = serializers.FloatField(required=False)
 
     class Meta:
