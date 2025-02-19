@@ -1,4 +1,6 @@
 import os
+import sys
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -26,57 +28,50 @@ DEBUG = os.getenv("DEBUG") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = [
-   # Стандартные Django-приложения
-   "django.contrib.admin",
-   "django.contrib.auth",
-   "django.contrib.contenttypes",
-   "django.contrib.sessions",
-   "django.contrib.messages",
-   "django.contrib.staticfiles",
-
-   # Сторонние библиотеки
-   "rest_framework",
-   "rest_framework.authtoken",
-   "rest_framework_simplejwt",
-   "dj_rest_auth",
-   "allauth",
-   "allauth.account",
-   "allauth.socialaccount",
-
-   # Подключаем OAuth-авторизацию (если нужны соцсети)
-   "allauth.socialaccount.providers.google",
-   "allauth.socialaccount.providers.vk",
-   "allauth.socialaccount.providers.yandex",
-
-   # Дополнительные библиотеки
-   "drf_spectacular",
-   "phonenumber_field",
-   "django_celery_beat",
-
-   # Наши приложения
-   "users",
-   "tours",
-   "flights",
-   "hotels",
-   "applications",
-
-   # Поддержка CORS
-   "corsheaders",
+    # Стандартные Django-приложения
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Сторонние библиотеки
+    "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt",
+    "dj_rest_auth",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    # Подключаем OAuth-авторизацию (если нужны соцсети)
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.vk",
+    "allauth.socialaccount.providers.yandex",
+    # Дополнительные библиотеки
+    "drf_spectacular",
+    "phonenumber_field",
+    "django_celery_beat",
+    # Наши приложения
+    "users",
+    "tours",
+    "flights",
+    "hotels",
+    "applications",
+    # Поддержка CORS
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
-   "django.middleware.security.SecurityMiddleware",
-   "django.contrib.sessions.middleware.SessionMiddleware",
-   "corsheaders.middleware.CorsMiddleware",
-   "django.middleware.common.CommonMiddleware",
-
-   # 🔹 Добавляем сюда (ВАЖНО: перед AuthenticationMiddleware)
-   "allauth.account.middleware.AccountMiddleware",
-
-   "django.middleware.csrf.CsrfViewMiddleware",
-   "django.contrib.auth.middleware.AuthenticationMiddleware",
-   "django.contrib.messages.middleware.MessageMiddleware",
-   "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    # 🔹 Добавляем сюда (ВАЖНО: перед AuthenticationMiddleware)
+    "allauth.account.middleware.AccountMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 
@@ -157,7 +152,10 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "static/media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "static", "media")
+# Настройки для тестов
+if "test" in sys.argv:
+    MEDIA_ROOT = tempfile.mkdtemp(prefix="test_media_")
 
 # Ограничение на размер загружаемого файла в 10 мегабайт
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760

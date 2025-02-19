@@ -1,4 +1,10 @@
-import pytest
+import os
+import shutil
+import tempfile
+
+from PIL import Image
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -16,6 +22,7 @@ from hotels.models.hotel.models_hotel_rules import HotelRules
 
 class HotelModelTest(TestCase):
     """Тест модели отеля"""
+
     def test_hotel_creation(self):
         hotel_data = get_hotel_data()
         hotel = Hotel.objects.create(**hotel_data)
@@ -36,7 +43,9 @@ class HotelModelTest(TestCase):
         self.assertEqual(hotel.check_out_time.strftime("%H:%M:%S"), "12:00:00")
         self.assertEqual(hotel.amenities_common, ["Wi-Fi", "Парковка"])
         self.assertEqual(hotel.amenities_in_the_room, ["ТВ", "Мини-бар"])
-        self.assertEqual(hotel.amenities_sports_and_recreation, ["Бассейн", "Тренажёрный зал"])
+        self.assertEqual(
+            hotel.amenities_sports_and_recreation, ["Бассейн", "Тренажёрный зал"]
+        )
         self.assertEqual(hotel.amenities_for_children, ["Детская площадка"])
         self.assertEqual(hotel.type_of_meals_ultra_all_inclusive, 5000)
         self.assertEqual(hotel.type_of_meals_all_inclusive, 4000)
@@ -51,6 +60,7 @@ class HotelModelTest(TestCase):
 
 class HotelPhotoModelTest(TestCase):
     """Тест модели фотографий отеля"""
+
     def test_hotel_photo_creation(self):
         hotel_data = get_hotel_data()
         hotel = Hotel.objects.create(**hotel_data)
@@ -62,7 +72,8 @@ class HotelPhotoModelTest(TestCase):
 
 
 class HotelRulesModelTest(TestCase):
-    """ Тест модели правил отеля"""
+    """Тест модели правил отеля"""
+
     def test_hotel_rules_creation(self):
         hotel_data = get_hotel_data()
         hotel = Hotel.objects.create(**hotel_data)
@@ -105,7 +116,7 @@ class HotelAPITestCase(APITestCase):
         updated_data["name"] = "Обновлённое название отеля"
         updated_data["rules"] = [
             {"name": "Правило 1", "description": "Описание правила 1"},
-            {"name": "Правило 2", "description": "Описание правила 2"}
+            {"name": "Правило 2", "description": "Описание правила 2"},
         ]
         response = self.client.put(self.url_detail, updated_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -120,20 +131,38 @@ class HotelAPITestCase(APITestCase):
 
 
 class HotelPhotoAPITestCase(APITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # Создаём временную директорию для MEDIA_ROOT
+        cls.temp_media_root = tempfile.mkdtemp(prefix="test_media_")
+        settings.MEDIA_ROOT = cls.temp_media_root
+
+    @classmethod
+    def tearDownClass(cls):
+        # Удаляем временную директорию после завершения всех тестов
+        shutil.rmtree(cls.temp_media_root, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.hotel_data = get_hotel_data()
         self.hotel = Hotel.objects.create(**self.hotel_data)
         self.photo_data = get_hotel_photo_data(self.hotel)
         self.photo = HotelPhoto.objects.create(**self.photo_data)
         self.url_list = reverse("hotels-photos-detail", args=[self.hotel.id])
-        self.url_detail = reverse("hotels-photos-detail", args=[self.hotel.id, self.photo.id])
+        self.url_detail = reverse(
+            "hotels-photos-detail", args=[self.hotel.id, self.photo.id]
+        )
 
     def test_create_hotel_photo(self):
         """Тест создания фотографии отеля."""
         # Создаём временное изображение, так как если использовать self.photo_data получаю ошибку:
         # {'photo': [ErrorDetail(string='Отправленный файл пуст.', code='empty')]}
         test_image = create_test_image()
-        photo_data = {"hotel": self.hotel.id, "photo": test_image,}
+        photo_data = {
+            "hotel": self.hotel.id,
+            "photo": test_image,
+        }
         response = self.client.post(self.url_list, photo_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(HotelPhoto.objects.count(), 2)
@@ -149,107 +178,3 @@ class HotelPhotoAPITestCase(APITestCase):
         response = self.client.delete(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(HotelPhoto.objects.count(), 0)
-
-#
-# @pytest.mark.django_db
-# class TestHotelEndpoints:
-#     def setup_method(self):
-#         self.client = APIClient()
-#         self.list_url = reverse('hotels-list')
-#         self.hotel_data = get_hotel_data()
-#         self.hotel_data.pop('check_in_time')  # Время будет передано как строка
-#         self.hotel_data.update({
-#             "check_in_time": "14:00:00",
-#             "check_out_time": "12:00:00",
-#             "rules": [{"name": "Тестовое правило", "description": "Описание"}]
-#         })
-#
-#     def test_full_hotel_lifecycle(self):
-#         # Создание
-#         response = self.client.post(self.list_url, self.hotel_data, format='json')
-#         assert response.status_code == status.HTTP_201_CREATED
-#         hotel_id = response.data['id']
-#
-#         # Проверка создания
-#         hotel = Hotel.objects.get(id=hotel_id)
-#         assert hotel.name == "Тестовый отель"
-#         assert hotel.rules.count() == 1
-#
-#         # Получение списка
-#         response = self.client.get(self.list_url)
-#         assert response.status_code == status.HTTP_200_OK
-#         assert len(response.data['results']) == 1
-#         assert response.data['results'][0]['room_categories'] == ["Стандарт", "Делюкс"]
-#
-#         # Детализация
-#         detail_url = reverse('hotels-detail', args=[hotel_id])
-#         response = self.client.get(detail_url)
-#         assert response.status_code == status.HTTP_200_OK
-#         assert response.data['type_of_rest'] == "Пляжный"
-#
-#         # Обновление
-#         update_data = {
-#             "name": "Обновленное название",
-#             "star_category": 4,
-#             "rules": [{"name": "Новое правило", "description": "Новое описание"}]
-#         }
-#         response = self.client.put(detail_url, update_data, format='json')
-#         assert response.status_code == status.HTTP_200_OK
-#         hotel.refresh_from_db()
-#         assert hotel.name == "Обновленное название"
-#         assert hotel.rules.first().name == "Новое правило"
-#
-#         # Удаление
-#         response = self.client.delete(detail_url)
-#         assert response.status_code == status.HTTP_204_NO_CONTENT
-#         assert Hotel.objects.count() == 0
-#
-#
-# @pytest.mark.django_db
-# class TestHotelPhotoEndpoints:
-#     def setup_method(self):
-#         self.client = APIClient()
-#         self.hotel = Hotel.objects.create(**get_hotel_data())
-#         self.photo_data = get_hotel_photo_data(self.hotel)
-#
-#     def test_photo_operations(self):
-#         # Создание фото
-#         url = reverse('hotels-photos-detail', args=[self.hotel.id])
-#         with open(self.photo_data['photo'].name, 'rb') as img:
-#             response = self.client.post(url, {'photo': img}, format='multipart')
-#
-#         assert response.status_code == status.HTTP_201_CREATED
-#         photo_id = response.data['id']
-#
-#         # Проверка создания
-#         assert HotelPhoto.objects.count() == 1
-#         photo = HotelPhoto.objects.first()
-#         assert 'test_image' in photo.photo.name
-#
-#         # Получение списка фото
-#         response = self.client.get(url)
-#         assert response.status_code == status.HTTP_200_OK
-#         assert len(response.data) == 1
-#
-#         # Удаление фото
-#         delete_url = reverse('hotels-photo-detail', args=[self.hotel.id, photo_id])
-#         response = self.client.delete(delete_url)
-#         assert response.status_code == status.HTTP_204_NO_CONTENT
-#         assert HotelPhoto.objects.count() == 0
-#
-#     def test_invalid_photo_upload(self):
-#         url = reverse('hotels-photos-detail', args=[self.hotel.id])
-#         response = self.client.post(url, {'photo': 'not-an-image'}, format='multipart')
-#         assert response.status_code == status.HTTP_400_BAD_REQUEST
-#
-#
-# @pytest.mark.django_db
-# class TestValidation:
-#     def test_invalid_star_rating(self):
-#         client = APIClient()
-#         invalid_data = get_hotel_data().copy()
-#         invalid_data['star_category'] = 6
-#
-#         response = client.post(reverse('hotels-list'), invalid_data, format='json')
-#         assert response.status_code == status.HTTP_400_BAD_REQUEST
-#         assert 'star_category' in response.data
