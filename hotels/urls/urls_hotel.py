@@ -25,8 +25,7 @@ urlpatterns = [
     # Добавление и просмотр всех фотографий отеля
     path(
         "hotels/<int:hotel_id>/photos/",
-        HotelPhotoViewSet.as_view(
-            {"get": "list", "post": "create"}),
+        HotelPhotoViewSet.as_view({"get": "list", "post": "create"}),
         name="hotels-photos-detail",
     ),
     # Удаление выбранной фотографии отеля
