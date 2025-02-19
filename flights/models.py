@@ -1,9 +1,7 @@
 from decimal import Decimal
 
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
-
-from flights.choices import AirlinesChoices, ServicesClassChoices, FlightTypeChoices
 
 
 class Flight(models.Model):
@@ -14,22 +12,13 @@ class Flight(models.Model):
     # Номер рейса
     flight_number = models.CharField(
         max_length=10,
-        verbose_name="Номер рейса",
-        help_text="Введите номер рейса в формате: AA XXXX, где A-латинские буквы в верхнем регистре, X- цифры",
-        validators=[
-            RegexValidator(
-                regex=r"^[A-Z]{2} [0-9]{4}$",
-                message="Введите номер рейса в формате: AA XXXX, где A-латинские буквы в верхнем регистре, X- цифры "
-                "от 0 до 9)",
-            )
-        ],
+        verbose_name="Номер рейса"
     )
 
     # Авиакомпания
     airline = models.CharField(
         max_length=100,
-        verbose_name="Авиакомпания",
-        choices=AirlinesChoices.choices
+        verbose_name="Авиакомпания"
     )
     # Аэропорт вылета
     departure_airport = models.CharField(
@@ -68,15 +57,13 @@ class Flight(models.Model):
     service_class = models.CharField(
         max_length=100,
         verbose_name="Класс обслуживания",
-        choices=ServicesClassChoices.choices,
-        default=ServicesClassChoices.ECONOMY,
+        default="Эконом-класс",
     )
     # Тип рейса
     flight_type = models.CharField(
         max_length=50,
         verbose_name="Тип рейса",
-        choices=FlightTypeChoices.choices,
-        default=FlightTypeChoices.REGULAR,
+        default="Регулярный"
     )
 
     class Meta:
