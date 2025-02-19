@@ -26,12 +26,12 @@ urlpatterns = [
     path(
         "rooms/<int:room_id>/photos/",
         RoomPhotoViewSet.as_view({"get": "list", "post": "create"}),
-        name="room-photos",
+        name="rooms-photos-list",
     ),
     # Удаление фотографий
     path(
         "rooms/<int:room_id>/photos/<int:pk>/",
         RoomPhotoViewSet.as_view({"delete": "destroy"}),
-        name="room-photo-detail",
+        name="rooms-photo-detail",
     ),
 ]
