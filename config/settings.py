@@ -14,6 +14,8 @@ from all_fixture.fixture_views import (
     flight_settings,
     application_settings,
     application_guest_settings,
+    auth,
+    entreprise,
 )
 
 
@@ -183,12 +185,14 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "TYPESCRIPT_GENERATOR": {"TYPED_PATH_PARAMETERS": True},
     "TAGS": [
+        auth,
         user_settings,
-        tour_settings,
+        entreprise,
         hotel_settings,
         hotel_photo_settings,
         room_settings,
         room_photo_settings,
+        tour_settings,
         flight_settings,
         application_settings,
         application_guest_settings,
