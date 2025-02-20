@@ -143,7 +143,7 @@ class Hotel(models.Model):
         help_text="Стоимость за одного человека",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(10000),
+            MaxValueValidator(500000),
         ],
         **NULLABLE,
     )
@@ -152,7 +152,7 @@ class Hotel(models.Model):
         help_text="Стоимость за одного человека",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(10000),
+            MaxValueValidator(500000),
         ],
         **NULLABLE,
     )
@@ -161,7 +161,7 @@ class Hotel(models.Model):
         help_text="Стоимость за одного человека",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(10000),
+            MaxValueValidator(400000),
         ],
         **NULLABLE,
     )
@@ -170,7 +170,7 @@ class Hotel(models.Model):
         help_text="Стоимость за одного человека",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(10000),
+            MaxValueValidator(300000),
         ],
         **NULLABLE,
     )
@@ -179,7 +179,7 @@ class Hotel(models.Model):
         help_text="Стоимость за одного человека",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(10000),
+            MaxValueValidator(100000),
         ],
         **NULLABLE,
     )
