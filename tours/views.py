@@ -80,12 +80,19 @@ class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
     serializer_class = TourSerializer
 
-    def perform_create(self, serializer):
-        tour = serializer.save()
-        total_price = 0
-        if tour.room and tour.flight_from and tour.flight_to:
-            for room in tour.room.all():
-                total_price += (tour.end_date - tour.start_date).days * room.nightly_price
-            total_price += (tour.flight_to.price + tour.flight_from.price) * tour.guests_number
-        tour.price = total_price
-        tour.save()
+    # def perform_create(self, serializer):
+    #     tour = serializer.save()
+    #     total_price = 0
+    #     guests_number = tour.number_of_adults + tour.number_of_children
+    #     if tour.number_of_children:
+    #         guests_number = tour.number_of_adults + tour.number_of_children
+    #     if tour.room and tour.flight_from and tour.flight_to:
+    #         for room in tour.room.all():
+    #             total_price += (
+    #                 tour.end_date - tour.start_date
+    #             ).days * room.nightly_price
+    #         total_price += (
+    #             tour.flight_to.price + tour.flight_from.price
+    #         ) * guests_number
+    #     tour.price = total_price
+    #     tour.save()
