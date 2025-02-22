@@ -21,12 +21,11 @@ class TourSerializer(ModelSerializer):
             "flight_to",
             "flight_from",
             "departure_city",
-            "guests_number",
+            "number_of_adults",
+            "number_of_children",
             "tour_operator",
             "hotel",
-            "room",
             "price",
         )
-        read_only_fields = ("price",)
         validators = [StartDateValidator(),
                       EndDateValidator()]

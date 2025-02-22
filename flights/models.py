@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from all_fixture.fixture_views import NULLABLE
+
 
 class Flight(models.Model):
     """
@@ -52,6 +54,11 @@ class Flight(models.Model):
         max_length=50,
         verbose_name="Тип рейса",
         default="Регулярный"
+    )
+    description = models.TextField(
+        verbose_name="Описание",
+        **NULLABLE,
+        help_text="Наличие пересадки, багаж, ручная кладь, питание на борту, сайт авиакомпании"
     )
 
     class Meta:

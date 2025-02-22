@@ -13,6 +13,7 @@ class FlightSerializer(ModelSerializer):
     class Meta:
         model = Flight
         fields = (
+            "id",
             "flight_number",
             "airline",
             "departure_airport",
@@ -24,7 +25,7 @@ class FlightSerializer(ModelSerializer):
             "price",
             "service_class",
             "flight_type",
-
+            "description"
         )
 
         validators = [

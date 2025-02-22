@@ -51,19 +51,19 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-    room = models.ManyToManyField(
-        Room,
-        verbose_name="Номер",
-        related_name="tours",
-        blank=True,
-    )
-    guests_number = models.PositiveIntegerField(
-        verbose_name="Количество человек",
+    number_of_adults = models.PositiveIntegerField(
+        verbose_name="Количество взрослых",
         default=2,
         validators=[
             MaxValueValidator(10),
-        ],
-        **NULLABLE,
+        ]
+    )
+    number_of_children = models.PositiveIntegerField(
+        verbose_name="Количество детей",
+        default=0,
+        validators=[
+            MaxValueValidator(10),
+        ]
     )
     price = models.DecimalField(
         max_digits=10,
