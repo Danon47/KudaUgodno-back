@@ -25,6 +25,7 @@ class TourSerializer(ModelSerializer):
             "number_of_children",
             "tour_operator",
             "hotel",
+            "transfer",
             "price",
         )
         validators = [StartDateValidator(),
