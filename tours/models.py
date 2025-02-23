@@ -56,14 +56,18 @@ class Tour(models.Model):
         default=2,
         validators=[
             MaxValueValidator(10),
-        ]
+        ],
     )
     number_of_children = models.PositiveIntegerField(
         verbose_name="Количество детей",
         default=0,
         validators=[
             MaxValueValidator(10),
-        ]
+        ],
+    )
+    transfer = models.TextField(
+        verbose_name="Трансфер",
+        **NULLABLE
     )
     price = models.DecimalField(
         max_digits=10,
