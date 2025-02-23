@@ -13,12 +13,8 @@ class Tour(models.Model):
     Модель для хранения информации о турах
     """
 
-    start_date = models.DateField(
-        verbose_name="Дата начала тура"
-    )
-    end_date = models.DateField(
-        verbose_name="Дата окончания тура"
-    )
+    start_date = models.DateField(verbose_name="Дата начала тура")
+    end_date = models.DateField(verbose_name="Дата окончания тура")
     flight_to = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
@@ -65,15 +61,25 @@ class Tour(models.Model):
             MaxValueValidator(10),
         ],
     )
-    transfer = models.TextField(
-        verbose_name="Трансфер",
-        **NULLABLE
-    )
+    transfer = models.TextField(verbose_name="Трансфер", **NULLABLE)
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Стоимость тура",
         **NULLABLE,
+    )
+    document = models.FileField(
+        upload_to="tour/documents",
+        verbose_name="Документы",
+        **NULLABLE
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата последнего изменения"
     )
 
     class Meta:

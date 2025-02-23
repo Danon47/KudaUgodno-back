@@ -1,6 +1,3 @@
-from datetime import date
-
-from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from tours.models import Tour
@@ -27,6 +24,9 @@ class TourSerializer(ModelSerializer):
             "hotel",
             "transfer",
             "price",
+            "document",
+            "created_at",
+            "updated_at",
         )
-        validators = [StartDateValidator(),
-                      EndDateValidator()]
+        read_only_fields = ("created_at", "updated_at")
+        validators = [StartDateValidator(), EndDateValidator()]
