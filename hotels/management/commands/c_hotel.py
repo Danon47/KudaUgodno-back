@@ -56,7 +56,7 @@ class Command(BaseCommand):
             hotels.append(hotel)
 
             for rule_name, rule_description in rules.items():
-                rule = HotelRules.objects.create(
+                HotelRules.objects.create(
                     hotel=hotel,
                     name=rule_name,
                     description=rule_description,
