@@ -1,12 +1,11 @@
 from rest_framework import serializers
+
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_discount import RoomDiscount
 from hotels.models.room.models_room_unavailable import RoomUnavailable
 from hotels.serializers.room.serializers_room_discount import RoomDiscountSerializer
 from hotels.serializers.room.serializers_room_photo import RoomPhotoSerializer
-from hotels.serializers.room.serializers_room_unavaliable import (
-    RoomUnavailableSerializer,
-)
+from hotels.serializers.room.serializers_room_unavaliable import RoomUnavailableSerializer
 
 
 class RoomBaseSerializer(serializers.ModelSerializer):
@@ -37,8 +36,8 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        discount_data = validated_data.pop('discount', [])
-        unavailable_data = validated_data.pop('unavailable', [])
+        discount_data = validated_data.pop("discount", [])
+        unavailable_data = validated_data.pop("unavailable", [])
 
         room = Room.objects.create(**validated_data)
 
@@ -52,8 +51,8 @@ class RoomBaseSerializer(serializers.ModelSerializer):
         return room
 
     def update(self, instance, validated_data):
-        discount_data = validated_data.pop('discount', None)
-        unavailable_data = validated_data.pop('unavailable', None)
+        discount_data = validated_data.pop("discount", None)
+        unavailable_data = validated_data.pop("unavailable", None)
 
         instance = super().update(instance, validated_data)
 

@@ -1,11 +1,7 @@
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import flight_settings, limit, offset, flight_id
+from all_fixture.fixture_views import flight_id, flight_settings, limit, offset
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 

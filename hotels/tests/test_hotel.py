@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from all_fixture.tests.fixture_hotel import (
     get_hotel_data,
     get_hotel_photo_data,
@@ -39,18 +40,10 @@ class HotelModelTest(TestCase):
         self.photo = HotelPhoto.objects.create(**get_hotel_photo_data(self.hotel))
         self.rule = HotelRules.objects.create(**get_hotel_rules_data(self.hotel))
         self.update_hotel_data = update_hotel_data()
-        self.url_list = reverse(
-            "hotels-list"
-        )
-        self.url_detail = reverse(
-            "hotels-detail", args=[self.hotel.id]
-        )
-        self.url_photo_list = reverse(
-            "hotels-photos-list", args=[self.hotel.id]
-        )
-        self.url_photo_detail = reverse(
-            "hotels-photos-detail", args=[self.hotel.id, self.photo.id]
-        )
+        self.url_list = reverse("hotels-list")
+        self.url_detail = reverse("hotels-detail", args=[self.hotel.id])
+        self.url_photo_list = reverse("hotels-photos-list", args=[self.hotel.id])
+        self.url_photo_detail = reverse("hotels-photos-detail", args=[self.hotel.id, self.photo.id])
 
     def test_hotel_creation(self):
         """Тест создания отеля, Модель"""

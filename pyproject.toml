@@ -42,9 +42,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 119
-exclude = """
-    migrations/
-"""
+exclude = "migrations/"
 
 [tool.isort]
 include_trailing_comma = true
@@ -54,5 +52,5 @@ multi_line_output = 3
 skip = ["__init__.py"]
 
 [tool.flake8]
-max-line-length = 78
+max-line-length = 119
 exclude = ".git,__pycache__,poetry.lock,pyproject.toml,migrations,tests.py"

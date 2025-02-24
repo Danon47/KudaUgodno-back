@@ -3,50 +3,23 @@ from drf_spectacular.utils import OpenApiParameter
 
 NULLABLE = {"blank": True, "null": True}
 # Теги для settings
-user_settings = {
-    "name": "Пользователи",
-    "description": "Методы для работы с пользователями"
-}
-entreprise = {
-    "name": "Компании",
-    "description": "Методы для работы с компаниями"
-}
-auth = {
-    "name": "Авторизация",
-    "description": "Методы для работы с авторизацией"
-}
-tour_settings = {
-    "name": "Туры",
-    "description": "Методы для работы с турами"
-}
-hotel_settings = {
-    "name": "Отель",
-    "description": "Методы для работы с отелями"
-}
+user_settings = {"name": "Пользователи", "description": "Методы для работы с пользователями"}
+entreprise = {"name": "Компании", "description": "Методы для работы с компаниями"}
+auth = {"name": "Авторизация", "description": "Методы для работы с авторизацией"}
+tour_settings = {"name": "Туры", "description": "Методы для работы с турами"}
+hotel_settings = {"name": "Отель", "description": "Методы для работы с отелями"}
 hotel_photo_settings = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
 }
-room_settings = {
-    "name": "Номер",
-    "description": "Методы для работы с номерами"
-}
+room_settings = {"name": "Номер", "description": "Методы для работы с номерами"}
 room_photo_settings = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
 }
-flight_settings = {
-    "name": "Рейсы",
-    "description": "Методы для работы с рейсами"
-}
-application_settings = {
-    "name": "Заявки",
-    "description": "Методы для работы с заявками"
-}
-application_guest_settings = {
-    "name": "Гости",
-    "description": "Методы для работы с гостями"
-}
+flight_settings = {"name": "Рейсы", "description": "Методы для работы с рейсами"}
+application_settings = {"name": "Заявки", "description": "Методы для работы с заявками"}
+application_guest_settings = {"name": "Гости", "description": "Методы для работы с гостями"}
 
 # ID пользователя
 user_id = OpenApiParameter(

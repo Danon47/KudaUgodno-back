@@ -24,7 +24,6 @@ class CustomUserAdmin(UserAdmin):
     # Добавляем возможность управлять группами
     filter_horizontal = ("groups",)
 
-
     def get_queryset(self, request):
         """Фильтруем пользователей в зависимости от группы администратора"""
         qs = super().get_queryset(request)
@@ -42,4 +41,3 @@ class CustomUserAdmin(UserAdmin):
             return qs.filter(role="HOTELIER")
         # Обычные пользователи не видят никого
         return qs.none()
-

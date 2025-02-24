@@ -1,5 +1,7 @@
 import os
+
 from django.core.management.base import BaseCommand
+
 from users.models import User
 
 
@@ -25,14 +27,8 @@ class Command(BaseCommand):
             user.set_password(password)
             user.save()
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"=== Admin {os.getenv('ADMIN_EMAIL')} successfully created ==="
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"=== Admin {os.getenv('ADMIN_EMAIL')} successfully created ==="))
         else:
             self.stdout.write(
-                self.style.WARNING(
-                    f"=== Admin with email {os.getenv('ADMIN_EMAIL')} already exists ==="
-                )
+                self.style.WARNING(f"=== Admin with email {os.getenv('ADMIN_EMAIL')} already exists ===")
             )

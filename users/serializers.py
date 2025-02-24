@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from users.models import User
+
 from users.choices import RoleChoices
+from users.models import User
 from users.validators import ForbiddenWordValidator
 
 
@@ -14,6 +15,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 class UserSerializer(BaseUserSerializer):
     """Сериализатор для обычных пользователей."""
+
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
 
@@ -44,10 +46,12 @@ class CompanyUserSerializer(BaseUserSerializer):
 
 class EmailLoginSerializer(serializers.Serializer):
     """Сериализатор для запроса кода на email."""
+
     email = serializers.EmailField(required=True)
 
 
 class VerifyCodeSerializer(serializers.Serializer):
     """Сериализатор для подтверждения кода и получения токенов."""
+
     email = serializers.EmailField(required=True)
     code = serializers.CharField(required=True)

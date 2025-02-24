@@ -1,9 +1,6 @@
-from drf_spectacular.utils import (
-    extend_schema_view,
-    extend_schema,
-    OpenApiResponse,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
+
 from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings, limit, offset
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel_photo import HotelPhoto

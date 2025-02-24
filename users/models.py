@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
+
 from all_fixture.fixture_views import NULLABLE
 from users.choices import RoleChoices
 
@@ -52,17 +53,11 @@ class User(AbstractUser):
         # Валидация для роли "Пользователь"
         if self.role == RoleChoices.USER:
             if self.company_name or self.documents:
-                raise ValidationError(
-                    "У обычного пользователя не могут быть заполнены поля: company_name, documents."
-                )
+                raise ValidationError("У обычного пользователя не могут быть заполнены поля: company_name, documents.")
 
         # Валидация для роли "Туроператор" и "Отельер"
         elif self.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
             if not self.company_name:
-                raise ValidationError(
-                    "Для Туроператора и Отельера поле 'Название компании' является обязательным."
-                )
+                raise ValidationError("Для Туроператора и Отельера поле 'Название компании' является обязательным.")
             if not self.documents:
-                raise ValidationError(
-                    "Для Туроператора и Отельера необходимо загрузить документы."
-                )
+                raise ValidationError("Для Туроператора и Отельера необходимо загрузить документы.")

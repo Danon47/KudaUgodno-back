@@ -1,4 +1,5 @@
 from datetime import date
+
 from rest_framework import serializers
 
 
@@ -10,9 +11,7 @@ class StartDateValidator:
     def __call__(self, value):
         tmp_val = value.get("start_date")
         if tmp_val < date.today():
-            raise serializers.ValidationError(
-                "Дата начала тура не может быть в прошлом."
-            )
+            raise serializers.ValidationError("Дата начала тура не может быть в прошлом.")
 
 
 class EndDateValidator:
@@ -25,6 +24,4 @@ class EndDateValidator:
         end_date_field = value.get("end_date")
 
         if end_date_field < start_date_field:
-            raise serializers.ValidationError(
-                "Дата окончания тура не может быть раньше даты начала."
-            )
+            raise serializers.ValidationError("Дата окончания тура не может быть раньше даты начала.")

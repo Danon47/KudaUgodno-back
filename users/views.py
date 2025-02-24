@@ -2,27 +2,18 @@ import random
 
 from django.contrib.auth import authenticate
 from django.core.mail import EmailMessage
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-)
-from rest_framework import status, viewsets, mixins
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from all_fixture.fixture_views import user_settings, offset, limit, entreprise, auth
+from all_fixture.fixture_views import auth, entreprise, limit, offset, user_settings
 from all_fixture.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
 from users.models import User
-from users.serializers import (
-    UserSerializer,
-    CompanyUserSerializer,
-    EmailLoginSerializer,
-    VerifyCodeSerializer,
-)
+from users.serializers import CompanyUserSerializer, EmailLoginSerializer, UserSerializer, VerifyCodeSerializer
 from users.tasks import clear_user_password
 
 
@@ -69,16 +60,12 @@ class UserViewSet(viewsets.ModelViewSet):
 class CompanyUserViewSet(viewsets.ModelViewSet):
     """ViewSet для Туроператоров и Отельеров."""
 
-    queryset = User.objects.filter(
-        role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]
-    ).order_by("-pk")
+    queryset = User.objects.filter(role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]).order_by("-pk")
     serializer_class = CompanyUserSerializer
     pagination_class = CustomLOPagination
 
 
-class AuthViewSet(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
+class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     """ViewSet для аутентификации по email-коду."""
 
     permission_classes = [AllowAny]
@@ -98,9 +85,7 @@ class AuthViewSet(
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
 
         code = random.randint(1000, 9999)
         user.set_password(str(code))
@@ -109,9 +94,7 @@ class AuthViewSet(
         self.send_email(user.email, code)
         clear_user_password.apply_async((user.id,), countdown=300)
 
-        return Response(
-            {"message": "Код отправлен на email"}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "Код отправлен на email"}, status=status.HTTP_200_OK)
 
     @staticmethod
     def send_email(email, code):
@@ -123,7 +106,8 @@ class AuthViewSet(
                     <body>
                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
-                       <p><strong>Никому не сообщайте этот код!</strong> Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                       <p><strong>Никому не сообщайте этот код!</strong>
+                       Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
                     </body>
                 </html>
             """,

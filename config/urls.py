@@ -1,11 +1,11 @@
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 from config import settings
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-)
+
+
 admin.site.site_header = 'Администрирование "Куда Угодно"'
 admin.site.site_title = 'Администрирование "Куда Угодно"'
 admin.site.index_title = 'Администрирование "Куда Угодно"'

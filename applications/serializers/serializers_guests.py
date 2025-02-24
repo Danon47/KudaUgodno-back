@@ -29,7 +29,7 @@ class GuestDetailSerializer(serializers.ModelSerializer):
         validators = [
             ForbiddenWordValidator(fields=["firstname", "lastname", "surname", "citizenship"]),
             DateBornValidator(),
-            ValidityOfForeignPassportValidator()
+            ValidityOfForeignPassportValidator(),
         ]
 
 

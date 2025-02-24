@@ -31,32 +31,16 @@ class Application(models.Model):
         verbose_name="Количество гостей",
         blank=True,
     )
-    visa = models.BooleanField(
-        default=False,
-        verbose_name="Оформление визы"
-    )
-    med_insurance = models.BooleanField(
-        default=False,
-        verbose_name="Медицинская страховка"
-    )
-    cancellation_insurance = models.BooleanField(
-        default=False,
-        verbose_name="Страховка невыезда"
-    )
-    wishes = models.TextField(
-        verbose_name="Пожелания",
-        **NULLABLE
-    )
+    visa = models.BooleanField(default=False, verbose_name="Оформление визы")
+    med_insurance = models.BooleanField(default=False, verbose_name="Медицинская страховка")
+    cancellation_insurance = models.BooleanField(default=False, verbose_name="Страховка невыезда")
+    wishes = models.TextField(verbose_name="Пожелания", **NULLABLE)
     status = models.CharField(
         choices=StatusChoices.choices,
         default=StatusChoices.AWAIT_CONFIRM,
         verbose_name="Статус заявки",
     )
-    user_owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name="Пользователь кто создал заявку"
-    )
+    user_owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь кто создал заявку")
 
     class Meta:
         verbose_name = "Заявка"

@@ -4,7 +4,6 @@ from django.db import models
 from all_fixture.fixture_views import NULLABLE
 from flights.models import Flight
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.room.models_room import Room
 from users.models import User
 
 
@@ -68,11 +67,7 @@ class Tour(models.Model):
         verbose_name="Стоимость тура",
         **NULLABLE,
     )
-    document = models.FileField(
-        upload_to="tour/documents",
-        verbose_name="Документы",
-        **NULLABLE
-    )
+    document = models.FileField(upload_to="tour/documents", verbose_name="Документы", **NULLABLE)
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Дата создания",

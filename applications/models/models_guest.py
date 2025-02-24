@@ -56,15 +56,9 @@ class Guest(models.Model):
         ],
     )
     validity_international_passport = models.DateField(
-        verbose_name="Срок действия иностранного паспорта",
-        help_text="Формат: DD-MM-YYYY",
-        blank=True,
-        null=True
+        verbose_name="Срок действия иностранного паспорта", help_text="Формат: DD-MM-YYYY", blank=True, null=True
     )
-    user_owner = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        verbose_name="Пользователь cоздавший гостя"
-    )
+    user_owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь cоздавший гостя")
 
     class Meta:
         verbose_name = "Гость"

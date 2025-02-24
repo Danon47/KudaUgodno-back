@@ -10,7 +10,8 @@ class DateBornValidator:
 
     def __call__(self, value):
         if value.get("date_born") and value.get("date_born") > date.today():
-                raise ValidationError("Дата рождения не может быть в будущем")
+            raise ValidationError("Дата рождения не может быть в будущем")
+
 
 class ValidityOfForeignPassportValidator:
     """
@@ -22,5 +23,5 @@ class ValidityOfForeignPassportValidator:
         validity_international_passport = value.get("validity_international_passport")
         if international_passport_no and not validity_international_passport:
             raise ValidationError("Срок действия паспорта не указан")
-        if validity_international_passport is not None and  validity_international_passport < date.today():
-                raise ValidationError("Срок действия паспорта истек")
+        if validity_international_passport is not None and validity_international_passport < date.today():
+            raise ValidationError("Срок действия паспорта истек")

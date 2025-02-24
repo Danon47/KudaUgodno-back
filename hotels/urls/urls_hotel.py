@@ -1,4 +1,5 @@
 from django.urls import path
+
 from hotels.views.hotel.views_hotel import HotelViewSet
 from hotels.views.hotel.views_hotel_photo import HotelPhotoViewSet
 
