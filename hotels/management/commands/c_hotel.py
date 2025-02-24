@@ -1,10 +1,13 @@
 import random
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
 from hotels.choices import PlaceChoices, TypeOfHolidayChoices
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.models_hotel_rules import HotelRules
 from hotels.models.room.models_room import Room
+
 
 class Command(BaseCommand):
     help = "Populate the database with test hotels and rooms"
@@ -20,11 +23,7 @@ class Command(BaseCommand):
         countries = ["США", "Россия", "Франция", "Италия", "Испания"]
         cities = ["Майами", "Москва", "Париж", "Рим", "Мадрид"]
         room_categories = ["Стандарт", "Делюкс", "Полулюкс", "Семейный"]
-        rules = {
-            "С животными": "Можно если за ними следить",
-            "Бухать": "Можно если за Вами следит жена"
-        }
-
+        rules = {"С животными": "Можно если за ними следить", "Бухать": "Можно если за Вами следит жена"}
 
         hotels = []
         for i in range(count):

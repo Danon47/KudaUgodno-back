@@ -1,6 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+
 from all_fixture.fixture_views import NULLABLE
 from hotels.models.hotel.models_hotel import Hotel
 
@@ -9,6 +10,7 @@ class Room(models.Model):
     """
     Класс номера отеля
     """
+
     hotel = models.ForeignKey(
         Hotel,
         on_delete=models.SET_NULL,

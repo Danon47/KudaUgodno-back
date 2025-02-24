@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
@@ -10,8 +11,8 @@ from all_fixture.tests.fixture_hotel import get_hotel_data
 from all_fixture.tests.fixture_hotel_room import (
     get_hotel_room_data,
     get_hotel_room_discount_data,
-    get_hotel_room_unavailable_data,
     get_hotel_room_photo_data,
+    get_hotel_room_unavailable_data,
     update_hotel_room_data,
 )
 from all_fixture.tests.test_temp_image import create_test_image
@@ -48,18 +49,10 @@ class RoomModelTest(TestCase):
         self.hotel_id = get_hotel_room_data(self.hotel.id)
         self.room_id = get_hotel_room_data(self.room.id)
         self.update_room_data = update_hotel_room_data()
-        self.url_list = reverse(
-            "rooms-list", kwargs={"hotel_id": self.hotel.id}
-        )
-        self.url_detail = reverse(
-            "rooms-detail", kwargs={"hotel_id": self.hotel.id, "pk": self.room.id}
-        )
-        self.url_photo_list = reverse(
-            "rooms-photos-list", kwargs={"room_id": self.room.id}
-        )
-        self.url_photo_detail = reverse(
-            "rooms-photo-detail", kwargs={"room_id": self.room.id, "pk": self.photo.id}
-        )
+        self.url_list = reverse("rooms-list", kwargs={"hotel_id": self.hotel.id})
+        self.url_detail = reverse("rooms-detail", kwargs={"hotel_id": self.hotel.id, "pk": self.room.id})
+        self.url_photo_list = reverse("rooms-photos-list", kwargs={"room_id": self.room.id})
+        self.url_photo_detail = reverse("rooms-photo-detail", kwargs={"room_id": self.room.id, "pk": self.photo.id})
 
     def test_hotel_room_creation(self):
         """Тест создания номера в отеле, Модель"""
@@ -75,18 +68,10 @@ class RoomModelTest(TestCase):
         self.assertIn(self.discount, self.room.discount.all())
         self.assertEqual(self.room.unavailable.count(), 1)
         self.assertIn(self.unavailable, self.room.unavailable.all())
-        self.assertEqual(self.room.amenities_common,
-                         ["Общие тестовые 1", "Общие тестовые 2"]
-                         )
-        self.assertEqual(self.room.amenities_coffee,
-                         ["Кофе тестовый 1", "Кофе тестовый 2"]
-                         )
-        self.assertEqual(self.room.amenities_bathroom,
-                         ["Душ тестовый 1", "Душ тестовый 2"]
-                         )
-        self.assertEqual(self.room.amenities_view,
-                         ["Горы тестовые 1", "Горы тестовые 2"]
-                         )
+        self.assertEqual(self.room.amenities_common, ["Общие тестовые 1", "Общие тестовые 2"])
+        self.assertEqual(self.room.amenities_coffee, ["Кофе тестовый 1", "Кофе тестовый 2"])
+        self.assertEqual(self.room.amenities_bathroom, ["Душ тестовый 1", "Душ тестовый 2"])
+        self.assertEqual(self.room.amenities_view, ["Горы тестовые 1", "Горы тестовые 2"])
 
     def test_room_photo_creation(self):
         """Тест создания фотографии номера в отеле, Модель"""

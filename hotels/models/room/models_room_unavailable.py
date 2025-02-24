@@ -1,4 +1,5 @@
 from django.db import models
+
 from all_fixture.fixture_views import NULLABLE
 
 
@@ -13,7 +14,7 @@ class RoomUnavailable(models.Model):
         related_name="unavailables",
         verbose_name="Номер",
         help_text="Номер, который недоступен",
-        **NULLABLE
+        **NULLABLE,
     )
     reason = models.CharField(
         verbose_name="Причина недоступности номера",

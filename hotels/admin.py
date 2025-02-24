@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.models_hotel_photo import HotelPhoto
 from hotels.models.hotel.models_hotel_rules import HotelRules
@@ -29,13 +30,27 @@ class RoomAdmin(admin.ModelAdmin):
 class RoomPhotoAdmin(admin.ModelAdmin):
     list_display = ("id", "photo")
 
+
 @admin.register(RoomDiscount)
 class RoomDiscountAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "size", "start_date", "end_date",)
+    list_display = (
+        "id",
+        "name",
+        "size",
+        "start_date",
+        "end_date",
+    )
+
 
 @admin.register(RoomUnavailable)
 class RoomUnavailableAdmin(admin.ModelAdmin):
-    list_display = ("id", "reason", "start_date", "end_date",)
+    list_display = (
+        "id",
+        "reason",
+        "start_date",
+        "end_date",
+    )
+
 
 @admin.register(HotelPhoto)
 class HotelPhotoAdmin(admin.ModelAdmin):

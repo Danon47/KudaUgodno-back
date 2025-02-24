@@ -1,13 +1,14 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.generics import get_object_or_404
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
-from all_fixture.fixture_views import room_id, room_id_photo, room_photo_settings, offset, limit
+from all_fixture.fixture_views import limit, offset, room_id, room_id_photo, room_photo_settings
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_photo import RoomPhoto
 from hotels.serializers.room.serializers_room import RoomPhotoSerializer
+
 
 @extend_schema_view(
     list=extend_schema(

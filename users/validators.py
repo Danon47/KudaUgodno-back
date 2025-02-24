@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class ForbiddenWordValidator:
     """Валидатор для проверки запрещённых слов в текстовых полях."""
 

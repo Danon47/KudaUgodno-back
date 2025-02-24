@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 import users
 from users.models import User
 
+
 @shared_task
 def clear_user_password(user_id):
     """Удаление пароля через 5 минут после назначения"""
@@ -15,6 +16,7 @@ def clear_user_password(user_id):
     else:
         user.set_password("")
         user.save(update_fields=["password"])
+
 
 @shared_task
 def send_message(subject, message, from_email, recipient_list):

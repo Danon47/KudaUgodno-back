@@ -1,11 +1,7 @@
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import tour_settings, offset, limit, tour_id
+from all_fixture.fixture_views import limit, offset, tour_id, tour_settings
 from tours.models import Tour
 from tours.serializers import TourSerializer
 

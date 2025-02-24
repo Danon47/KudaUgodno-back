@@ -25,18 +25,17 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
             "med_insurance",
             "cancellation_insurance",
             "wishes",
-            "user_owner"
+            "user_owner",
         )
         read_only_fields = ("user_owner", "status")
-        validators = [
-            ForbiddenWordValidator(fields=["wishes"])
-        ]
+        validators = [ForbiddenWordValidator(fields=["wishes"])]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Application
     """
+
     tour = TourSerializer()
     quantity_guests = GuestSerializer(many=True)
     user_owner = UserSerializer()

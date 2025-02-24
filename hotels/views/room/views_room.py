@@ -1,24 +1,11 @@
-from drf_spectacular.utils import (
-    extend_schema_view,
-    extend_schema,
-    OpenApiResponse,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
+from all_fixture.fixture_views import hotel_id, id_room, limit, offset, room_settings
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
-from all_fixture.fixture_views import (
-    hotel_id,
-    offset,
-    limit,
-    id_room,
-    room_settings,
-)
 from hotels.models.room.models_room import Room
-from hotels.serializers.room.serializers_room import (
-    RoomBaseSerializer,
-    RoomDetailSerializer,
-)
+from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDetailSerializer
 
 
 # Номер
@@ -79,6 +66,7 @@ from hotels.serializers.room.serializers_room import (
 )
 class RoomViewSet(viewsets.ModelViewSet):
     pagination_class = CustomLOPagination
+
     def get_serializer_class(self):
         # Исправляем проверку действия
         if self.action in ["create", "update", "partial_update"]:

@@ -1,4 +1,5 @@
 from django.utils import timezone
+
 from all_fixture.tests.test_temp_image import create_test_image
 
 
@@ -21,6 +22,7 @@ def get_hotel_room_data(hotel):
         "amenities_view": ["Горы тестовые 1", "Горы тестовые 2"],
     }
 
+
 def update_hotel_room_data():
     """Фикстура обновленных данных номера в отеле"""
     return {
@@ -39,6 +41,7 @@ def update_hotel_room_data():
         "amenities_view": ["Горы тестовые 3", "Горы тестовые 4"],
     }
 
+
 def get_hotel_room_discount_data():
     """Фикстура данных скидки номера отеля"""
     return {
@@ -48,6 +51,7 @@ def get_hotel_room_discount_data():
         "end_date": timezone.now().date() + timezone.timedelta(days=14),
     }
 
+
 def get_hotel_room_unavailable_data():
     """Фикстура данных периода недоступности номера отеля"""
     return {
@@ -55,6 +59,7 @@ def get_hotel_room_unavailable_data():
         "start_date": timezone.now().date(),
         "end_date": timezone.now().date() + timezone.timedelta(days=7),
     }
+
 
 def get_hotel_room_photo_data(room):
     """Фикстура данных фотографии номера отеля"""

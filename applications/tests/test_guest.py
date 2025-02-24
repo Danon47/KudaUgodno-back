@@ -1,6 +1,6 @@
 from django.test import TestCase
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
 from applications.models.models_application import Guest
@@ -23,7 +23,7 @@ class GuestTest(TestCase):
             russian_passport_no="1234 567890",
             international_passport_no="12 3456789",
             validity_international_passport="2040-11-11",
-            user_owner=self.user
+            user_owner=self.user,
         )
 
     def test_guest(self):
@@ -80,7 +80,6 @@ class GuestTest(TestCase):
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["non_field_errors"][0], "Дата рождения не может быть в будущем")
 
-
     def test_forbidden_word_validator(self):
         """Тест на проверку запрещенных слов"""
 
@@ -96,7 +95,7 @@ class GuestTest(TestCase):
         self.assertEqual(response.json()["non_field_errors"][0], "Введено недопустимое слово")
 
     def test_validity_of_foreign_passport_validator(self):
-        """Тест на наличие и корректность даты окончания действия загранпаспорта """
+        """Тест на наличие и корректность даты окончания действия загранпаспорта"""
 
         url = reverse("applications:guest-list")
         data = {
@@ -159,6 +158,3 @@ class GuestTest(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
         self.assertEqual(Guest.objects.count(), 0)
-
-
-

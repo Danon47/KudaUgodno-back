@@ -1,4 +1,5 @@
 from datetime import time
+
 from all_fixture.tests.test_temp_image import create_test_image
 
 
@@ -33,6 +34,7 @@ def get_hotel_data():
         "is_active": True,
         "room_categories": ["Стандарт", "Делюкс"],
     }
+
 
 def update_hotel_data():
     """Фикстура обновлённых полей отеля"""
@@ -83,4 +85,3 @@ def get_hotel_rules_data(hotel):
         "name": "Тестовое название правила",
         "description": "Тестовое описание правила",
     }
-

@@ -25,7 +25,7 @@ class FlightSerializer(ModelSerializer):
             "price",
             "service_class",
             "flight_type",
-            "description"
+            "description",
         )
 
         validators = [

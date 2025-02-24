@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
 from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerializer
@@ -58,7 +59,7 @@ class HotelDetailSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Удаляем вложенные данные из validated_data
-        rules_data = validated_data.pop('hotels_rules', None)
+        rules_data = validated_data.pop("hotels_rules", None)
 
         # Обновляем основные поля
         instance = super().update(instance, validated_data)
@@ -70,7 +71,6 @@ class HotelDetailSerializer(serializers.ModelSerializer):
                 instance.hotels_rules.create(**rule_data)
 
         return instance
-
 
 
 class HotelListSerializer(HotelDetailSerializer):

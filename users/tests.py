@@ -1,7 +1,8 @@
-from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+
 from users.models import User
 
 
@@ -20,7 +21,7 @@ class UserAPITests(APITestCase):
             "email": "ivanov@example.com",
             "phone_number": "+79999999999",
             "birth_date": "1990-01-01",
-            "password": "password123"
+            "password": "password123",
         }
         self.user = User.objects.create_user(**self.user_data)
 
@@ -41,7 +42,7 @@ class UserAPITests(APITestCase):
             "email": "smirnova@example.com",
             "phone_number": "+79999999988",
             "birth_date": "1985-05-15",
-            "password": "newpassword123"
+            "password": "newpassword123",
         }
         response = self.client.post(url, new_user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -57,7 +58,7 @@ class UserAPITests(APITestCase):
             "email": "forbidden@example.com",
             "phone_number": "+79999999944",
             "birth_date": "1980-01-01",
-            "password": "password123"
+            "password": "password123",
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -67,7 +68,9 @@ class UserAPITests(APITestCase):
         """Тест на проверку заполнения полей в зависимости от роли (model.clean())."""
         self.user.role = "USER"
         self.user.company_name = "Тестовая компания"
-        with self.assertRaisesMessage(ValidationError, "У обычного пользователя не могут быть заполнены поля: company_name, documents."):
+        with self.assertRaisesMessage(
+            ValidationError, "У обычного пользователя не могут быть заполнены поля: company_name, documents."
+        ):
             self.user.full_clean()
 
     def test_get_user_detail(self):
@@ -86,7 +89,7 @@ class UserAPITests(APITestCase):
             "last_name": "Смирнов",
             "email": "smirnov@example.com",
             "phone_number": "+79999999977",
-            "birth_date": "1985-05-15"
+            "birth_date": "1985-05-15",
         }
         response = self.client.put(url, update_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

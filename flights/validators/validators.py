@@ -24,9 +24,7 @@ class ForbiddenWordValidator:
     def __call__(self, value):
         for field in self.fields:
             tmp_val = dict(value).get(field)
-            if tmp_val and any(
-                word in tmp_val.lower() for word in self.forbidden_words
-            ):
+            if tmp_val and any(word in tmp_val.lower() for word in self.forbidden_words):
                 raise ValidationError("Введено недопустимое слово")
 
 
@@ -41,11 +39,7 @@ class DateValidator:
         arrival_date_field = value.get("arrival_date")
         arrival_time_field = value.get("arrival_time")
 
-        departure_datetime = datetime.combine(
-            departure_date_field, departure_time_field
-        )
+        departure_datetime = datetime.combine(departure_date_field, departure_time_field)
         arrival_datetime = datetime.combine(arrival_date_field, arrival_time_field)
         if arrival_datetime <= departure_datetime:
-            raise ValidationError(
-                "Дата и время прилета должны быть позже даты и времени вылета."
-            )
+            raise ValidationError("Дата и время прилета должны быть позже даты и времени вылета.")

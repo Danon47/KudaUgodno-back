@@ -1,5 +1,6 @@
-from hotels.models.hotel.models_hotel import Hotel
 from django.db import models
+
+from hotels.models.hotel.models_hotel import Hotel
 
 
 class HotelPhoto(models.Model):

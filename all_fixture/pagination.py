@@ -1,5 +1,5 @@
-from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 
 class CustomLOPagination(LimitOffsetPagination):
@@ -16,8 +16,6 @@ class CustomLOPagination(LimitOffsetPagination):
     def get_paginated_response(self, data):
         # Если пагинация отключена, возвращаем все объекты с метаданными
         if self.limit is None:
-            return Response(
-                {"count": self.count, "next": None, "previous": None, "results": data}
-            )
+            return Response({"count": self.count, "next": None, "previous": None, "results": data})
 
         return super().get_paginated_response(data)

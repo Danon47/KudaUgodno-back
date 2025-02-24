@@ -20,17 +20,9 @@ class ApplicationTest(TestCase):
         """
         self.user = User.objects.create(email="test@test.ru", password="testpassword")
         self.client = APIClient()
-        self.tour = Tour.objects.create(
-            start_date="2028-08-24",
-            end_date="2028-08-25",
-            departure_city="Москва"
-        )
+        self.tour = Tour.objects.create(start_date="2028-08-24", end_date="2028-08-25", departure_city="Москва")
         self.guest = Guest.objects.create(
-            firstname="Иван",
-            lastname="Иванов",
-            date_born="1999-09-09",
-            citizenship="Россия",
-            user_owner=self.user
+            firstname="Иван", lastname="Иванов", date_born="1999-09-09", citizenship="Россия", user_owner=self.user
         )
         self.application = Application.objects.create(
             tour=self.tour,
@@ -93,19 +85,16 @@ class ApplicationTest(TestCase):
             "email": "user@example.com",
             "phone_number": "+79999999999",
             "quantity_guests": [self.guest.id],
-            "wishes": "плохое_слово"
+            "wishes": "плохое_слово",
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["non_field_errors"][0], "Введено недопустимое слово")
 
-
     def test_application_retrieve(self):
         """Тест на вывод конкретной заявки"""
 
-        url = reverse(
-            "applications:application-detail", args=(self.application.pk,)
-        )
+        url = reverse("applications:application-detail", args=(self.application.pk,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.json()["email"], "test@test.ru")
@@ -125,7 +114,7 @@ class ApplicationTest(TestCase):
             "wishes": "test wishes new",
             "status": "Подтвержден",
             "user_owner": self.user.pk,
-            "quantity_guests": [self.guest.pk]
+            "quantity_guests": [self.guest.pk],
         }
 
         response = self.client.put(url, data)
@@ -150,4 +139,3 @@ class ApplicationTest(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Application.objects.count(), 0)
-

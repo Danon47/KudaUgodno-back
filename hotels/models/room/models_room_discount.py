@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from all_fixture.fixture_views import NULLABLE
 
 
@@ -14,7 +15,7 @@ class RoomDiscount(models.Model):
         related_name="discounts",
         verbose_name="Номер",
         help_text="Номер, к которому применяется скидка",
-        **NULLABLE
+        **NULLABLE,
     )
     name = models.CharField(
         verbose_name="Название скидки",

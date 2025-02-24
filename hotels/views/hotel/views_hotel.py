@@ -1,17 +1,10 @@
-from drf_spectacular.utils import (
-    extend_schema_view,
-    extend_schema,
-    OpenApiResponse,
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
-from all_fixture.fixture_views import offset, limit, id_hotel, hotel_settings
+
+from all_fixture.fixture_views import hotel_settings, id_hotel, limit, offset
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.serializers.hotel.serializers_hotel import (
-    HotelBaseSerializer,
-    HotelDetailSerializer,
-    HotelListSerializer,
-)
+from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, HotelDetailSerializer, HotelListSerializer
 
 
 class CreatedByUserFilterMixin:
@@ -96,7 +89,7 @@ class CreatedByUserFilterMixin:
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     pagination_class = CustomLOPagination
-    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options', 'trace']  # Исключаем 'patch'
+    http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]  # Исключаем 'patch'
 
     def get_serializer_class(self):
         if self.action == "create":

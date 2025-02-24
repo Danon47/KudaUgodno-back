@@ -2,20 +2,21 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 from all_fixture.fixture_views import (
-    user_settings,
-    tour_settings,
-    hotel_settings,
-    hotel_photo_settings,
-    room_settings,
-    room_photo_settings,
-    flight_settings,
-    application_settings,
     application_guest_settings,
+    application_settings,
     auth,
     entreprise,
+    flight_settings,
+    hotel_photo_settings,
+    hotel_settings,
+    room_photo_settings,
+    room_settings,
+    tour_settings,
+    user_settings,
 )
 
 

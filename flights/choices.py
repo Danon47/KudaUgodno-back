@@ -48,4 +48,3 @@ class FlightTypeChoices(models.TextChoices):
     REGULAR = "Регулярный", "Регулярный"
     CHARTER = "Чартерный", "Чартерный"
     TRANZIT = "Транзитный", "Транзитный"
-

@@ -1,4 +1,5 @@
 from django.db import models
+
 from hotels.models.room.models_room import Room
 
 

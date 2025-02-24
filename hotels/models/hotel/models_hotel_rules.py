@@ -1,10 +1,10 @@
 from django.db import models
 
-from hotels.models.hotel.models_hotel import Hotel, NULLABLE
+from hotels.models.hotel.models_hotel import NULLABLE, Hotel
 
 
 class HotelRules(models.Model):
-    """ Правила в отеле"""
+    """Правила в отеле"""
 
     hotel = models.ForeignKey(
         Hotel,

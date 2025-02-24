@@ -1,6 +1,7 @@
 import tempfile
-from PIL import Image
+
 from django.core.files.uploadedfile import SimpleUploadedFile
+from PIL import Image
 
 
 def create_test_image(filename="test_photo.jpg", color="red", size=(100, 100)):

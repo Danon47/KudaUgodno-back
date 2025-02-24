@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 
 from tours.models import Tour
-from tours.validators import StartDateValidator, EndDateValidator
+from tours.validators import EndDateValidator, StartDateValidator
 
 
 class TourSerializer(ModelSerializer):
