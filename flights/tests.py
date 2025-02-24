@@ -14,14 +14,14 @@ class FlightTestCase(APITestCase):
     def setUp(self):
         self.flight = Flight.objects.create(
             flight_number="SW 1245",
-            airline=AirlinesChoices.AEROFLOT,
+            airline="Аэрофлот",
             departure_airport="Шереметьево",
             arrival_airport="Адлер",
             departure_date="2024-08-24",
             departure_time="08:00:00",
             arrival_date="2024-08-25",
             arrival_time="12:00:00",
-            price=5000,
+            price=5000
         )
 
     def test_flight_retrieve(self):
@@ -53,14 +53,14 @@ class FlightTestCase(APITestCase):
         url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
-            "airline": AirlinesChoices.AEROFLOT,
+            "airline": "Аэрофлот",
             "departure_airport": "Шереметьево",
             "arrival_airport": "Сочи",
-            "departure_date": "2024-09-01",
+            "departure_date": "01-08-2024",
             "departure_time": "09:00:00",
-            "arrival_date": "2024-09-01",
+            "arrival_date": "02-08-2024",
             "arrival_time": "11:00:00",
-            "price": 6000,
+            "price": 6000
         }
 
         response = self.client.post(url, data, format="json")
@@ -80,10 +80,10 @@ class FlightTestCase(APITestCase):
         url = reverse("flights:flight-detail", args=(self.flight.pk,))
         data = {
             "flight_number": "SW 1246",
-            "departure_date": self.flight.departure_date,
+            "departure_date": "22-08-2024",
             "departure_time": self.flight.departure_time,
-            "arrival_date": self.flight.arrival_date,
-            "arrival_time": self.flight.arrival_time,
+            "arrival_date": "23-08-2024",
+            "arrival_time": self.flight.arrival_time
         }
         response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -97,14 +97,14 @@ class FlightTestCase(APITestCase):
         url = reverse("flights:flight-detail", args=(self.flight.pk,))
         data = {
             "flight_number": "SW 1246",
-            "airline": AirlinesChoices.AEROFLOT,
+            "airline": "Аэрофлот",
             "departure_airport": "Шереметьево",
             "arrival_airport": "Сочи",
-            "departure_date": "2024-09-01",
+            "departure_date": "28-08-2024",
             "departure_time": "09:00:00",
-            "arrival_date": "2024-09-01",
+            "arrival_date": "29-08-2024",
             "arrival_time": "11:00:00",
-            "price": 6000,
+            "price": 6000
         }
 
         response = self.client.put(url, data, format="json")
@@ -132,14 +132,14 @@ class FlightTestCase(APITestCase):
         url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
-            "airline": AirlinesChoices.AEROFLOT,
+            "airline": "Аэрофлот",
             "departure_airport": "плохое_слово",
             "arrival_airport": "Сочи",
-            "departure_date": "2024-09-01",
+            "departure_date": "01-08-2024",
             "departure_time": "09:00:00",
-            "arrival_date": "2024-09-01",
+            "arrival_date": "02-08-2024",
             "arrival_time": "11:00:00",
-            "price": 6000,
+            "price": 6000
         }
 
         response = self.client.post(url, data, format="json")
@@ -156,14 +156,14 @@ class FlightTestCase(APITestCase):
         url = reverse("flights:flight-list")
         data = {
             "flight_number": "SW 1247",
-            "airline": AirlinesChoices.AEROFLOT,
+            "airline": "Аэрофлот",
             "departure_airport": "Шереметьево",
             "arrival_airport": "Сочи",
-            "departure_date": "2024-09-01",
+            "departure_date": "02-08-2024",
             "departure_time": "09:00:00",
-            "arrival_date": "2024-08-31",
+            "arrival_date": "01-08-2024",
             "arrival_time": "11:00:00",
-            "price": 6000,
+            "price": 6000
         }
 
         response = self.client.post(url, data, format="json")
