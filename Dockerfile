@@ -3,7 +3,7 @@ FROM python:3.12.8
 WORKDIR /app
 
 # Копируем только файл с зависимостями
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 # Устанавливаем Poetry и зависимости
 RUN pip install poetry && \
