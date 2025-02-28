@@ -29,6 +29,14 @@ user_id = OpenApiParameter(
     description="ID Пользователя",
     required=True,
 )
+# ID компании
+entreprise_id = OpenApiParameter(
+    name="id",
+    type=int,
+    location=OpenApiParameter.PATH,
+    description="ID Компании",
+    required=True,
+)
 # ID тура
 tour_id = OpenApiParameter(
     location=OpenApiParameter.PATH,

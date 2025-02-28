@@ -1,3 +1,4 @@
+from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
 from users.choices import RoleChoices
@@ -18,19 +19,40 @@ class UserSerializer(BaseUserSerializer):
 
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
+    avatar = serializers.ImageField(required=False, allow_null=True)
 
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields
 
 
 class CompanyUserSerializer(BaseUserSerializer):
-    """Сериализатор для Туроператора и Отельера."""
+    """Сериализатор для Туроператоров и Отельеров."""
 
+    first_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
+    last_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
+    email = serializers.EmailField(required=True)
+    phone_number = serializers.CharField(required=True)
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
-    documents = serializers.FileField(required=True)
+    documents = serializers.FileField(required=False, allow_null=True)
 
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ("company_name", "documents")
+
+    def update(self, instance, validated_data):
+        """Полное обновление объекта (PUT)."""
+
+        # Проверяем, передан ли новый файл, если да – обновляем, иначе не трогаем старый
+        if "documents" in validated_data:
+            new_document = validated_data.pop("documents")
+            if new_document:  # Если передан НЕ пустой файл
+                instance.documents = new_document
+
+        # Обновляем только переданные поля
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
     def validate(self, data):
         """
@@ -42,6 +64,17 @@ class CompanyUserSerializer(BaseUserSerializer):
             raise serializers.ValidationError("Обычный пользователь не может иметь company_name и documents.")
 
         return data
+
+
+class CustomRegisterSerializer(RegisterSerializer):
+    username = None
+    email = serializers.EmailField(required=True)
+
+    def save(self, request):
+        user = super().save(request)
+        user.username = user.email
+        user.save()
+        return user
 
 
 class EmailLoginSerializer(serializers.Serializer):
