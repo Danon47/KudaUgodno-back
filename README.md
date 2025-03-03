@@ -1,7 +1,6 @@
 # API сервис для веб-сайта "Куда Угодно"
-
 ## Технические требования:
-
+* * * 
 - python 3.11+ дополнительная библиотека:
   * python-dotenv 1.0.1+
 - postgreSQL 17.2+ дополнительная библиотека: 
@@ -38,14 +37,17 @@ docker compose up -d --build
 ```
 
 ## Ссылки на контуры
-
+* * * 
 - Дев контур: [https://anywhere-dev.god-it.ru/](https://anywhere-dev.god-it.ru/)
-- Дев документация в которой описаны все методы API: [https://anywhere-dev.god-it.ru/api/v1/docs](https://anywhere-dev.god-it.ru/api/v1/docs)
+- Дев документация в которой описаны все методы API*: [https://anywhere-dev.god-it.ru/api/v1/docs](https://anywhere-dev.god-it.ru/api/v1/docs)
 - Дев Django админка: [https://anywhere-dev.god-it.ru/admin](https://anywhere-dev.god-it.ru/admin)
   * админ создаётся автоматически, логин и пароль из GitLab Variables 
 
 
 - Тест контур: [https://anywhere-test.god-it.ru/](https://anywhere-test.god-it.ru/)
-- Тест документация в которой описаны все методы API: [https://anywhere-test.god-it.ru/api/v1/docs](https://anywhere-test.god-it.ru/api/v1/docs)
+- Тест документация в которой описаны все методы API*: [https://anywhere-test.god-it.ru/api/v1/docs](https://anywhere-test.god-it.ru/api/v1/docs)
 - Тест Django админка: [https://anywhere-test.god-it.ru/admin](https://anywhere-test.god-it.ru/admin)
   * админ создаётся автоматически, логин и пароль из GitLab Variables
+
+
+(*) - Дев и Тест контуры работают 24 часа (после деплоя на сервер). Необходимы сначала выполнить успешный деплой (в ручную с помощью запуска пайплайна или же в коммите в конце указать PushMe!)
