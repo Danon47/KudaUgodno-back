@@ -22,7 +22,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
     ),
     create=extend_schema(
         summary="Добавление номера",
-        description="Создание нового отеля",
+        description="Создание нового номера",
         request=RoomBaseSerializer,
         parameters=[hotel_id],
         responses={
