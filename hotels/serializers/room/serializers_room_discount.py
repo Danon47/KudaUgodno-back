@@ -8,4 +8,4 @@ class RoomDiscountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomDiscount
-        fields = "__all__"
+        fields = ("name", "start_date", "end_date", "size")

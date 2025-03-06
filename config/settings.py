@@ -142,14 +142,7 @@ LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
 USE_TZ = True
-# Отключаем локализованные форматы Django, чтобы использовать свои
-USE_L10N = False
-# Настройки форматов дат и времени
-DATE_FORMAT = "d-m-Y"
-DATETIME_FORMAT = "d-m-Y H:i:s"
-SHORT_DATE_FORMAT = "d-m-Y"
-DATE_INPUT_FORMATS = ["%d-%m-%Y"]
-DATETIME_INPUT_FORMATS = ["%d-%m-%Y %H:%M:%S"]
+USE_L10N = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
@@ -182,10 +175,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
-    "DATETIME_FORMAT": "%d-%m-%Y %H:%M:%S",
-    "DATE_FORMAT": "%d-%m-%Y",
-    "DATE_INPUT_FORMATS": ["%d-%m-%Y"],
-    "DATETIME_INPUT_FORMATS": ["%d-%m-%Y %H:%M:%S"],
 }
 
 SPECTACULAR_SETTINGS = {

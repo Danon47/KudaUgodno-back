@@ -8,4 +8,4 @@ class RoomUnavailableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomUnavailable
-        fields = "__all__"
+        fields = ("reason", "start_date", "end_date")
