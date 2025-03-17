@@ -25,19 +25,18 @@
 - pillow 11.0.0+
 
 Перед началом создайте файл .env и внесите необходимые данные из файла [.env.sample](.env.sample)
-
+***
 Сервис запущен с помощью CI/CD, локально без внесений изменение в файл docker-compose.yaml его не запустить. 
 Необходимо закомментировать 43 строку
 
 (#  - default)
-
+***
 Запустить команду 
 ``` bash
 docker compose up -d --build
 ```
-
+***
 ## Ссылки на контуры
-* * * 
 - Дев контур: [https://anywhere-dev.god-it.ru/](https://anywhere-dev.god-it.ru/)
 - Дев документация в которой описаны все методы API*: [https://anywhere-dev.god-it.ru/api/v1/docs](https://anywhere-dev.god-it.ru/api/v1/docs)
 - Дев Django админка: [https://anywhere-dev.god-it.ru/admin](https://anywhere-dev.god-it.ru/admin)
@@ -49,5 +48,5 @@ docker compose up -d --build
 - Тест Django админка: [https://anywhere-test.god-it.ru/admin](https://anywhere-test.god-it.ru/admin)
   * админ создаётся автоматически, логин и пароль из GitLab Variables
 
-
+***
 (*) - Дев и Тест контуры работают 24 часа (после деплоя на сервер). Необходимо сначала выполнить успешный деплой (в ручную с помощью запуска пайплайна или же в коммите в конце указать PushMe!)
