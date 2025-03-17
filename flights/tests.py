@@ -104,14 +104,14 @@ class FlightTestCase(APITestCase):
             "departure_time": "09:00:00",
             "arrival_date": "29-08-2024",
             "arrival_time": "11:00:00",
-            "price": 6000,
+            "price": 7000,
         }
 
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.flight.refresh_from_db()
         self.assertEqual(self.flight.flight_number, "SW 1246")
-        self.assertEqual(self.flight.price, 6000)
+        self.assertEqual(self.flight.price, 7000)
         self.assertEqual(self.flight.arrival_airport, "Сочи")
 
     def test_flight_delete(self):
