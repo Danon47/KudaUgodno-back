@@ -3,7 +3,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from all_fixture.fixture_views import NULLABLE
 from applications.choices import StatusChoices
-from applications.models.models_guest import Guest
+from guests.models import Guest
 from tours.models import Tour
 from users.models import User
 

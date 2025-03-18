@@ -2,8 +2,8 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import application_id, application_settings, limit, offset
-from applications.models.models_application import Application
-from applications.serializers.serializers_applications import ApplicationDetailSerializer, ApplicationSerializer
+from applications.models_application import Application
+from applications.serializers_applications import ApplicationDetailSerializer, ApplicationSerializer
 
 
 @extend_schema_view(

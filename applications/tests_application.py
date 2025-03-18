@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
-from applications.models.models_application import Application, Guest
+from applications.models_application import Application, Guest
 from tours.models import Tour
 from users.models import User
 
