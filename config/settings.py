@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "flights",
     "hotels",
     "applications",
+    "guests",
     # Поддержка CORS
     "corsheaders",
 ]
@@ -172,6 +173,11 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
@@ -201,7 +207,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 465))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = False
@@ -229,6 +235,7 @@ if not DEBUG:
     ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ku.mer1d1an.ru",
     "https://anywhere.god-it.ru",
