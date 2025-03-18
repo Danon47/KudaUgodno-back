@@ -17,7 +17,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from all_fixture.fixture_views import entreprise, entreprise_id, limit, offset, user_id, user_settings
+from all_fixture.fixture_views import auth, entreprise, entreprise_id, limit, offset, user_id, user_settings
 from all_fixture.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
@@ -220,7 +220,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Запросить код для входа",
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
-        tags=["Авторизация"],
+        tags=[auth["name"]],
         request=EmailLoginSerializer,
         responses={
             200: OpenApiResponse(
@@ -275,7 +275,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Подтвердить код и получить токены",
         description="Проверка кода и выдача JWT-токенов + роль пользователя.",
-        tags=["Авторизация"],
+        tags=[auth["name"]],
         request=VerifyCodeSerializer,
         responses={
             200: OpenApiResponse(
