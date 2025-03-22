@@ -29,6 +29,7 @@ class Application(models.Model):
     quantity_guests = models.ManyToManyField(
         Guest,
         verbose_name="Количество гостей",
+        related_name="guests",
         blank=True,
     )
     visa = models.BooleanField(default=False, verbose_name="Оформление визы")
