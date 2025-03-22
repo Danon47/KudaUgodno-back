@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from applications.models_application import Application
+from applications.models import Application
 
 
 @admin.register(Application)
