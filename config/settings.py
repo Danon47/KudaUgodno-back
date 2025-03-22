@@ -223,7 +223,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://ku.mer1d1an.ru",
     "https://anywhere-dev.god-it.ru",
     "https://anywhere-test.god-it.ru",
 ]
@@ -237,7 +236,6 @@ if not DEBUG:
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://ku.mer1d1an.ru",
     "https://anywhere.god-it.ru",
     "https://anywhere-dev.god-it.ru",
     "https://anywhere-test.god-it.ru",
