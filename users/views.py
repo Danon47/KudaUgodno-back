@@ -77,13 +77,20 @@ from users.serializers import CompanyUserSerializer, EmailLoginSerializer, UserS
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для обычных пользователей (туристов)."""
 
-    queryset = User.objects.filter(role=RoleChoices.USER).order_by("-pk")
     serializer_class = UserSerializer
     pagination_class = CustomLOPagination
     # Админ видит всех, юзер — только себя
 
     # Исключаем 'patch'
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.is_superuser:
+            return User.objects.all().order_by("-pk")
+        else:
+            return User.objects.filter(pk=user.pk)
+        return User.objects.none()
 
     def get_permissions(self):
         if self.action == "create":
