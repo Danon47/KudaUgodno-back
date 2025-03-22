@@ -16,11 +16,8 @@ class Command(BaseCommand):
         # Проверяем, существует ли уже администратор с указанным именем пользователя
         if not User.objects.filter(email=os.getenv("ADMIN_EMAIL")).exists():
             # Создаем администратора
-            user = User.objects.create(
+            user = User.objects.create_superuser(
                 email=email,
-                is_staff=True,
-                is_superuser=True,
-                is_active=True,
                 first_name="Admin",
                 last_name="Admin",
             )
