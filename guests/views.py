@@ -52,6 +52,8 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
     ),
 )
 class GuestViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]  # Исключаем 'patch'
+
     def get_queryset(self):
         if self.request.user.is_superuser:
             # Админ видит всех гостей
