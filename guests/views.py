@@ -19,7 +19,7 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
         description="Создание нового Гостя",
         request=GuestDetailSerializer,
         tags=[application_guest_settings["name"]],
-        responses={201: GuestDetailSerializer, 400: OpenApiResponse(description="Ошибка валидации")},
+        responses={201: GuestSerializer, 400: OpenApiResponse(description="Ошибка валидации")},
     ),
     retrieve=extend_schema(
         summary="Информация о Госте",
@@ -35,7 +35,7 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
         tags=[application_guest_settings["name"]],
         parameters=[application_guest_id],
         responses={
-            200: GuestDetailSerializer,
+            200: GuestSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Гость не найден"),
         },
