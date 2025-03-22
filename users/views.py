@@ -81,9 +81,16 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = CustomLOPagination
     # Админ видит всех, юзер — только себя
-    permission_classes = [IsAdminOrOwner]
+
     # Исключаем 'patch'
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminOrOwner]
+        return [permission() for permission in permission_classes]
 
     def retrieve(self, request, *args, **kwargs):
         """Получение детальной информации о пользователе по ID."""
@@ -174,11 +181,16 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]).order_by("-pk")
     serializer_class = CompanyUserSerializer
     pagination_class = CustomLOPagination
-    # Админ видит всех, туроператор/отельер — только себя
-    permission_classes = [IsAdminOrOwner]
     # Исключаем 'patch'
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
     parser_classes = (MultiPartParser, FormParser)
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminOrOwner]
+        return [permission() for permission in permission_classes]
 
     def retrieve(self, request, *args, **kwargs):
         """Получение детальной информации о компании по ID."""
