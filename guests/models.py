@@ -4,16 +4,21 @@ from django.db import models
 from users.models import User
 
 
-class Guest(models.Model):
-    """
-    Модель Гостя
-    """
-
+class PersonBase(models.Model):
     firstname = models.CharField(max_length=50, verbose_name="Имя")
     lastname = models.CharField(max_length=50, verbose_name="Фамилия")
     surname = models.CharField(max_length=50, verbose_name="Отчество", blank=True, null=True)
     date_born = models.DateField(verbose_name="Дата рождения", help_text="Формат: DD-MM-YYYY")
     citizenship = models.CharField(max_length=100, verbose_name="Гражданство")
+
+    class Meta:
+        abstract = True
+
+
+class Guest(PersonBase):
+    """
+    Модель Гостя
+    """
 
     russian_passport_no = models.CharField(
         verbose_name="Серия/номер российского паспорта",
@@ -30,7 +35,9 @@ class Guest(models.Model):
         help_text="Формат: XX XXXXXXXX",
         blank=True,
         null=True,
-        validators=[RegexValidator(regex="^[0-9]{2} [0-9]{7}$", message="Введите серия/номер в формате: XX XXXXXXXX")],
+        validators=[
+            RegexValidator(regex=r"^[0-9]{2} [0-9]{7}$", message="Введите серия/номер в формате: XX XXXXXXXX")
+        ],
     )
 
     validity_international_passport = models.DateField(
