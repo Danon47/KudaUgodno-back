@@ -5,6 +5,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from all_fixture.fixture_views import NULLABLE
 from users.choices import RoleChoices
+from users.managers import CustomUserManager
 
 
 class User(AbstractUser):
@@ -35,6 +36,9 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    # Подключаем кастомный менеджер
+    objects = CustomUserManager()
 
     class Meta:
         verbose_name = "Пользователь"

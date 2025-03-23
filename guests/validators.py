@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 class DateBornValidator:
     """
-    Проверка, что дата рождения не в будущем
+    Проверка, что дата рождения не в будущем.
     """
 
     def __call__(self, value):
@@ -15,7 +15,7 @@ class DateBornValidator:
 
 class ValidityOfForeignPassportValidator:
     """
-    Проверка наличия корректного срока у иностранного паспорта
+    Проверка наличия корректного срока у иностранного паспорта.
     """
 
     def __call__(self, value):

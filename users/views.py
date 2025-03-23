@@ -4,13 +4,13 @@ from django.contrib.auth import authenticate
 from django.core.mail import EmailMessage
 from drf_spectacular.utils import (
     OpenApiExample,
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_field,
     extend_schema_view,
 )
 from rest_framework import mixins, serializers, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -21,8 +21,8 @@ from all_fixture.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
 from users.models import User
+from users.permissions import IsAdminOrOwner
 from users.serializers import CompanyUserSerializer, EmailLoginSerializer, UserSerializer, VerifyCodeSerializer
-from users.tasks import clear_user_password
 
 
 @extend_schema_view(
@@ -68,7 +68,7 @@ from users.tasks import clear_user_password
         tags=[user_settings["name"]],
         parameters=[user_id],
         responses={
-            204: OpenApiResponse(description="Пользователь удален"),
+            204: OpenApiResponse(description="Удалено"),
             404: OpenApiResponse(description="Пользователь не найден"),
         },
     ),
@@ -76,15 +76,34 @@ from users.tasks import clear_user_password
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для обычных пользователей (туристов)."""
 
-    queryset = User.objects.filter(role=RoleChoices.USER).order_by("-pk")
     serializer_class = UserSerializer
     pagination_class = CustomLOPagination
+    # Админ видит всех, юзер — только себя
+
     # Исключаем 'patch'
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.is_superuser:
+            return User.objects.all().order_by("-pk")
+        else:
+            return User.objects.filter(pk=user.pk)
+        # <- никогда не будет вызван
+        # return User.objects.none()
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminOrOwner]
+        return [permission() for permission in permission_classes]
 
     def retrieve(self, request, *args, **kwargs):
         """Получение детальной информации о пользователе по ID."""
         instance = self.get_object()
+        # Проверка объекта
+        self.check_object_permissions(request, instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -173,9 +192,25 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
     parser_classes = (MultiPartParser, FormParser)
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.is_superuser:
+            return User.objects.filter(role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]).order_by("-pk")
+        elif user.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            return User.objects.filter(pk=user.pk)
+        return User.objects.none()
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminOrOwner]
+        return [permission() for permission in permission_classes]
+
     def retrieve(self, request, *args, **kwargs):
         """Получение детальной информации о компании по ID."""
         instance = self.get_object()
+        self.check_object_permissions(request, instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -185,17 +220,23 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         """Удаление компании по ID."""
+        # Получение объекта для удаления
         instance = self.get_object()
-        instance.delete()
-        return Response({"message": "Компания удалена"}, status=status.HTTP_204_NO_CONTENT)
+        # Дополнительная логика: проверка, можно ли удалять
+        if instance.role not in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Удаление объекта
+        self.perform_destroy(instance)
+        return Response({"message": "Удалено"}, status=status.HTTP_204_NO_CONTENT)
 
 
-class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-    """ViewSet для аутентификации по email-коду."""
+class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """ViewSet для аутентификации по email-коду (без ID пользователя)."""
 
     permission_classes = [AllowAny]
     serializer_class = EmailLoginSerializer
@@ -204,16 +245,12 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
         """Определяем сериализатор в зависимости от действия."""
         if self.action == "create":
             return EmailLoginSerializer
-        elif self.action == "partial_update":
+        # Используем кастомный метод вместо update
+        elif self.action == "verify":
             return VerifyCodeSerializer
         return self.serializer_class
 
     @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="id", location=OpenApiParameter.PATH, description="ID пользователя", required=True, type=int
-            )
-        ],
         summary="Запросить код для входа",
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
         tags=[auth["name"]],
@@ -243,7 +280,6 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
         user.save(update_fields=["password"])
 
         self.send_email(user.email, code)
-        clear_user_password.apply_async((user.id,), countdown=300)
 
         return Response({"message": "Код отправлен на email"}, status=status.HTTP_200_OK)
 
@@ -255,10 +291,13 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
             body=f"""
                 <html>
                     <body>
-                       <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
-                       <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p> <p><strong>Никому не
-                       сообщайте этот код!</strong> Если вы не запрашивали код, просто проигнорируйте это
-                       сообщение.</p> </body> </html> """,
+                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
+                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
+                        <p><strong>Никому не сообщайте этот код!</strong>
+                        Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                    </body>
+                </html>
+            """,
             from_email=EMAIL_HOST_USER,
             to=[email],
         )
@@ -284,7 +323,9 @@ class AuthViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
             400: OpenApiResponse(description="Неверный код"),
         },
     )
-    def partial_update(self, request, *args, **kwargs):
+    @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
+    def verify(self, request):
+        """Проверка кода и получение токенов."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

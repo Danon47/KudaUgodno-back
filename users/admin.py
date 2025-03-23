@@ -8,6 +8,17 @@ from users.models import User
 class CustomUserAdmin(UserAdmin):
     """Админка для управления пользователями, с группами."""
 
+    # Полностью убираем username
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "password1", "password2"),
+            },
+        ),
+    )
+
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Персональная информация", {"fields": ("first_name", "last_name", "phone_number", "avatar", "birth_date")}),

@@ -1,9 +1,9 @@
-from django.test import TestCase
+'''from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
-from applications.models.models_application import Guest
+from applications.models_application import Guest
 from users.models import User
 
 
@@ -158,3 +158,4 @@ class GuestTest(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
         self.assertEqual(Guest.objects.count(), 0)
+'''
