@@ -2,7 +2,6 @@ import random
 
 from django.contrib.auth import authenticate
 from django.core.mail import EmailMessage
-from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -69,7 +68,7 @@ from users.serializers import CompanyUserSerializer, EmailLoginSerializer, UserS
         tags=[user_settings["name"]],
         parameters=[user_id],
         responses={
-            204: OpenApiResponse(description="Пользователь удален"),
+            204: OpenApiResponse(description="Удалено"),
             404: OpenApiResponse(description="Пользователь не найден"),
         },
     ),
@@ -90,7 +89,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.all().order_by("-pk")
         else:
             return User.objects.filter(pk=user.pk)
-        return User.objects.none()
+        # <- никогда не будет вызван
+        # return User.objects.none()
 
     def get_permissions(self):
         if self.action == "create":
@@ -192,6 +192,14 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
     parser_classes = (MultiPartParser, FormParser)
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.is_superuser:
+            return User.objects.filter(role__in=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]).order_by("-pk")
+        elif user.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            return User.objects.filter(pk=user.pk)
+        return User.objects.none()
+
     def get_permissions(self):
         if self.action == "create":
             permission_classes = [AllowAny]
@@ -212,13 +220,19 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         """Удаление компании по ID."""
+        # Получение объекта для удаления
         instance = self.get_object()
-        instance.delete()
-        return Response({"message": "Компания удалена"}, status=status.HTTP_204_NO_CONTENT)
+        # Дополнительная логика: проверка, можно ли удалять
+        if instance.role not in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Удаление объекта
+        self.perform_destroy(instance)
+        return Response({"message": "Удалено"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -251,7 +265,6 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             404: OpenApiResponse(description="Пользователь не найден"),
         },
     )
-    @csrf_exempt
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
