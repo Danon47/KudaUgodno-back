@@ -34,6 +34,7 @@ class CompanyUserSerializer(BaseUserSerializer):
     phone_number = serializers.CharField(required=True)
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
     documents = serializers.FileField(required=False, allow_null=True)
+    role = serializers.CharField(default=RoleChoices.TOUR_OPERATOR)
 
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ("company_name", "documents")
@@ -88,3 +89,4 @@ class VerifyCodeSerializer(serializers.Serializer):
 
     email = serializers.EmailField(required=True)
     code = serializers.CharField(required=True)
+    role = serializers.CharField(required=True)
