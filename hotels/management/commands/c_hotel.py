@@ -51,6 +51,8 @@ class Command(BaseCommand):
                 type_of_rest=random.choice(types_of_holiday),
                 is_active=random.choice([True, False]),
                 room_categories=random.sample(room_categories, k=random.randint(1, len(room_categories))),
+                width=round(random.uniform(-90, 90), 6),
+                longitude=round(random.uniform(-180, 180), 6),
             )
             hotels.append(hotel)
 
