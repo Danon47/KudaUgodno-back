@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -222,6 +224,28 @@ class Hotel(models.Model):
         models.CharField(max_length=100),
         verbose_name="Категории номеров в отеле",
         help_text="Категории номеров в отеле",
+        **NULLABLE,
+    )
+    width = models.DecimalField(
+        verbose_name="Широта",
+        help_text="Широта (от -90 до 90)",
+        max_digits=11,
+        decimal_places=6,
+        validators=[
+            MinValueValidator(Decimal("-90.0")),
+            MaxValueValidator(Decimal("90.0")),
+        ],
+        **NULLABLE,
+    )
+    longitude = models.DecimalField(
+        verbose_name="Долгота",
+        help_text="Долгота (от -180 до 180)",
+        max_digits=11,
+        decimal_places=6,
+        validators=[
+            MinValueValidator(Decimal("-180.0")),
+            MaxValueValidator(Decimal("180.0")),
+        ],
         **NULLABLE,
     )
 
