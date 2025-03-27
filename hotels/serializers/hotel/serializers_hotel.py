@@ -22,6 +22,8 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 class HotelDetailSerializer(serializers.ModelSerializer):
     rules = HotelRulesSerializer(many=True, source="hotels_rules", required=False)
     user_rating = serializers.FloatField(required=False)
+    width = serializers.DecimalField(required=False, max_digits=11, decimal_places=6)
+    longitude = serializers.DecimalField(required=False, max_digits=11, decimal_places=6)
 
     class Meta:
         model = Hotel
@@ -55,6 +57,8 @@ class HotelDetailSerializer(serializers.ModelSerializer):
             "rules",
             "is_active",
             "room_categories",
+            "width",
+            "longitude",
         )
 
     def update(self, instance, validated_data):
