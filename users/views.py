@@ -311,7 +311,10 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Подтвердить код и получить токены",
-        description="Проверка кода и выдача JWT-токенов + роль пользователя.",
+        description=(
+            "Проверка кода и выдача JWT-токенов. "
+            "Дополнительно возвращает `register: Bool`, который указывает, зарегистрирован ли пользователь."
+        ),
         tags=[auth["name"]],
         request=VerifyCodeSerializer,
         responses={
@@ -320,7 +323,12 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 examples=[
                     OpenApiExample(
                         name="Success",
-                        value={"access": "jwt_access_token", "refresh": "jwt_refresh_token", "role": "USER"},
+                        value={
+                            "refresh": "jwt_refresh_token",
+                            "access": "jwt_access_token",
+                            "role": "USER",
+                            "register": True,  # Новый параметр
+                        },
                         response_only=True,
                     )
                 ],
@@ -330,21 +338,27 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
     def verify(self, request):
-        """Проверка кода и получение токенов."""
-        serializer = self.get_serializer(data=request.data)
+        """Проверка кода, выдача токенов и информации о регистрации."""
+        serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
         code = serializer.validated_data["code"]
 
         user = authenticate(email=email, password=str(code))
+
         if user:
             refresh = RefreshToken.for_user(user)
+
+            # Определяем, зарегистрирован ли пользователь по факту существования в БД
+            is_registered = User.objects.filter(email=email).exists()
+
             return Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                     "role": user.role,
+                    "register": is_registered,  # Теперь API возвращает register: True / False
                 },
                 status=status.HTTP_200_OK,
             )
