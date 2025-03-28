@@ -12,7 +12,7 @@ from drf_spectacular.utils import (
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -245,7 +245,6 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         """Определяем сериализатор в зависимости от действия."""
         if self.action == "create":
             return EmailLoginSerializer
-        # Используем кастомный метод вместо update
         elif self.action == "verify":
             return VerifyCodeSerializer
         return self.serializer_class
@@ -345,3 +344,37 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             )
 
         return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        summary="Выход из системы (Logout)",
+        description="Аннулирует refresh-токен, выход из системы.",
+        tags=[auth["name"]],
+        request=None,
+        responses={
+            205: OpenApiResponse(
+                description="Вы успешно вышли из системы",
+                examples=[
+                    OpenApiExample(
+                        name="Success", value={"message": "Вы успешно вышли из системы"}, response_only=True
+                    )
+                ],
+            ),
+            400: OpenApiResponse(description="Ошибка при выходе"),
+        },
+    )
+    @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        """Выход из системы: аннулирование refresh-токена."""
+        try:
+            # Получаем токен из запроса
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return Response({"error": "Refresh-токен не передан"}, status=status.HTTP_400_BAD_REQUEST)
+
+            token = RefreshToken(refresh_token)
+            # Добавляем токен в блэклист
+            token.blacklist()
+
+            return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
