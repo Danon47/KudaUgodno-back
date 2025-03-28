@@ -387,14 +387,24 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Проверка активности access-токена",
-        description="Возвращает 200 OK, если access-токен валиден, иначе 401 Unauthorized.",
+        description="Проверяет, действителен ли access-токен. Если токен истёк или отсутствует, возвращает 401.",
         tags=[auth["name"]],
         responses={
-            200: OpenApiResponse(description="Токен действителен"),
-            401: OpenApiResponse(description="Токен недействителен или отсутствует"),
+            200: OpenApiResponse(
+                description="Токен действителен",
+                examples=[OpenApiExample(name="Success", value={"message": "Токен активен"}, response_only=True)],
+            ),
+            401: OpenApiResponse(
+                description="Токен недействителен или отсутствует",
+                examples=[
+                    OpenApiExample(
+                        name="Error", value={"error": "Недействительный или отсутствующий токен"}, response_only=True
+                    )
+                ],
+            ),
         },
     )
     @action(detail=False, methods=["get"], url_path="check-token", permission_classes=[IsAuthenticated])
     def check_token(self, request):
-        """Проверка активности access-токена."""
+        """Возвращает 200 OK, если токен валиден, иначе 401."""
         return Response({"message": "Токен активен"}, status=status.HTTP_200_OK)
