@@ -89,4 +89,9 @@ class VerifyCodeSerializer(serializers.Serializer):
 
     email = serializers.EmailField(required=True)
     code = serializers.CharField(required=True)
-    role = serializers.CharField(required=True)
+
+
+class LogoutSerializer(serializers.Serializer):
+    """Сериализатор для выхода из системы"""
+
+    refresh = serializers.CharField(required=True)

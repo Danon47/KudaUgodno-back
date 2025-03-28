@@ -22,7 +22,13 @@ from config.settings import EMAIL_HOST_USER
 from users.choices import RoleChoices
 from users.models import User
 from users.permissions import IsAdminOrOwner
-from users.serializers import CompanyUserSerializer, EmailLoginSerializer, UserSerializer, VerifyCodeSerializer
+from users.serializers import (
+    CompanyUserSerializer,
+    EmailLoginSerializer,
+    LogoutSerializer,
+    UserSerializer,
+    VerifyCodeSerializer,
+)
 
 
 @extend_schema_view(
@@ -349,7 +355,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         summary="Выход из системы (Logout)",
         description="Аннулирует refresh-токен, выход из системы.",
         tags=[auth["name"]],
-        request=None,
+        request=LogoutSerializer,
         responses={
             205: OpenApiResponse(
                 description="Вы успешно вышли из системы",
@@ -378,3 +384,17 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        summary="Проверка активности access-токена",
+        description="Возвращает 200 OK, если access-токен валиден, иначе 401 Unauthorized.",
+        tags=[auth["name"]],
+        responses={
+            200: OpenApiResponse(description="Токен действителен"),
+            401: OpenApiResponse(description="Токен недействителен или отсутствует"),
+        },
+    )
+    @action(detail=False, methods=["get"], url_path="check-token", permission_classes=[IsAuthenticated])
+    def check_token(self, request):
+        """Проверка активности access-токена."""
+        return Response({"message": "Токен активен"}, status=status.HTTP_200_OK)
