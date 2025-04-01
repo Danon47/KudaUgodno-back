@@ -1,4 +1,3 @@
-from django.core.validators import MaxValueValidator
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -17,19 +16,34 @@ class Tour(models.Model):
     flight_to = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
-        verbose_name="Рейс туда",
+        verbose_name="Рейс отправления",
         related_name="tours",
         **NULLABLE,
     )
     flight_from = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
-        verbose_name="Рейс обратно",
+        verbose_name="Рейс возвращения",
+        **NULLABLE,
+    )
+    departure_country = models.CharField(
+        max_length=50,
+        verbose_name="Страна вылета",
         **NULLABLE,
     )
     departure_city = models.CharField(
         max_length=50,
         verbose_name="Город вылета",
+        **NULLABLE,
+    )
+    arrival_country = models.CharField(
+        max_length=50,
+        verbose_name="Страна прибытия",
+        **NULLABLE,
+    )
+    arrival_city = models.CharField(
+        max_length=50,
+        verbose_name="Город прибытия",
         **NULLABLE,
     )
     tour_operator = models.ForeignKey(
@@ -46,27 +60,19 @@ class Tour(models.Model):
         related_name="tours",
         **NULLABLE,
     )
-    number_of_adults = models.PositiveIntegerField(
-        verbose_name="Количество взрослых",
-        default=2,
-        validators=[
-            MaxValueValidator(10),
-        ],
+    room = models.CharField(
+        max_length=50,
+        verbose_name="Категория номера",
+        default="Standard",
     )
-    number_of_children = models.PositiveIntegerField(
-        verbose_name="Количество детей",
-        default=0,
-        validators=[
-            MaxValueValidator(10),
-        ],
-    )
-    transfer = models.TextField(verbose_name="Трансфер", **NULLABLE)
+    transfer = models.BooleanField(verbose_name="Трансфер", default=False)
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Стоимость тура",
         **NULLABLE,
     )
+
     document = models.FileField(upload_to="tour/documents", verbose_name="Документы", **NULLABLE)
     created_at = models.DateTimeField(
         auto_now_add=True,
