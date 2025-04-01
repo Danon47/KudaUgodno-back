@@ -23,6 +23,7 @@ class FlightSerializer(ModelSerializer):
             "arrival_date",
             "arrival_time",
             "price",
+            "price_for_child",
             "service_class",
             "flight_type",
             "description",
