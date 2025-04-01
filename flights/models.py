@@ -25,16 +25,23 @@ class Flight(models.Model):
         verbose_name="Цена",
         validators=[MinValueValidator(Decimal("0.01"))],
     )
+    price_for_child = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Цена для ребенка",
+        validators=[MinValueValidator(Decimal("0.01"))],
+        **NULLABLE,
+    )
     service_class = models.CharField(
         max_length=100,
         verbose_name="Класс обслуживания",
-        default="Эконом-класс",
+        default="Эконом",
     )
     flight_type = models.CharField(max_length=50, verbose_name="Тип рейса", default="Регулярный")
     description = models.TextField(
         verbose_name="Описание",
         **NULLABLE,
-        help_text="Наличие пересадки, багаж, ручная кладь, питание на борту, сайт авиакомпании",
+        help_text="Багаж, ручная кладь, питание на борту, сайт авиакомпании",
     )
 
     class Meta:
