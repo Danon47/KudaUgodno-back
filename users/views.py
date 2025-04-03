@@ -23,10 +23,16 @@ from users.choices import RoleChoices
 from users.models import User
 from users.permissions import IsAdminOrOwner
 from users.serializers import (
+    CheckTokenErrorResponseSerializer,
+    CheckTokenSuccessResponseSerializer,
     CompanyUserSerializer,
+    EmailCodeResponseSerializer,
     EmailLoginSerializer,
+    ErrorResponseSerializer,
     LogoutSerializer,
+    LogoutSuccessResponseSerializer,
     UserSerializer,
+    VerifyCodeResponseSerializer,
     VerifyCodeSerializer,
 )
 
@@ -95,8 +101,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.all().order_by("-pk")
         else:
             return User.objects.filter(pk=user.pk)
-        # <- никогда не будет вызван
-        # return User.objects.none()
 
     def get_permissions(self):
         if self.action == "create":
@@ -261,14 +265,10 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         tags=[auth["name"]],
         request=EmailLoginSerializer,
         responses={
-            200: OpenApiResponse(
-                description="Код успешно отправлен",
-                examples=[
-                    OpenApiExample(name="Success", value={"message": "Код отправлен на email"}, response_only=True)
-                ],
-            ),
+            200: OpenApiResponse(response=EmailCodeResponseSerializer, description="Код успешно отправлен"),
             404: OpenApiResponse(description="Пользователь не найден"),
         },
+        examples=[OpenApiExample(name="Пример запроса", value={"email": "user@example.com"}, request_only=True)],
     )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -311,29 +311,17 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Подтвердить код и получить токены",
-        description=(
-            "Проверка кода и выдача JWT-токенов. "
-            "Дополнительно возвращает `register: Bool`, который указывает, зарегистрирован ли пользователь."
-        ),
+        description="Проверка email и кода, возврат JWT-токенов и информации о регистрации",
         tags=[auth["name"]],
         request=VerifyCodeSerializer,
         responses={
             200: OpenApiResponse(
-                description="JWT-токены успешно получены",
-                examples=[
-                    OpenApiExample(
-                        name="Success",
-                        value={
-                            "refresh": "jwt_refresh_token",
-                            "access": "jwt_access_token",
-                            "role": "USER",
-                            "register": True,  # Новый параметр
-                        },
-                        response_only=True,
-                    )
-                ],
+                response=VerifyCodeResponseSerializer, description="Успешный ответ с токенами и статусом регистрации"
             ),
-            400: OpenApiResponse(description="Неверный код"),
+            400: OpenApiResponse(
+                description="Неверный код",
+                examples=[OpenApiExample(name="Ошибка", value={"error": "Неверный код"}, response_only=True)],
+            ),
         },
     )
     @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
@@ -367,32 +355,38 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Выход из системы (Logout)",
-        description="Аннулирует refresh-токен, выход из системы.",
+        description="Аннулирует refresh-токен и завершает сессию пользователя.",
         tags=[auth["name"]],
         request=LogoutSerializer,
         responses={
-            205: OpenApiResponse(
-                description="Вы успешно вышли из системы",
+            205: OpenApiResponse(response=LogoutSuccessResponseSerializer, description="Вы успешно вышли из системы"),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description="Ошибка при выходе",
                 examples=[
                     OpenApiExample(
-                        name="Success", value={"message": "Вы успешно вышли из системы"}, response_only=True
-                    )
+                        name="Ошибка: токен не передан",
+                        value={"error": "Refresh-токен не передан"},
+                        response_only=True,
+                    ),
+                    OpenApiExample(
+                        name="Ошибка: некорректный токен",
+                        value={"error": "Token is invalid or expired"},
+                        response_only=True,
+                    ),
                 ],
             ),
-            400: OpenApiResponse(description="Ошибка при выходе"),
         },
     )
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
     def logout(self, request):
         """Выход из системы: аннулирование refresh-токена."""
         try:
-            # Получаем токен из запроса
             refresh_token = request.data.get("refresh")
             if not refresh_token:
                 return Response({"error": "Refresh-токен не передан"}, status=status.HTTP_400_BAD_REQUEST)
 
             token = RefreshToken(refresh_token)
-            # Добавляем токен в блэклист
             token.blacklist()
 
             return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_205_RESET_CONTENT)
@@ -404,15 +398,13 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         description="Проверяет, действителен ли access-токен. Если токен истёк или отсутствует, возвращает 401.",
         tags=[auth["name"]],
         responses={
-            200: OpenApiResponse(
-                description="Токен действителен",
-                examples=[OpenApiExample(name="Success", value={"message": "Токен активен"}, response_only=True)],
-            ),
+            200: OpenApiResponse(response=CheckTokenSuccessResponseSerializer, description="Токен действителен"),
             401: OpenApiResponse(
+                response=CheckTokenErrorResponseSerializer,
                 description="Токен недействителен или отсутствует",
                 examples=[
                     OpenApiExample(
-                        name="Error", value={"error": "Недействительный или отсутствующий токен"}, response_only=True
+                        name="Ошибка", value={"error": "Недействительный или отсутствующий токен"}, response_only=True
                     )
                 ],
             ),
