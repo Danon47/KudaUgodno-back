@@ -263,7 +263,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         summary="Запросить код для входа",
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
         tags=[auth["name"]],
-        request=EmailLoginSerializer,
+        request={"multipart/form-data": EmailLoginSerializer},
         responses={
             200: OpenApiResponse(response=EmailCodeResponseSerializer, description="Код успешно отправлен"),
             404: OpenApiResponse(description="Пользователь не найден"),
@@ -275,10 +275,13 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
+        is_registered = User.objects.filter(email=email).exists()
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Пользователь не найден", "register": is_registered}, status=status.HTTP_404_NOT_FOUND
+            )
 
         code = random.randint(1000, 9999)
         user.set_password(str(code))
@@ -286,7 +289,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         self.send_email(user.email, code)
 
-        return Response({"message": "Код отправлен на email"}, status=status.HTTP_200_OK)
+        return Response({"message": "Код отправлен на email", "register": is_registered}, status=status.HTTP_200_OK)
 
     @staticmethod
     def send_email(email, code):
@@ -313,7 +316,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         summary="Подтвердить код и получить токены",
         description="Проверка email и кода, возврат JWT-токенов и информации о регистрации",
         tags=[auth["name"]],
-        request=VerifyCodeSerializer,
+        request={"multipart/form-data": VerifyCodeSerializer},
         responses={
             200: OpenApiResponse(
                 response=VerifyCodeResponseSerializer, description="Успешный ответ с токенами и статусом регистрации"
@@ -337,16 +340,11 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         if user:
             refresh = RefreshToken.for_user(user)
-
-            # Определяем, зарегистрирован ли пользователь по факту существования в БД
-            is_registered = User.objects.filter(email=email).exists()
-
             return Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                     "role": user.role,
-                    "register": is_registered,  # Теперь API возвращает register: True / False
                 },
                 status=status.HTTP_200_OK,
             )
@@ -357,7 +355,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         summary="Выход из системы (Logout)",
         description="Аннулирует refresh-токен и завершает сессию пользователя.",
         tags=[auth["name"]],
-        request=LogoutSerializer,
+        request={"multipart/form-data": LogoutSerializer},
         responses={
             205: OpenApiResponse(response=LogoutSuccessResponseSerializer, description="Вы успешно вышли из системы"),
             400: OpenApiResponse(
