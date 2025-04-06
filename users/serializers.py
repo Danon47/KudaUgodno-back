@@ -104,7 +104,6 @@ class VerifyCodeResponseSerializer(serializers.Serializer):
     refresh = serializers.CharField(help_text="JWT refresh-токен")
     access = serializers.CharField(help_text="JWT access-токен")
     role = serializers.CharField(help_text="Роль пользователя, например: USER, ADMIN")
-    register = serializers.BooleanField(help_text="True — если пользователь зарегистрирован")
 
 
 class LogoutSerializer(serializers.Serializer):
