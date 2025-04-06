@@ -182,6 +182,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    "TIME_FORMAT": "%H:%M:%S",
+    "TIME_INPUT_FORMATS": ["%H:%M:%S", "%H:%M"],
 }
 
 SIMPLE_JWT = {
