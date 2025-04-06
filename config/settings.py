@@ -185,8 +185,9 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Поставить позже актуальное время, сейчас для теста 30 дней стоит
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     # Обязательно для logout API
     "BLACKLIST_AFTER_ROTATION": True,
@@ -230,6 +231,7 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
+CORS_ALLOW_CREDENTIALS = True
 # Разрешенные домены для CORS (кросс-доменных запросов)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
