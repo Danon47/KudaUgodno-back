@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "guests",
     # Поддержка CORS
     "corsheaders",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [

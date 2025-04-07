@@ -379,6 +379,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
     def logout(self, request):
         """Выход из системы: аннулирование refresh-токена."""
+        print("REQUEST DATA:", request.data)
         try:
             refresh_token = request.data.get("refresh")
             if not refresh_token:
