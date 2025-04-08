@@ -7,12 +7,12 @@ user_settings = {"name": "Пользователи", "description": "Метод�
 entreprise = {"name": "Компании", "description": "Методы для работы с компаниями"}
 auth = {"name": "Авторизация", "description": "Методы для работы с авторизацией"}
 tour_settings = {"name": "Туры", "description": "Методы для работы с турами"}
-hotel_settings = {"name": "Отель", "description": "Методы для работы с отелями"}
+hotel_settings = {"name": "Отели", "description": "Методы для работы с отелями"}
 hotel_photo_settings = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
 }
-room_settings = {"name": "Номер", "description": "Методы для работы с номерами"}
+room_settings = {"name": "Номера", "description": "Методы для работы с номерами"}
 room_photo_settings = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
@@ -20,6 +20,7 @@ room_photo_settings = {
 flight_settings = {"name": "Рейсы", "description": "Методы для работы с рейсами"}
 application_settings = {"name": "Заявки", "description": "Методы для работы с заявками"}
 application_guest_settings = {"name": "Гости", "description": "Методы для работы с гостями"}
+insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 
 # ID пользователя
 user_id = OpenApiParameter(
@@ -117,12 +118,20 @@ application_guest_id = OpenApiParameter(
     description="ID Гостя в заявке",
     required=True,
 )
+# ID страховки
+insurance_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Страховки",
+    required=True,
+)
 
 # Для пагинации
 limit = OpenApiParameter(
     name="limit",
     type=int,
-    description="Количество номеров для возврата на страницу",
+    description="Количество объектов на одной странице",
     required=False,
 )
 offset = OpenApiParameter(
