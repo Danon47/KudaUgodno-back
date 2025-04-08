@@ -14,6 +14,7 @@ from all_fixture.fixture_views import (
     flight_settings,
     hotel_photo_settings,
     hotel_settings,
+    insurance_settings,
     room_photo_settings,
     room_settings,
     tour_settings,
@@ -62,6 +63,7 @@ INSTALLED_APPS = [
     "hotels",
     "applications",
     "guests",
+    "insurances",
     # Поддержка CORS
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
@@ -218,6 +220,7 @@ SPECTACULAR_SETTINGS = {
         flight_settings,
         application_settings,
         application_guest_settings,
+        insurance_settings,
     ],
     "SORT_OPERATIONS": True,
 }
