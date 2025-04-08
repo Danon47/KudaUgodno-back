@@ -345,6 +345,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
                     "role": user.role,
+                    "id": user.id,
                 },
                 status=status.HTTP_200_OK,
             )
