@@ -110,7 +110,8 @@ class VerifyCodeResponseSerializer(serializers.Serializer):
 class LogoutSerializer(serializers.Serializer):
     """Сериализатор для выхода из системы"""
 
-    refresh = serializers.CharField(required=True)
+    refresh = serializers.CharField(required=True, help_text="Refresh-токен, подлежащий аннулированию")
+    access = serializers.CharField(required=False, help_text="Access-токен (не используется на сервере)")
 
 
 class LogoutSuccessResponseSerializer(serializers.Serializer):

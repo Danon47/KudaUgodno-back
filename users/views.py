@@ -380,16 +380,15 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
     def logout(self, request):
         """Выход из системы: аннулирование refresh-токена."""
-        print("REQUEST DATA:", request.data)
-        try:
-            refresh_token = request.data.get("refresh")
-            if not refresh_token:
-                return Response({"error": "Refresh-токен не передан"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
+        refresh_token = serializer.validated_data["refresh"]
+
+        try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-
-            return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_205_RESET_CONTENT)
+            return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
