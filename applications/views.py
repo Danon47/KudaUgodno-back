@@ -80,5 +80,5 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             return ApplicationDetailSerializer
         return ApplicationSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(user_owner=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(user_owner=self.request.user)
