@@ -5,7 +5,9 @@ from all_fixture.fixture_views import NULLABLE
 from applications.choices import StatusChoices
 from guests.models import Guest
 from tours.models import Tour
-from users.models import User
+
+
+# from users.models import User
 
 
 class Application(models.Model):
@@ -41,7 +43,7 @@ class Application(models.Model):
         default=StatusChoices.AWAIT_CONFIRM,
         verbose_name="Статус заявки",
     )
-    user_owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь кто создал заявку")
+    # user_owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь кто создал заявку")
 
     class Meta:
         verbose_name = "Заявка"
