@@ -4,7 +4,9 @@ from applications.models import Application
 from flights.validators.validators import ForbiddenWordValidator
 from guests.serializers import GuestSerializer
 from tours.serializers import TourSerializer
-from users.serializers import UserSerializer
+
+
+# from users.serializers import UserSerializer
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
@@ -25,9 +27,9 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
             "med_insurance",
             "cancellation_insurance",
             "wishes",
-            "user_owner",
+            # "user_owner",
         )
-        read_only_fields = ("user_owner", "status")
+        read_only_fields = ("status",)  # , "user_owner")
         validators = [ForbiddenWordValidator(fields=["wishes"])]
 
 
@@ -38,7 +40,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     tour = TourSerializer()
     quantity_guests = GuestSerializer(many=True)
-    user_owner = UserSerializer()
+    # user_owner = UserSerializer()
 
     class Meta(ApplicationDetailSerializer.Meta):
-        read_only_fields = ("tour", "quantity_guests", "user_owner")
+        read_only_fields = (
+            "tour",
+            "quantity_guests",
+        )  # "user_owner"
