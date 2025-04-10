@@ -1,21 +1,29 @@
 import random
+from datetime import time
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
-from hotels.choices import PlaceChoices, TypeOfHolidayChoices
+from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.models_hotel_rules import HotelRules
 from hotels.models.room.models_room import Room
 
 
 class Command(BaseCommand):
-    help = "Populate the database with test hotels and rooms"
+    help = "Команда по добавлению рандомной инфы по всем сущностям"
 
     def handle(self, *args, **kwargs):
         hotels = self.create_test_hotels(1)
         self.create_test_rooms(hotels)
-        self.stdout.write(self.style.SUCCESS("Тестовые отели и номера заполнены"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                """Тестовый отель, с двумя номерам - создан."""
+                """Тестовый рейс туда, тестовый рейст обратно - созданы."""
+                """Тестовый гость - создан."""
+                """Тестовый тур - создан."""
+                """Тестовый страховка в ЛК Турагента - создана."""
+            )
+        )
 
     def create_test_hotels(self, count):
         places = [choice[0] for choice in PlaceChoices.choices]
@@ -40,8 +48,8 @@ class Command(BaseCommand):
                 distance_to_the_metro=random.randint(0, 50000),
                 distance_to_the_airport=random.randint(0, 50000),
                 description=f"Так себе описание отеля под номером {i+1}",
-                check_in_time=timezone.now().time(),
-                check_out_time=timezone.now().time(),
+                check_in_time=time(random.randint(14, 16), 0),
+                check_out_time=time(random.randint(10, 12), 0),
                 type_of_meals_ultra_all_inclusive=random.randint(3000, 10000),
                 type_of_meals_all_inclusive=random.randint(3000, 8000),
                 type_of_meals_full_board=random.randint(2000, 5000),
@@ -89,3 +97,37 @@ class Command(BaseCommand):
                     amenities_bathroom=random.sample(amenities_bathroom, k=random.randint(1, len(amenities_bathroom))),
                     amenities_view=random.sample(amenities_view, k=random.randint(1, len(amenities_view))),
                 )
+
+    # def create_flights(self):
+    #     flight_number = [
+    #         "AT-5555",
+    #         "TT-6666",
+    #         "TQ-7777",
+    #         "TS-8888",
+    #     ]
+    #     airline = ["Azure", "Аэрофлот", "S7"]
+    #     departure_airport = [
+    #         "SVO",
+    #         "DME",
+    #     ]
+    #     arrival_airport = ["AYT", "YRSS"]
+    #     departure_date = "2025-06-01"
+    #     departure_time = "10:00:00"
+    #     arrival_date = "2025-06-01"
+    #     arrival_time = "11:00:00"
+    #     price = round(random.uniform(1000, 10000), 2)
+    #     service_class = ["Эконом", "Бизнес", "Первый"]
+    #     flight_type = ["Регулярный", "Чартерный"]
+    #     description = ["Багаж включен", "Багаж не включен"]
+    #
+    #     for flight in flights:
+    #         for _ in range(random)
+    #
+    #
+    #
+    # def create_tours(self, hotels, flights):
+    #     start_date = "2025-06-01"
+    #     end_date = "2025-06-02"
+    #     #flight_to - self.fligts
+    #     #flight_from - self.flights
+    #     departure_city =
