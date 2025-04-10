@@ -7,6 +7,7 @@ from insurances.views import InsurancesView
 app_name = InsuranceConfig.name
 
 router = DefaultRouter()
-router.register("", InsurancesView)
+router.register("", InsurancesView, basename="insurances")
+
 
 urlpatterns = [] + router.urls
