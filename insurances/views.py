@@ -8,8 +8,8 @@ from insurances.serializers import InsuranceSerializer
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Список страховок",
-        description="Получение списка всех страховок",
+        summary="Метод получаения ID страховок турагента",
+        description="Метод получаения ID страховок турагента",
         tags=[insurance_settings["name"]],
         responses={
             200: InsuranceSerializer(many=True),
@@ -17,9 +17,12 @@ from insurances.serializers import InsuranceSerializer
         },
     ),
     create=extend_schema(
-        summary="Добавление страховки",
-        description="Создание новой страховки",
-        request=InsuranceSerializer,
+        summary="Сохранение страховок",
+        description="Этот метод сохраняет выбранные страховки турагента",
+        request={
+            "multipart/form-data": InsuranceSerializer,
+            "application/json": InsuranceSerializer,
+        },
         tags=[insurance_settings["name"]],
         responses={
             201: InsuranceSerializer,
