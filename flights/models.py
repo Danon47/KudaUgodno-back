@@ -50,4 +50,4 @@ class Flight(models.Model):
         ordering = ("departure_date",)
 
     def __str__(self):
-        return f"{self.flight_number}"
+        return f"{self.flight_number} - {self.service_class}"
