@@ -4,8 +4,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from all_fixture.choices import TypeOfHolidayChoices
 from all_fixture.fixture_views import NULLABLE
-from hotels.choices import TypeOfHolidayChoices
 
 
 class Hotel(models.Model):
