@@ -3,58 +3,140 @@
     "model": "tours.tour",
     "pk": 1,
     "fields": {
-      "start_date": "2025-04-09",
-      "end_date": "2025-04-15",
+      "start_date": "2025-04-10",
+      "end_date": "2025-04-20",
       "flight_to": 1,
       "flight_from": 2,
       "departure_country": "Россия",
-      "departure_city": "Москва",
-      "arrival_country": "Турция",
-      "arrival_city": "Стамбул",
+      "departure_city": "Домодедово",
+      "arrival_country": "Греция",
+      "arrival_city": "Шарм-Эль-Шейх",
       "tour_operator": 1,
       "hotel": 1,
-      "room": "Standard",
-      "transfer": true,
-      "price": "140000.00",
+      "room": "Стандарт",
+      "transfer": false,
+      "price": "118500.00",
       "document": "",
-      "created_at": "2025-04-09T15:15:25.748Z",
-      "updated_at": "2025-04-09T15:15:25.748Z"
+      "created_at": "2025-04-10T18:23:23.933Z",
+      "updated_at": "2025-04-10T18:23:23.933Z"
+    }
+  },
+  {
+    "model": "tours.tour",
+    "pk": 2,
+    "fields": {
+      "start_date": "2025-04-10",
+      "end_date": "2025-04-20",
+      "flight_to": 3,
+      "flight_from": 4,
+      "departure_country": "Россия",
+      "departure_city": "Домодедово",
+      "arrival_country": "Греция",
+      "arrival_city": "Шарм-Эль-Шейх",
+      "tour_operator": 1,
+      "hotel": 1,
+      "room": "Люкс",
+      "transfer": true,
+      "price": "192500.00",
+      "document": "",
+      "created_at": "2025-04-10T18:24:53.018Z",
+      "updated_at": "2025-04-10T18:24:53.018Z"
+    }
+  },
+  {
+    "model": "tours.tour",
+    "pk": 3,
+    "fields": {
+      "start_date": "2025-04-10",
+      "end_date": "2025-04-20",
+      "flight_to": 3,
+      "flight_from": 4,
+      "departure_country": "Россия",
+      "departure_city": "Домодедово",
+      "arrival_country": "Греция",
+      "arrival_city": "Шарм-Эль-Шейх",
+      "tour_operator": 1,
+      "hotel": 1,
+      "room": "Вася чё за номер",
+      "transfer": true,
+      "price": "237500.00",
+      "document": "",
+      "created_at": "2025-04-10T18:26:00.625Z",
+      "updated_at": "2025-04-10T18:26:00.625Z"
     }
   },
   {
     "model": "flights.flight",
     "pk": 1,
     "fields": {
-      "flight_number": "AA 5555",
+      "flight_number": "DS 5599",
       "airline": "Аэрофлот",
       "departure_airport": "DME",
-      "arrival_airport": "AYL",
-      "departure_date": "2025-04-09",
-      "departure_time": "18:11:54",
-      "arrival_date": "2025-04-09",
-      "arrival_time": "22:12:17",
-      "price": "6500.00",
-      "price_for_child": "3500.00",
+      "arrival_airport": "SSH",
+      "departure_date": "2025-04-10",
+      "departure_time": "18:00:00",
+      "arrival_date": "2025-04-10",
+      "arrival_time": "21:00:00",
+      "price": "9000.00",
+      "price_for_child": "6500.00",
       "service_class": "Эконом",
       "flight_type": "Регулярный",
-      "description": ""
+      "description": "Багаж тут отдельно"
     }
   },
   {
     "model": "flights.flight",
     "pk": 2,
     "fields": {
-      "flight_number": "AA 5556",
+      "flight_number": "SD 5557",
       "airline": "Аэрофлот",
-      "departure_airport": "AYL",
+      "departure_airport": "SSH",
       "arrival_airport": "DME",
-      "departure_date": "2025-04-15",
-      "departure_time": "18:13:14",
-      "arrival_date": "2025-04-15",
-      "arrival_time": "22:12:17",
-      "price": "6500.00",
-      "price_for_child": "3500.00",
+      "departure_date": "2025-04-20",
+      "departure_time": "15:00:00",
+      "arrival_date": "2025-04-20",
+      "arrival_time": "18:00:00",
+      "price": "9500.00",
+      "price_for_child": "6500.00",
       "service_class": "Эконом",
+      "flight_type": "Регулярный",
+      "description": "Багаж отдельно"
+    }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 3,
+    "fields": {
+      "flight_number": "DS 5599",
+      "airline": "Аэрофлот",
+      "departure_airport": "DME",
+      "arrival_airport": "SSH",
+      "departure_date": "2025-04-10",
+      "departure_time": "18:00:00",
+      "arrival_date": "2025-04-10",
+      "arrival_time": "21:00:00",
+      "price": "18000.00",
+      "price_for_child": "9500.00",
+      "service_class": "Бизнес",
+      "flight_type": "Регулярный",
+      "description": ""
+    }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 4,
+    "fields": {
+      "flight_number": "SD 5557",
+      "airline": "Аэрофлот",
+      "departure_airport": "SSH",
+      "arrival_airport": "DME",
+      "departure_date": "2025-04-20",
+      "departure_time": "15:00:00",
+      "arrival_date": "2025-04-20",
+      "arrival_time": "18:00:00",
+      "price": "19500.00",
+      "price_for_child": "9500.00",
+      "service_class": "Бизнес",
       "flight_type": "Регулярный",
       "description": ""
     }
@@ -63,35 +145,35 @@
     "model": "hotels.hotel",
     "pk": 1,
     "fields": {
-      "name": "Тестовый берёзовый отель",
+      "name": "Воображаемый отель",
       "star_category": 5,
       "place": "Отель",
-      "country": "Россия",
-      "city": "Москва",
-      "address": "ул. Пушкина",
-      "distance_to_the_station": 3500,
-      "distance_to_the_sea": 200000,
-      "distance_to_the_center": 1500,
-      "distance_to_the_metro": 3000,
-      "distance_to_the_airport": 65000,
-      "description": "Тут тусят фронты, бэкеры",
+      "country": "Греция",
+      "city": "Шарм-Эль-Шейх",
+      "address": "ул. Пушкина, д. 1",
+      "distance_to_the_station": 27000,
+      "distance_to_the_sea": 1500,
+      "distance_to_the_center": 9500,
+      "distance_to_the_metro": null,
+      "distance_to_the_airport": 33000,
+      "description": "Тут тусят фронты и бэкеры. Тестировщики пока наблюдают",
       "check_in_time": "14:00:00",
       "check_out_time": "12:00:00",
-      "amenities_common": "[\"\\u041c\\u043e\\u0436\\u043d\\u043e \\u0441\\u043c\\u043e\\u0442\\u0440\\u0435\\u0442\\u044c \\u043d\\u0430 \\u0441\\u043e\\u0437\\u0434\\u0430\\u043d\\u044b\\u0439 \\u043e\\u0442\\u0435\\u043b\\u044c\", \"\\u041c\\u043e\\u0436\\u043d\\u043e \\u0433\\u0443\\u043b\\u044f\\u0442\\u044c \\u0441 \\u043a\\u043e\\u0434\\u043e\\u043c\"]",
-      "amenities_in_the_room": "[\"\\u0415\\u0441\\u0442\\u044c \\u043a\\u043e\\u043c\\u043f\\u044c\\u044e\\u0442\\u0435\\u0440\", \"\\u0415\\u0441\\u0442\\u044c \\u0431\\u0430\\u0433\\u0440\\u0435\\u043f\\u043e\\u0440\\u0442\"]",
-      "amenities_sports_and_recreation": "[\"\\u0411\\u0430\\u0441\\u0441\\u0435\\u0439\\u043d\", \"\\u0417\\u0430\\u043b\"]",
-      "amenities_for_children": "[\"\\u0414\\u0435\\u0442\\u0441\\u043a\\u0430\\u044f \\u043f\\u043b\\u043e\\u0449\\u0430\\u0434\\u043a\\u0430\", \"\\u0410\\u043a\\u0432\\u0430\\u043f\\u0430\\u0440\\u043a\"]",
-      "type_of_meals_ultra_all_inclusive": 5000,
-      "type_of_meals_all_inclusive": 4500,
-      "type_of_meals_full_board": 3000,
-      "type_of_meals_half_board": 2000,
+      "amenities_common": "[\"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e 1\", \"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e 2\"]",
+      "amenities_in_the_room": "[\"\\u0412 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e 1\", \"\\u0412 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e 2\"]",
+      "amenities_sports_and_recreation": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0441\\u043f\\u043e\\u0440\\u0442\\u0430 \\u0438 \\u043e\\u0442\\u0434\\u044b\\u0445\\u0430 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0441\\u043f\\u043e\\u0440\\u0442\\u0430 \\u0438 \\u043e\\u0442\\u0434\\u044b\\u0445\\u0430 2\"]",
+      "amenities_for_children": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0434\\u043b\\u044f \\u0434\\u0435\\u0442\\u0435\\u0439 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0434\\u043b\\u044f \\u0434\\u0435\\u0442\\u0435\\u0439 2\"]",
+      "type_of_meals_ultra_all_inclusive": 10000,
+      "type_of_meals_all_inclusive": 5000,
+      "type_of_meals_full_board": 4000,
+      "type_of_meals_half_board": 2500,
       "type_of_meals_only_breakfast": 1000,
       "user_rating": "8.0",
-      "type_of_rest": "Городской",
+      "type_of_rest": "Пляжный",
       "is_active": true,
-      "room_categories": "[\"\\u0421\\u0442\\u0430\\u043d\\u0434\\u0430\\u0440\\u0442\", \"\\u0414\\u0435\\u043b\\u044e\\u043a\\u0441\"]",
-      "width": "85.554470",
-      "longitude": "66.885544",
+      "room_categories": "[\"\\u0421\\u0442\\u0430\\u043d\\u0434\\u0430\\u0440\\u0442\", \"\\u041b\\u044e\\u043a\\u0441\", \"\\u0412\\u0430\\u0441\\u044f \\u0447\\u0451 \\u0437\\u0430 \\u043d\\u043e\\u043c\\u0435\\u0440\"]",
+      "width": "88.555666",
+      "longitude": "18.224665",
       "rules": [
         2,
         1
@@ -111,8 +193,8 @@
     "pk": 1,
     "fields": {
       "hotel": 1,
-      "name": "Созадние кода",
-      "description": "Только с gitlow"
+      "name": "Не стоит",
+      "description": "Пушить баги"
     }
   },
   {
@@ -120,8 +202,8 @@
     "pk": 2,
     "fields": {
       "hotel": 1,
-      "name": "Ответственность",
-      "description": "Нельзя допускать баги в репозиторий"
+      "name": "Закрывать задачи",
+      "description": "Чтобы наш ПМ радовался"
     }
   },
   {
@@ -130,18 +212,18 @@
     "fields": {
       "hotel": 1,
       "category": "Стандарт",
-      "price": 40000,
-      "type_of_meals": "Ultra All inclusive, All inclusive, Полный пансион, Полу пансион, Только завтрак",
+      "price": 10000,
+      "type_of_meals": "Ultra All inclusive,All inclusive,Полный пансион, Полу пансион,Только завтрак",
       "number_of_adults": 2,
-      "number_of_children": 2,
-      "single_bed": 2,
+      "number_of_children": null,
+      "single_bed": null,
       "double_bed": 1,
-      "area": 50,
-      "quantity_rooms": 3,
-      "amenities_common": "[\"FaceID \\u0432\\u0445\\u043e\\u0434\"]",
-      "amenities_coffee": "[\"\\u041c\\u043e\\u043b\\u043e\\u0442\\u044b\\u0439 \\u043a\\u043e\\u0444\\u0435 \\u043f\\u0440\\u0438\\u043d\\u043e\\u0441\\u044f\\u0442 \\u043a\\u0430\\u0436\\u0434\\u043e\\u0435 \\u0443\\u0442\\u0440\\u043e\", \"\\u041c\\u043e\\u043b\\u043e\\u043a\\u043e \\u0438 \\u0441\\u043b\\u0438\\u0432\\u043a\\u0438 \\u043d\\u0430 \\u0432\\u044b\\u0431\\u043e\\u0440\"]",
-      "amenities_bathroom": "[\"\\u0415\\u0441\\u0442\\u044c \\u0444\\u0435\\u043d\", \"\\u0412\\u044b\\u043f\\u0440\\u044f\\u043c\\u0438\\u0442\\u0435\\u043b\\u044c\"]",
-      "amenities_view": "[\"\\u041a\\u0440\\u0430\\u0441\\u0438\\u0432\\u044b\\u0439 \\u0432\\u0438\\u0434 \\u0438\\u0437 \\u043e\\u043a\\u043d\\u0430 \\u043d\\u0430 \\u041a\\u0440\\u0435\\u043c\\u043b\\u044c\"]",
+      "area": 36,
+      "quantity_rooms": 5,
+      "amenities_common": "[\"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 1\", \"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 2\"]",
+      "amenities_coffee": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 2\"]",
+      "amenities_bathroom": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 2\"]",
+      "amenities_view": "[\"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043f\\u0438\\u0440\\u0430\\u043c\\u0438\\u0434\\u044b\", \"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043c\\u043e\\u0435\\u0440\"]",
       "discount": [],
       "unavailable": []
     }
@@ -151,19 +233,41 @@
     "pk": 2,
     "fields": {
       "hotel": 1,
-      "category": "Делюкс",
-      "price": 80000,
-      "type_of_meals": "Ultra All inclusive, All inclusive, Полный пансион, Полу пансион, Только завтрак",
+      "category": "Люкс",
+      "price": 15500,
+      "type_of_meals": "Ultra All inclusive,All inclusive,Полный пансион, Полу пансион,Только завтрак",
+      "number_of_adults": 2,
+      "number_of_children": 2,
+      "single_bed": 2,
+      "double_bed": 1,
+      "area": 45,
+      "quantity_rooms": 3,
+      "amenities_common": "[\"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 1\", \"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 2\"]",
+      "amenities_coffee": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 2\"]",
+      "amenities_bathroom": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 2\"]",
+      "amenities_view": "[\"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043f\\u0438\\u0440\\u0430\\u043c\\u0438\\u0434\\u044b\", \"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043c\\u043e\\u0435\\u0440\"]",
+      "discount": [],
+      "unavailable": []
+    }
+  },
+  {
+    "model": "hotels.room",
+    "pk": 3,
+    "fields": {
+      "hotel": 1,
+      "category": "Вася чё за номер",
+      "price": 20000,
+      "type_of_meals": "Ultra All inclusive,All inclusive,Полный пансион, Полу пансион,Только завтрак",
       "number_of_adults": 2,
       "number_of_children": null,
       "single_bed": null,
       "double_bed": 1,
       "area": 60,
       "quantity_rooms": 1,
-      "amenities_common": "[\"FaceID \\u0432\\u0445\\u043e\\u0434\"]",
-      "amenities_coffee": "[\"\\u041c\\u043e\\u043b\\u043e\\u0442\\u044b\\u0439 \\u043a\\u043e\\u0444\\u0435 \\u043f\\u0440\\u0438\\u043d\\u043e\\u0441\\u044f\\u0442 \\u043a\\u0430\\u0436\\u0434\\u043e\\u0435 \\u0443\\u0442\\u0440\\u043e\", \"\\u041c\\u043e\\u043b\\u043e\\u043a\\u043e \\u0438 \\u0441\\u043b\\u0438\\u0432\\u043a\\u0438 \\u043d\\u0430 \\u0432\\u044b\\u0431\\u043e\\u0440\"]",
-      "amenities_bathroom": "[\"\\u0415\\u0441\\u0442\\u044c \\u0444\\u0435\\u043d\", \"\\u0412\\u044b\\u043f\\u0440\\u044f\\u043c\\u0438\\u0442\\u0435\\u043b\\u044c\"]",
-      "amenities_view": "[\"\\u041a\\u0440\\u0430\\u0441\\u0438\\u0432\\u044b\\u0439 \\u0432\\u0438\\u0434 \\u0438\\u0437 \\u043e\\u043a\\u043d\\u0430 \\u043d\\u0430 \\u041a\\u0440\\u0435\\u043c\\u043b\\u044c\"]",
+      "amenities_common": "[\"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 1\", \"\\u041e\\u0431\\u0449\\u0435\\u0435 \\u0443\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u0432 \\u043d\\u043e\\u043c\\u0435\\u0440\\u0435 2\"]",
+      "amenities_coffee": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u043e \\u043a\\u043e\\u0444\\u0435 2\"]",
+      "amenities_bathroom": "[\"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 1\", \"\\u0423\\u0434\\u043e\\u0431\\u0441\\u0442\\u0432\\u0430 \\u0432 \\u0432\\u0430\\u043d\\u043d\\u043e\\u0439 2\"]",
+      "amenities_view": "[\"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043f\\u0438\\u0440\\u0430\\u043c\\u0438\\u0434\\u044b\", \"\\u0412\\u0438\\u0434 \\u043d\\u0430 \\u043c\\u043e\\u0435\\u0440\"]",
       "discount": [],
       "unavailable": []
     }
@@ -172,7 +276,7 @@
     "model": "hotels.roomphoto",
     "pk": 1,
     "fields": {
-      "room": 2,
+      "room": 1,
       "photo": "hotels/hotels/rooms/1.jpg"
     }
   },
@@ -180,8 +284,16 @@
     "model": "hotels.roomphoto",
     "pk": 2,
     "fields": {
-      "room": 1,
-      "photo": "hotels/hotels/rooms/0.jpg"
+      "room": 2,
+      "photo": "hotels/hotels/rooms/1-1.jpg"
+    }
+  },
+  {
+    "model": "hotels.roomphoto",
+    "pk": 3,
+    "fields": {
+      "room": 3,
+      "photo": "hotels/hotels/rooms/LALjQKbJUZw.jpg"
     }
   },
   {
@@ -190,14 +302,33 @@
     "fields": {
       "tour": 1,
       "email": "mered1an@life.com",
-      "phone_number": "+79958873107",
+      "phone_number": "+79958873535",
       "visa": true,
       "med_insurance": true,
       "cancellation_insurance": true,
-      "wishes": "jgchfchcf",
+      "wishes": "Уточнения",
       "status": "Ожидает подтверждения",
       "quantity_guests": [
-        1
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "applications.application",
+    "pk": 2,
+    "fields": {
+      "tour": 2,
+      "email": "mered1an@life.com",
+      "phone_number": "+79958873535",
+      "visa": true,
+      "med_insurance": true,
+      "cancellation_insurance": true,
+      "wishes": "Уточнения точно нужны",
+      "status": "Ожидает подтверждения",
+      "quantity_guests": [
+        1,
+        2
       ]
     }
   },
@@ -206,50 +337,29 @@
     "pk": 1,
     "fields": {
       "firstname": "Никита",
-      "lastname": "Тотеще",
-      "surname": "Бэкер",
-      "date_born": "1999-11-11",
+      "lastname": "Тотещётов",
+      "surname": "Иванович",
+      "date_born": "1991-05-19",
       "citizenship": "РФ",
-      "russian_passport_no": "4545 654654",
-      "international_passport_no": "12 3456789",
-      "validity_international_passport": "2035-04-09",
+      "russian_passport_no": "4545 455455",
+      "international_passport_no": "12 4567891",
+      "validity_international_passport": "2035-04-10",
       "user_owner": 1
     }
   },
   {
-    "model": "insurances.insurancemedical",
-    "pk": 1,
-    "fields": {
-      "name": "Ресо Страхование"
-    }
-  },
-  {
-    "model": "insurances.insurancemedical",
+    "model": "guests.guest",
     "pk": 2,
     "fields": {
-      "name": "Альфа Страхование"
-    }
-  },
-  {
-    "model": "insurances.insurancenotleaving",
-    "pk": 1,
-    "fields": {
-      "name": "Альфа Страхование"
-    }
-  },
-  {
-    "model": "insurances.insurancenotleaving",
-    "pk": 2,
-    "fields": {
-      "name": "Т-Страхование"
-    }
-  },
-  {
-    "model": "insurances.insurances",
-    "pk": 1,
-    "fields": {
-      "medical": 1,
-      "not_leaving": 2
+      "firstname": "Наталья",
+      "lastname": "Тотещётова",
+      "surname": "Ивановна",
+      "date_born": "1991-05-19",
+      "citizenship": "ФР",
+      "russian_passport_no": "4546 466466",
+      "international_passport_no": "12 3214567",
+      "validity_international_passport": "2035-04-10",
+      "user_owner": 1
     }
   }
 ]
