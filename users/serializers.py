@@ -114,6 +114,12 @@ class LogoutSerializer(serializers.Serializer):
     access = serializers.CharField(required=False, help_text="Access-токен (не используется на сервере)")
 
 
+class DeleteTokenSerializer(serializers.Serializer):
+    """Сериализатор для удаления пользователя с возможностью аннулирования refresh-токена."""
+
+    refresh = serializers.CharField(required=False, help_text="JWT refresh-токен для аннулирования (опционально).")
+
+
 class LogoutSuccessResponseSerializer(serializers.Serializer):
     message = serializers.CharField(help_text="Сообщение об успешном выходе из системы.")
 

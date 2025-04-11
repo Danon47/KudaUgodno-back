@@ -1,3 +1,4 @@
+import logging
 import random
 
 from django.contrib.auth import authenticate
@@ -26,6 +27,7 @@ from users.serializers import (
     CheckTokenErrorResponseSerializer,
     CheckTokenSuccessResponseSerializer,
     CompanyUserSerializer,
+    DeleteTokenSerializer,
     EmailCodeResponseSerializer,
     EmailLoginSerializer,
     ErrorResponseSerializer,
@@ -35,6 +37,9 @@ from users.serializers import (
     VerifyCodeResponseSerializer,
     VerifyCodeSerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(
@@ -76,11 +81,19 @@ from users.serializers import (
     ),
     destroy=extend_schema(
         summary="Удаление пользователя",
-        description="Удаление обычного пользователя по ID",
+        description=(
+            "Удаление обычного пользователя по ID.\n\n"
+            "- Пользователь с ролью `USER` может удалить только **себя**.\n"
+            "- Админ может удалить **любого пользователя**.\n"
+            "- Туроператоры и Отельеры удаляются только через ручку компаний.\n\n"
+            "Можно передать `refresh` токен в теле запроса для его аннулирования (необязательно)."
+        ),
         tags=[user_settings["name"]],
         parameters=[user_id],
+        request=DeleteTokenSerializer,
         responses={
-            204: OpenApiResponse(description="Удалено"),
+            204: OpenApiResponse(description="Пользователь удалён"),
+            403: OpenApiResponse(description="Удаление запрещено"),
             404: OpenApiResponse(description="Пользователь не найден"),
         },
     ),
@@ -133,15 +146,25 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Удаление пользователя по ID."""
         instance = self.get_object()
+        user = request.user
 
-        # Дополнительная логика: проверка, можно ли удалять (в будущем потребуется не удалять администраторов)
-        if instance.role != RoleChoices.USER:
-            return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
+        # Только USER может удалять себя, иначе — только админ
+        if not user.is_superuser:
+            if user != instance or instance.role != RoleChoices.USER:
+                return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Аннулируем токен (мягко)
+        refresh_token = request.data.get("refresh")
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception as e:
+                logger.warning(f"[User DELETE] Не удалось аннулировать токен {instance.email}: {e}")
 
         self.perform_destroy(instance)
-        return Response({"message": "Пользователь удален"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Пользователь удалён"}, status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(
@@ -174,7 +197,7 @@ class UserViewSet(viewsets.ModelViewSet):
         description="Полное обновление информации о компании по ID",
         tags=[entreprise["name"]],
         parameters=[entreprise_id],
-        request=CompanyUserSerializer,
+        request=CompanyUserSerializer,  # 👈 верный сериализатор для обновления
         responses={
             200: CompanyUserSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -183,11 +206,18 @@ class UserViewSet(viewsets.ModelViewSet):
     ),
     destroy=extend_schema(
         summary="Удаление компании",
-        description="Полное удаление компании по ID",
+        description=(
+            "Удаление компании (Туроператора или Отельера) по ID.\n\n"
+            "- Только администратор может удалять компании.\n"
+            "- Туроператор и Отельер **не могут удалить себя самостоятельно**.\n\n"
+            "Можно передать `refresh` токен для аннулирования (опционально)."
+        ),
         tags=[entreprise["name"]],
         parameters=[entreprise_id],
+        request=DeleteTokenSerializer,  # 👈 универсальный сериализатор
         responses={
             204: OpenApiResponse(description="Компания удалена"),
+            403: OpenApiResponse(description="Удаление запрещено"),
             404: OpenApiResponse(description="Компания не найдена"),
         },
     ),
@@ -233,16 +263,24 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Удаление компании по ID."""
-        # Получение объекта для удаления
         instance = self.get_object()
-        # Дополнительная логика: проверка, можно ли удалять
-        if instance.role not in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
-            return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
+        user = request.user
 
-        # Удаление объекта
+        # Только админ может удалять компании
+        if not user.is_superuser:
+            return Response({"error": "Удаление разрешено только администратору"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Мягкое аннулирование токена
+        refresh_token = request.data.get("refresh")
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception as e:
+                logger.warning(f"[Company DELETE] Не удалось аннулировать токен {instance.email}: {e}")
+
         self.perform_destroy(instance)
-        return Response({"message": "Удалено"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Компания удалена"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
