@@ -91,4 +91,8 @@ class Tour(models.Model):
         ordering = ("start_date",)
 
     def __str__(self):
-        return f"{self.hotel.name}"
+        if self.tour_operator:
+            if self.tour_operator.company_name:
+                return f"Тур от {self.tour_operator.company_name} в {self.hotel.name}"
+            return f"Тур от {self.tour_operator.email} в {self.hotel.name}"
+        return f"Тур в {self.hotel.name}"

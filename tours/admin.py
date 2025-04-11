@@ -10,12 +10,18 @@ class TourAdmin(admin.ModelAdmin):
         "start_date",
         "end_date",
         "flight_to",
-        "flight_to",
-        "tour_operator",
+        "flight_from",  # <-- было дублирование flight_to
+        "get_tour_operator_name",  # <-- красивое отображение компании
         "arrival_city",
         "hotel",
         "price",
         "room",
     )
     list_filter = ("tour_operator",)
-    search_fields = ("start_date", "hotel")
+    search_fields = ("start_date", "hotel__name", "tour_operator__company_name")
+
+    @admin.display(description="Туроператор")
+    def get_tour_operator_name(self, obj):
+        if obj.tour_operator:
+            return obj.tour_operator.company_name or obj.tour_operator.email
+        return "-"
