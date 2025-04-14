@@ -1,7 +1,11 @@
 from django.urls import path
 
+from hotels.apps import HotelsConfig
 from hotels.views.room.views_room import RoomViewSet
 from hotels.views.room.views_room_photo import RoomPhotoViewSet
+
+
+app_name = HotelsConfig.name
 
 
 urlpatterns = [

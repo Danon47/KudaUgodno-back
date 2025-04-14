@@ -42,6 +42,9 @@ class CompanyUserSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ("company_name", "documents")
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
     def update(self, instance, validated_data):
         """Полное обновление объекта (PUT)."""
         if "documents" in validated_data:

@@ -5,6 +5,9 @@ from all_fixture.fixture_views import NULLABLE
 
 
 class Insurances(models.Model):
+    id = models.OneToOneField(
+        "users.User", on_delete=models.CASCADE, primary_key=True, related_name="insurance", verbose_name="Пользователь"
+    )
     medical = models.CharField(
         choices=TypeInsuranceChoices.choices,
         default="",

@@ -1,4 +1,4 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
 from insurances.apps import InsuranceConfig
 from insurances.views import InsurancesView
@@ -6,8 +6,10 @@ from insurances.views import InsurancesView
 
 app_name = InsuranceConfig.name
 
-router = DefaultRouter()
-router.register("", InsurancesView, basename="insurances")
-
-
-urlpatterns = [] + router.urls
+urlpatterns = [
+    path(
+        "<int:pk>/",
+        InsurancesView.as_view({"get": "retrieve", "put": "update"}),
+        name="insurances",
+    )
+]

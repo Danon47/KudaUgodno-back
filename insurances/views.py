@@ -7,28 +7,6 @@ from insurances.serializers import InsuranceSerializer
 
 
 @extend_schema_view(
-    list=extend_schema(
-        summary="Метод получаения ID страховок турагента",
-        description="Метод получаения ID страховок турагента",
-        tags=[insurance_settings["name"]],
-        responses={
-            200: InsuranceSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
-        },
-    ),
-    create=extend_schema(
-        summary="Сохранение страховок",
-        description="Этот метод сохраняет выбранные страховки турагента",
-        request={
-            "multipart/form-data": InsuranceSerializer,
-            "application/json": InsuranceSerializer,
-        },
-        tags=[insurance_settings["name"]],
-        responses={
-            201: InsuranceSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-        },
-    ),
     retrieve=extend_schema(
         summary="Информация о страховке",
         description="Получение информации о страховке",
@@ -51,18 +29,7 @@ from insurances.serializers import InsuranceSerializer
             404: OpenApiResponse(description="Страховка не найдена"),
         },
     ),
-    destroy=extend_schema(
-        summary="Удаление страховки",
-        description="Полное удаление страховки",
-        tags=[insurance_settings["name"]],
-        parameters=[insurance_id],
-        responses={
-            204: OpenApiResponse(description="Страховка удалена"),
-            404: OpenApiResponse(description="Страховка не найдена"),
-        },
-    ),
 )
 class InsurancesView(ModelViewSet):
     queryset = Insurances.objects.all()
     serializer_class = InsuranceSerializer
-    http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]  # Исключаем 'patch'
