@@ -29,6 +29,17 @@ class TourSerializer(ModelSerializer):
             "document",
             "created_at",
             "updated_at",
+            "is_active",
         )
         read_only_fields = ("created_at", "updated_at")
         validators = [StartDateValidator(), EndDateValidator()]
+
+
+class TourPatchSerializer(ModelSerializer):
+    """
+    Сериализатор для единственного действия - ставить тур в архив, и убирать его из архива
+    """
+
+    class Meta:
+        model = Tour
+        fields = ("is_active",)
