@@ -1,5 +1,8 @@
 from django.contrib.auth.models import BaseUserManager
 
+from insurances.models import Insurances
+from users.choices import RoleChoices
+
 
 class CustomUserManager(BaseUserManager):
     """Менеджер для кастомного пользователя с email вместо username."""
@@ -13,9 +16,13 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
 
+        role = extra_fields.get("role")
+
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        if role == RoleChoices.TOUR_OPERATOR:
+            Insurances.objects.create(id=user)
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
