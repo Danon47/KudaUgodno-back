@@ -13,7 +13,17 @@ class Flight(models.Model):
 
     flight_number = models.CharField(max_length=10, verbose_name="Номер рейса")
     airline = models.CharField(max_length=100, verbose_name="Авиакомпания")
+    departure_city = models.CharField(
+        max_length=50,
+        verbose_name="Город вылета",
+        **NULLABLE,
+    )
     departure_airport = models.CharField(max_length=100, verbose_name="Аэропорт вылета")
+    arrival_city = models.CharField(
+        max_length=50,
+        verbose_name="Город прибытия",
+        **NULLABLE,
+    )
     arrival_airport = models.CharField(max_length=100, verbose_name="Аэропорт прибытия")
     departure_date = models.DateField(verbose_name="Дата вылета")
     departure_time = models.TimeField(verbose_name="Время вылета")
