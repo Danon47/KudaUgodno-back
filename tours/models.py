@@ -96,6 +96,11 @@ class Tour(models.Model):
         verbose_name="Дата последнего изменения",
         **NULLABLE,
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Тур активен?",
+        help_text="Тур активен?",
+    )
 
     class Meta:
         verbose_name = "Тур"

@@ -3,7 +3,7 @@ from rest_framework import viewsets
 
 from all_fixture.fixture_views import limit, offset, tour_id, tour_settings
 from tours.models import Tour
-from tours.serializers import TourSerializer
+from tours.serializers import TourPatchSerializer, TourSerializer
 
 
 @extend_schema_view(
@@ -52,11 +52,11 @@ from tours.serializers import TourSerializer
     partial_update=extend_schema(
         summary="Частичное обновление тура",
         description="Обновление отдельных полей тура",
-        request=TourSerializer,
+        request=TourPatchSerializer,
         tags=[tour_settings["name"]],
         parameters=[tour_id],
         responses={
-            200: TourSerializer,
+            200: TourPatchSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
             404: OpenApiResponse(description="Тур не найден"),
         },
@@ -74,7 +74,13 @@ from tours.serializers import TourSerializer
 )
 class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
-    serializer_class = TourSerializer
+    # serializer_class = TourSerializer
+
+    def get_serializer_class(self):
+        if self.action == "patch":
+            return TourPatchSerializer
+        else:
+            return TourSerializer
 
     # def perform_create(self, serializer):
     #     tour = serializer.save()
