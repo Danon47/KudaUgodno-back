@@ -3,7 +3,7 @@ from rest_framework import viewsets
 
 from all_fixture.fixture_views import limit, offset, tour_id, tour_settings
 from tours.models import Tour
-from tours.serializers import TourPatchSerializer, TourSerializer
+from tours.serializers import TourListSerializer, TourPatchSerializer, TourSerializer
 
 
 @extend_schema_view(
@@ -13,7 +13,7 @@ from tours.serializers import TourPatchSerializer, TourSerializer
         tags=[tour_settings["name"]],
         parameters=[limit, offset],
         responses={
-            200: TourSerializer(many=True),
+            200: TourListSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
     ),
@@ -33,7 +33,7 @@ from tours.serializers import TourPatchSerializer, TourSerializer
         tags=[tour_settings["name"]],
         parameters=[tour_id],
         responses={
-            200: TourSerializer,
+            200: TourListSerializer,
             404: OpenApiResponse(description="Тур не найден"),
         },
     ),
@@ -74,11 +74,12 @@ from tours.serializers import TourPatchSerializer, TourSerializer
 )
 class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
-    # serializer_class = TourSerializer
 
     def get_serializer_class(self):
         if self.action == "patch":
             return TourPatchSerializer
+        elif self.action in ["list", "retrieve"]:
+            return TourListSerializer
         else:
             return TourSerializer
 
