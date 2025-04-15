@@ -65,4 +65,8 @@ class Flight(models.Model):
         ordering = ("departure_date",)
 
     def __str__(self):
-        return f"{self.flight_number} - {self.service_class}"
+        return (
+            f"{self.flight_number}, {self.airline}, "
+            f"{self.departure_city} {self.departure_airport} - "
+            f"{self.arrival_city} {self.arrival_airport}"
+        )
