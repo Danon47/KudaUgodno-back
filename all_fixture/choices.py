@@ -18,6 +18,7 @@ class TypeInsuranceChoices(models.TextChoices):
     RENESSANSINSURANCE = "Ренессанс Страхование", "Ренессанс Страхование"
     INGOSTRAHINSURANCE = "Ингострах", "Ингострах"
     INTOUCHINSURANCE = "INTOUCH", "INTOUCH"
+    NOTSELECTED = "Не выбрано", "Не выбрано"
 
 
 class PlaceChoices(models.TextChoices):
