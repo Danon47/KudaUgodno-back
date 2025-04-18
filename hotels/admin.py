@@ -11,7 +11,7 @@ from hotels.models.room.models_room_unavailable import RoomUnavailable
 
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ("id", "type_of_rest", "name", "city", "address")
+    list_display = ("id", "type_of_rest", "name", "country", "warm", "city", "address")
     list_display_links = ("id", "name")
 
 
