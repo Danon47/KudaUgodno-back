@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from flights.validators.validators import ForbiddenWordValidator
+from all_fixture.validators.validators import ForbiddenWordValidator
 from guests.models import Guest
 from guests.validators import DateBornValidator, ValidityOfForeignPassportValidator
 from users.serializers import UserSerializer

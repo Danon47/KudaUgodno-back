@@ -10,7 +10,7 @@ class HotelPhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HotelPhoto
-        fields = "__all__"
+        fields = ("id", "photo", "hotel")
         read_only_fields = (
             "id",
             "hotel",

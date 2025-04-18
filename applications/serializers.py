@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import Application
-from flights.validators.validators import ForbiddenWordValidator
 from guests.serializers import GuestSerializer
 from tours.serializers import TourSerializer
 
