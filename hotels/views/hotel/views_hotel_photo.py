@@ -1,8 +1,7 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings, limit, offset
-from all_fixture.pagination import CustomLOPagination
+from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings
 from hotels.models.hotel.models_hotel_photo import HotelPhoto
 from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
 
@@ -11,7 +10,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
     list=extend_schema(
         summary="Список типов фотографий отеля",
         description="Получение списка всех фотографий отеля",
-        parameters=[limit, offset, hotel_id],
+        parameters=[hotel_id],
         responses={
             200: HotelPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -44,7 +43,6 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
 )
 class HotelPhotoViewSet(viewsets.ModelViewSet):
     serializer_class = HotelPhotoSerializer
-    pagination_class = CustomLOPagination
     http_method_names = ["get", "post", "delete", "head", "options", "trace"]  # исключаем обновления
 
     def get_queryset(self):
