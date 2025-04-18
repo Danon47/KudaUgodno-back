@@ -18,14 +18,39 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(BaseUserSerializer):
-    """Сериализатор для обычных пользователей."""
+    """Сериализатор для обычных пользователей (туристов) с пользовательскими настройками."""
 
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     avatar = serializers.ImageField(required=False, allow_null=True)
 
+    currency = serializers.ChoiceField(
+        choices=User.CurrencyChoices.choices,
+        default=User.CurrencyChoices.RUB,
+        help_text="Выбор предпочитаемой валюты: RUB, EUR, USD",
+    )
+    language = serializers.ChoiceField(
+        choices=User.LanguageChoices.choices,
+        default=User.LanguageChoices.RU,
+        help_text="Язык интерфейса: RU или EN",
+    )
+    notifications_enabled = serializers.BooleanField(
+        default=True,
+        help_text="Получать ли оповещения от сервиса",
+    )
+    preferred_contact_channel = serializers.ChoiceField(
+        choices=User.ContactPriorityChoices.choices,
+        default=User.ContactPriorityChoices.EMAIL,
+        help_text="Приоритетный способ связи: телефон или email",
+    )
+
     class Meta(BaseUserSerializer.Meta):
-        fields = BaseUserSerializer.Meta.fields
+        fields = BaseUserSerializer.Meta.fields + (
+            "currency",
+            "language",
+            "notifications_enabled",
+            "preferred_contact_channel",
+        )
 
 
 class CompanyUserSerializer(BaseUserSerializer):
