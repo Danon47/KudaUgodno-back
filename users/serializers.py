@@ -1,6 +1,7 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
 from users.choices import RoleChoices
 from users.models import User
 from users.validators import ForbiddenWordValidator
@@ -25,13 +26,13 @@ class UserSerializer(BaseUserSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True)
 
     currency = serializers.ChoiceField(
-        choices=User.CurrencyChoices.choices,
-        default=User.CurrencyChoices.RUB,
+        choices=CurrencyChoices.choices,
+        default=CurrencyChoices.RUB,
         help_text="Выбор предпочитаемой валюты: RUB, EUR, USD",
     )
     language = serializers.ChoiceField(
-        choices=User.LanguageChoices.choices,
-        default=User.LanguageChoices.RU,
+        choices=LanguageChoices.choices,
+        default=LanguageChoices.RU,
         help_text="Язык интерфейса: RU или EN",
     )
     notifications_enabled = serializers.BooleanField(
@@ -39,8 +40,8 @@ class UserSerializer(BaseUserSerializer):
         help_text="Получать ли оповещения от сервиса",
     )
     preferred_contact_channel = serializers.ChoiceField(
-        choices=User.ContactPriorityChoices.choices,
-        default=User.ContactPriorityChoices.EMAIL,
+        choices=ContactPriorityChoices.choices,
+        default=ContactPriorityChoices.EMAIL,
         help_text="Приоритетный способ связи: телефон или email",
     )
 

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
 from all_fixture.fixture_views import NULLABLE
 from users.choices import RoleChoices
 from users.managers import CustomUserManager
@@ -16,25 +17,6 @@ class User(AbstractUser):
     полями для Туроператоров и Отельеров. Также включает пользовательские
     настройки: предпочитаемая валюта, язык интерфейса, оповещения и канал связи.
     """
-
-    class CurrencyChoices(models.TextChoices):
-        """Валюты, используемые пользователем."""
-
-        RUB = "RUB", "Рубль"
-        EUR = "EUR", "Евро"
-        USD = "USD", "Доллар"
-
-    class LanguageChoices(models.TextChoices):
-        """Языки интерфейса, доступные пользователю."""
-
-        RU = "RU", "Русский"
-        EN = "EN", "Английский"
-
-    class ContactPriorityChoices(models.TextChoices):
-        """Предпочтительный канал связи с пользователем."""
-
-        PHONE = "phone", "Телефон"
-        EMAIL = "email", "Email"
 
     # Отключаем стандартное поле username
     username = None
@@ -123,10 +105,10 @@ class User(AbstractUser):
             # Проверяем, что пользователь не пытался указать специфичные для туриста поля
             if any(
                 [
-                    self.currency != self.CurrencyChoices.RUB,
-                    self.language != self.LanguageChoices.RU,
+                    self.currency != CurrencyChoices.RUB,
+                    self.language != LanguageChoices.RU,
                     self.notifications_enabled is not True,
-                    self.preferred_contact_channel != self.ContactPriorityChoices.EMAIL,
+                    self.preferred_contact_channel != ContactPriorityChoices.EMAIL,
                 ]
             ):
                 raise ValidationError("Настройки интерфейса доступны только обычным пользователям (туристам).")
