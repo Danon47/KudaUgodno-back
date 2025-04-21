@@ -45,3 +45,25 @@ class TypeOfHolidayChoices(models.TextChoices):
     HEALING = "Лечебный", "Лечебный"
     WITH_CHILDREN = "С детьми", "С детьми"
     WITH_ANIMALS = "С животными", "С животными"
+
+
+class CurrencyChoices(models.TextChoices):
+    """Валюты, используемые пользователем."""
+
+    RUB = "RUB", "Рубль"
+    EUR = "EUR", "Евро"
+    USD = "USD", "Доллар"
+
+
+class LanguageChoices(models.TextChoices):
+    """Языки интерфейса, доступные пользователем."""
+
+    RU = "RU", "Русский"
+    EN = "EN", "Английский"
+
+
+class ContactPriorityChoices(models.TextChoices):
+    """Предпочтительный канал связи с пользователем."""
+
+    PHONE = "phone", "Телефон"
+    EMAIL = "email", "Email"

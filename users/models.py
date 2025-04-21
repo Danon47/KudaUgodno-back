@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
 from all_fixture.fixture_views import NULLABLE
 from users.choices import RoleChoices
 from users.managers import CustomUserManager
@@ -10,11 +11,17 @@ from users.managers import CustomUserManager
 
 class User(AbstractUser):
     """
-    Базовая модель Пользователя с расширением для Туроператора и Отельера.
+    Кастомная модель пользователя для системы "Куда Угодно".
+
+    Объединяет базовые поля пользователя, а также дополняется расширенными
+    полями для Туроператоров и Отельеров. Также включает пользовательские
+    настройки: предпочитаемая валюта, язык интерфейса, оповещения и канал связи.
     """
 
+    # Отключаем стандартное поле username
     username = None
-    # Общие поля для всех пользователей
+
+    # Основные поля пользователя
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     email = models.EmailField(unique=True, verbose_name="Email")
@@ -25,19 +32,46 @@ class User(AbstractUser):
     )
     avatar = models.ImageField(upload_to="users/", verbose_name="Аватар", **NULLABLE)
     birth_date = models.DateField(verbose_name="Дата рождения", **NULLABLE)
-    # Поля для Туроператора и Отельера
+
+    # Расширенные поля для компаний
     company_name = models.CharField(max_length=150, verbose_name="Название компании", **NULLABLE)
     documents = models.FileField(upload_to="documents/", verbose_name="Документы", **NULLABLE)
+
     role = models.CharField(
         choices=RoleChoices.choices,
         default=RoleChoices.USER,
         verbose_name="Роль пользователя",
     )
 
+    # Поля пользовательских настроек
+    currency = models.CharField(
+        max_length=3,
+        choices=CurrencyChoices.choices,
+        default=CurrencyChoices.RUB,
+        verbose_name="Валюта",
+    )
+    language = models.CharField(
+        max_length=2,
+        choices=LanguageChoices.choices,
+        default=LanguageChoices.RU,
+        verbose_name="Язык интерфейса",
+    )
+    notifications_enabled = models.BooleanField(
+        default=True,
+        verbose_name="Получать оповещения",
+    )
+    preferred_contact_channel = models.CharField(
+        max_length=10,
+        choices=ContactPriorityChoices.choices,
+        default=ContactPriorityChoices.EMAIL,
+        verbose_name="Приоритетный канал связи",
+    )
+
+    # Настройки аутентификации
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    # Подключаем кастомный менеджер
+    # Кастомный менеджер
     objects = CustomUserManager()
 
     class Meta:
@@ -46,22 +80,35 @@ class User(AbstractUser):
         ordering = ("-pk",)
 
     def __str__(self):
+        """Строковое представление — email пользователя."""
         return self.email
 
     def clean(self):
         """
-        Проверка значений полей в зависимости от роли.
+        Валидация полей модели пользователя в зависимости от роли:
+        - Пользователь не может иметь company_name и documents.
+        - Туроператор и Отельер обязаны заполнить company_name и загрузить documents.
+        - Только обычный пользователь может использовать настройки:
+            currency, language, notifications_enabled, preferred_contact_channel.
         """
         super().clean()
 
-        # Валидация для роли "Пользователь"
         if self.role == RoleChoices.USER:
             if self.company_name or self.documents:
                 raise ValidationError("У обычного пользователя не могут быть заполнены поля: company_name, documents.")
-
-        # Валидация для роли "Туроператор" и "Отельер"
         elif self.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
             if not self.company_name:
                 raise ValidationError("Для Туроператора и Отельера поле 'Название компании' является обязательным.")
             if not self.documents:
                 raise ValidationError("Для Туроператора и Отельера необходимо загрузить документы.")
+
+            # Проверяем, что пользователь не пытался указать специфичные для туриста поля
+            if any(
+                [
+                    self.currency != CurrencyChoices.RUB,
+                    self.language != LanguageChoices.RU,
+                    self.notifications_enabled is not True,
+                    self.preferred_contact_channel != ContactPriorityChoices.EMAIL,
+                ]
+            ):
+                raise ValidationError("Настройки интерфейса доступны только обычным пользователям (туристам).")

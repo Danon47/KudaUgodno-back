@@ -1,6 +1,7 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
 from users.choices import RoleChoices
 from users.models import User
 from users.validators import ForbiddenWordValidator
@@ -18,14 +19,39 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(BaseUserSerializer):
-    """Сериализатор для обычных пользователей."""
+    """Сериализатор для обычных пользователей (туристов) с пользовательскими настройками."""
 
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     avatar = serializers.ImageField(required=False, allow_null=True)
 
+    currency = serializers.ChoiceField(
+        choices=CurrencyChoices.choices,
+        default=CurrencyChoices.RUB,
+        help_text="Выбор предпочитаемой валюты: RUB, EUR, USD",
+    )
+    language = serializers.ChoiceField(
+        choices=LanguageChoices.choices,
+        default=LanguageChoices.RU,
+        help_text="Язык интерфейса: RU или EN",
+    )
+    notifications_enabled = serializers.BooleanField(
+        default=True,
+        help_text="Получать ли оповещения от сервиса",
+    )
+    preferred_contact_channel = serializers.ChoiceField(
+        choices=ContactPriorityChoices.choices,
+        default=ContactPriorityChoices.EMAIL,
+        help_text="Приоритетный способ связи: телефон или email",
+    )
+
     class Meta(BaseUserSerializer.Meta):
-        fields = BaseUserSerializer.Meta.fields
+        fields = BaseUserSerializer.Meta.fields + (
+            "currency",
+            "language",
+            "notifications_enabled",
+            "preferred_contact_channel",
+        )
 
 
 class CompanyUserSerializer(BaseUserSerializer):
