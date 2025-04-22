@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from hotels.models.hotel.models_hotel import Hotel
+from hotels.models.hotel.models_hotel_photo import HotelPhoto
 
 
 class HotelWarmUpSerializer(serializers.ModelSerializer):
@@ -34,7 +35,7 @@ class HotelWarmUpSerializer(serializers.ModelSerializer):
     def get_min_price(self, obj):
         return obj.rooms.aggregate(min_price=Min("price"))["min_price"]
 
-    def get_photo(self, obj):
+    def get_photo(self, obj: HotelPhoto) -> str:
         if obj.hotel_photos.exists():
             first_photo = obj.hotel_photos.first()
             return self.context["request"].build_absolute_uri(first_photo.photo.url)

@@ -36,8 +36,8 @@ urlpatterns = [
         name="hotels-photos-detail",
     ),
     path(
-        "hotels/warm/",
+        "hotels/warms/",
         HotelWarpUpViewSet.as_view({"get": "list"}),
-        name="hotels-warm-up-list",
+        name="hotels-warms-up-list",
     ),
 ]
