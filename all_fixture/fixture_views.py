@@ -7,6 +7,7 @@ user_settings = {"name": "Пользователи", "description": "Метод�
 entreprise = {"name": "Компании", "description": "Методы для работы с компаниями"}
 auth = {"name": "Авторизация", "description": "Методы для работы с авторизацией"}
 tour_settings = {"name": "Туры", "description": "Методы для работы с турами"}
+tour_stock_settings = {"name": "Акции в туре", "description": "Методы для работы с акциями в туре"}
 hotel_settings = {"name": "Отели", "description": "Методы для работы с отелями"}
 hotel_photo_settings = {
     "name": "Фотографии в отеле",
@@ -22,6 +23,7 @@ application_settings = {"name": "Заявки", "description": "Методы д�
 application_guest_settings = {"name": "Гости", "description": "Методы для работы с гостями"}
 insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 warm_up_settings = {"name": "Что на счёт погреться?", "description": "Получаем список выбранные отелей"}
+
 
 # ID пользователя
 user_id = OpenApiParameter(
@@ -45,6 +47,14 @@ tour_id = OpenApiParameter(
     name="id",
     type=int,
     description="ID Тура",
+    required=True,
+)
+# ID акции тура
+tour_stock_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Акции тура",
     required=True,
 )
 # ID отеля

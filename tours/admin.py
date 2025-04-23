@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from tours.models import Tour
+from tours.models import Tour, TourDocument, TourStock
 
 
 @admin.register(Tour)
@@ -25,3 +25,13 @@ class TourAdmin(admin.ModelAdmin):
         if obj.tour_operator:
             return obj.tour_operator.company_name or obj.tour_operator.email
         return "-"
+
+
+@admin.register(TourDocument)
+class TourDocumentAdmin(admin.ModelAdmin):
+    list_display = ("id", "tour", "document")
+
+
+@admin.register(TourStock)
+class TourStockAdmin(admin.ModelAdmin):
+    list_display = ("id", "active_stock", "end_date", "discount_amount")
