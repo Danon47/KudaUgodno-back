@@ -3,6 +3,7 @@ from django.contrib import admin
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.models_hotel_photo import HotelPhoto
 from hotels.models.hotel.models_hotel_rules import HotelRules
+from hotels.models.hotel.models_hotel_what_about import HotelWhatAbout
 from hotels.models.room.models_room import Room
 from hotels.models.room.models_room_discount import RoomDiscount
 from hotels.models.room.models_room_photo import RoomPhoto
@@ -13,6 +14,11 @@ from hotels.models.room.models_room_unavailable import RoomUnavailable
 class HotelAdmin(admin.ModelAdmin):
     list_display = ("id", "type_of_rest", "name", "country", "warm", "city", "address")
     list_display_links = ("id", "name")
+
+
+@admin.register(HotelWhatAbout)
+class HotelWhatAboutAdmin(admin.ModelAdmin):
+    list_display = ("id", "name_set", "city")
 
 
 @admin.register(Room)

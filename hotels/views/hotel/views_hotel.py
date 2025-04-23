@@ -7,7 +7,7 @@ from all_fixture.fixture_views import hotel_settings, id_hotel, limit, offset, w
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, HotelDetailSerializer, HotelListSerializer
-from hotels.serializers.warm_up.serializers_hotel_warm_up import HotelWarmUpSerializer
+from hotels.serializers.what_about.serializers_hotel_warm_up import HotelWhatAboutSerializer
 
 
 class CreatedByUserFilterMixin:
@@ -109,14 +109,14 @@ class HotelViewSet(viewsets.ModelViewSet):
         description="Получение списка трёх  отелей в определённом городе",
         parameters=[offset, limit],
         responses={
-            200: HotelWarmUpSerializer(many=True),
+            200: HotelWhatAboutSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[warm_up_settings["name"]],
     )
 )
 class HotelWarpUpViewSet(viewsets.ModelViewSet):
-    serializer_class = HotelWarmUpSerializer
+    serializer_class = HotelWhatAboutSerializer
     pagination_class = CustomLOPagination
 
     def get_queryset(self):
