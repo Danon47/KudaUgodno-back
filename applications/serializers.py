@@ -3,7 +3,7 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import Application
 from guests.serializers import GuestSerializer
-from tours.serializers import TourSerializer
+from tours.serializers import TourListSerializer
 
 
 # from users.serializers import UserSerializer
@@ -11,7 +11,8 @@ from tours.serializers import TourSerializer
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели Application
+    Сериализатор заявок по турам.
+    методы PUT POST PATCH.
     """
 
     class Meta:
@@ -35,10 +36,11 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
 
 class ApplicationSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для модели Application
+    Сериализатор заявок по турам.
+    методы GET.
     """
 
-    tour = TourSerializer()
+    tour = TourListSerializer()
     quantity_guests = GuestSerializer(many=True)
     # user_owner = UserSerializer()
 
