@@ -18,7 +18,9 @@ from all_fixture.fixture_views import (
     room_photo_settings,
     room_settings,
     tour_settings,
+    tour_stock_settings,
     user_settings,
+    warm_up_settings,
 )
 
 
@@ -214,9 +216,11 @@ SPECTACULAR_SETTINGS = {
         entreprise,
         hotel_settings,
         hotel_photo_settings,
+        warm_up_settings,
         room_settings,
         room_photo_settings,
         tour_settings,
+        tour_stock_settings,
         flight_settings,
         application_settings,
         application_guest_settings,

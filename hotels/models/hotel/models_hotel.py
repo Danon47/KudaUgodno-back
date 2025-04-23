@@ -5,7 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from all_fixture.choices import TypeOfHolidayChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.fixture_views import NULLABLE, WARM_CITY, WARM_COUNTRIES
 
 
 class Hotel(models.Model):
@@ -248,6 +248,11 @@ class Hotel(models.Model):
         ],
         **NULLABLE,
     )
+    warm = models.BooleanField(
+        default=False,
+        verbose_name="Тёплая страна",
+        help_text="Признак того, что отель находится в тёплой стране",
+    )
 
     class Meta:
         verbose_name = "Отель"
@@ -256,3 +261,8 @@ class Hotel(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Проверяем, находится ли страна отеля в списке тёплых стран
+        self.warm = self.country in WARM_COUNTRIES and self.city in WARM_CITY
+        super().save(*args, **kwargs)

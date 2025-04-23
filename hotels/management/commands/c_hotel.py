@@ -17,26 +17,26 @@ class Command(BaseCommand):
         self.create_test_rooms(hotels)
         self.stdout.write(
             self.style.SUCCESS(
-                """Тестовый отель, с двумя номерам - создан."""
-                """Тестовый рейс туда, тестовый рейст обратно - созданы."""
-                """Тестовый гость - создан."""
-                """Тестовый тур - создан."""
-                """Тестовый страховка в ЛК Турагента - создана."""
+                f"Тестовый отель в стране {hotels[0].country} в городе {hotels[0].city}, с двумя номерам - создан.\n"
+                f"Тестовый рейс туда, тестовый рейст обратно - созданы.\n"
+                f"Тестовый гость - создан.\n"
+                f"Тестовый тур - создан.\n"
+                f"Тестовый страховка в ЛК Турагента - создана.\n"
             )
         )
 
     def create_test_hotels(self, count):
         places = [choice[0] for choice in PlaceChoices.choices]
         types_of_holiday = [choice[0] for choice in TypeOfHolidayChoices.choices]
-        countries = ["США", "Россия", "Франция", "Италия", "Испания"]
-        cities = ["Майами", "Москва", "Париж", "Рим", "Мадрид"]
+        countries = ["Турция", "Греция", "Франция", "Италия", "Испания", "Кипр"]
+        cities = ["Анталия", "Москва", "Париж", "Рим", "Мадрид", "Кипр", "Шарм-эль-Шейх"]
         room_categories = ["Стандарт", "Делюкс", "Полулюкс", "Семейный"]
         rules = {"С животными": "Можно если за ними следить", "Бухать": "Можно если за Вами следит жена"}
 
         hotels = []
         for i in range(count):
             hotel = Hotel.objects.create(
-                name=f"Отель под номером {i+1}",
+                name=f"Отель под номером {random.randint(1, 7645)}",
                 star_category=random.randint(1, 5),
                 place=random.choice(places),
                 country=random.choice(countries),
@@ -61,6 +61,7 @@ class Command(BaseCommand):
                 room_categories=random.sample(room_categories, k=random.randint(1, len(room_categories))),
                 width=round(random.uniform(-90, 90), 6),
                 longitude=round(random.uniform(-180, 180), 6),
+                warm=random.choice([True, False]),
             )
             hotels.append(hotel)
 

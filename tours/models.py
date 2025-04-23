@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -82,9 +83,13 @@ class Tour(models.Model):
         help_text="Введите стоимость тура",
         **NULLABLE,
     )
-
-    document = models.FileField(
-        upload_to="tour/documents", verbose_name="Документы", help_text="Загрузите документы по туру", **NULLABLE
+    stock = models.ForeignKey(
+        "TourStock",
+        related_name="tour_stock",
+        on_delete=models.SET_NULL,
+        verbose_name="Акция в туре",
+        help_text="Акция в туре",
+        **NULLABLE,
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -113,3 +118,48 @@ class Tour(models.Model):
                 return f"Тур от {self.tour_operator.company_name} в {self.hotel.name}"
             return f"Тур от {self.tour_operator.email} в {self.hotel.name}"
         return f"Тур в {self.hotel.name}"
+
+
+class TourDocument(models.Model):
+    tour = models.ForeignKey(
+        Tour,
+        on_delete=models.CASCADE,
+        related_name="tour_documents",
+        verbose_name="Документы по туру",
+        help_text="Документы по туру",
+        blank=True,
+    )
+    document = models.FileField(
+        upload_to="tour/documents", verbose_name="Документы", help_text="Загрузите документы по туру", **NULLABLE
+    )
+
+    class Meta:
+        verbose_name = "Документы по туру"
+        verbose_name_plural = "Документы по турам"
+
+    def __str__(self):
+        return f"Документы по туру {self.tour}"
+
+
+class TourStock(models.Model):
+    active_stock = models.BooleanField(
+        default=False,
+        verbose_name="Есть ли акция на тур?",
+        help_text="Да/Нет",
+    )
+    discount_amount = models.PositiveIntegerField(
+        verbose_name="Величина скидки",
+        help_text="Введите какая скидка будет на тур в %",
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100),
+        ],
+    )
+    end_date = models.DateField(verbose_name="Дата окончания скидки", help_text="Введите дату окончания скидки")
+
+    class Meta:
+        verbose_name = "Акция на тур"
+        verbose_name_plural = "Акции на туры"
+
+    def __str__(self):
+        return f"Акция на тур {self.discount_amount}% до {self.end_date}"

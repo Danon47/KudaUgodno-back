@@ -1,6 +1,6 @@
 from django.urls import path
 
-from hotels.views.hotel.views_hotel import HotelViewSet
+from hotels.views.hotel.views_hotel import HotelViewSet, HotelWarpUpViewSet
 from hotels.views.hotel.views_hotel_photo import HotelPhotoViewSet
 
 
@@ -34,5 +34,10 @@ urlpatterns = [
         "hotels/<int:hotel_id>/photos/<int:pk>/",
         HotelPhotoViewSet.as_view({"delete": "destroy"}),
         name="hotels-photos-detail",
+    ),
+    path(
+        "hotels/warms/",
+        HotelWarpUpViewSet.as_view({"get": "list"}),
+        name="hotels-warms-up-list",
     ),
 ]

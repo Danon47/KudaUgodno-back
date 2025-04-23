@@ -1,6 +1,7 @@
+from rest_framework.fields import IntegerField
 from rest_framework.serializers import CharField, ModelSerializer, SerializerMethodField
 
-from tours.models import Tour
+from tours.models import Tour, TourStock
 from tours.validators import EndDateValidator, StartDateValidator
 
 
@@ -28,7 +29,6 @@ class TourSerializer(ModelSerializer):
             "room",
             "transfer",
             "price",
-            "document",
             "created_at",
             "updated_at",
             "is_active",
@@ -57,12 +57,19 @@ class TourListSerializer(TourSerializer):
     """
 
     hotel = CharField()
+    hotel_id = IntegerField()
     tour_operator = SerializerMethodField()
     flight_to = CharField()
     flight_from = CharField()
 
     class Meta(TourSerializer.Meta):
-        fields = TourSerializer.Meta.fields
+        fields = ("hotel_id",) + TourSerializer.Meta.fields
 
     def get_tour_operator(self, obj: Tour) -> str:
         return obj.tour_operator.company_name
+
+
+class TourStockSerializer(ModelSerializer):
+    class Meta:
+        model = TourStock
+        fields = ("id", "active_stock", "end_date", "discount_amount")
