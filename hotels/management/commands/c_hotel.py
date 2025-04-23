@@ -36,7 +36,7 @@ class Command(BaseCommand):
         hotels = []
         for i in range(count):
             hotel = Hotel.objects.create(
-                name=f"Отель под номером {i+1}",
+                name=f"Отель под номером {random.randint(1, 7645)}",
                 star_category=random.randint(1, 5),
                 place=random.choice(places),
                 country=random.choice(countries),
