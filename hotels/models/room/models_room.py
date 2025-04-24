@@ -13,7 +13,7 @@ class Room(models.Model):
 
     hotel = models.ForeignKey(
         Hotel,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="rooms",
         verbose_name="Отель",
         help_text="Отель",
