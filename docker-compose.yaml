@@ -41,7 +41,9 @@ services:
              python3 manage.py makemigrations --noinput &&
              python3 manage.py migrate &&
              python3 manage.py seed_data &&
-             python3 manage.py loaddata dump.json &&
+             python3 manage.py loaddata dump24_04.json &&
+             python3 manage.py c_hotel &&
+             python3 manage.py loaddata dump_24_04.json &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --preload'
     networks:
 #      - default
