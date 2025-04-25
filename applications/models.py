@@ -4,6 +4,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from all_fixture.fixture_views import NULLABLE
 from applications.choices import StatusChoices
 from guests.models import Guest
+from hotels.models.hotel.models_hotel import Hotel
+from hotels.models.room.models_room import Room
 from tours.models import Tour
 
 
@@ -15,10 +17,22 @@ class Application(models.Model):
     Модель Заявки
     """
 
-    tour = models.ForeignKey(
-        Tour,
-        on_delete=models.PROTECT,
-        verbose_name="Тур",
+    tour = models.ForeignKey(Tour, on_delete=models.PROTECT, verbose_name="Тур", **NULLABLE)
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        verbose_name="Отель",
+        related_name="applications",
+        help_text="Введите ID отеля",
+        **NULLABLE,
+    )
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_NULL,
+        verbose_name="Номер",
+        related_name="applications",
+        help_text="Введите ID номера",
+        **NULLABLE,
     )
     email = models.EmailField(
         verbose_name="Email",
