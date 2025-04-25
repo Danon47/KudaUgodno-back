@@ -3,6 +3,8 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import Application
 from guests.serializers import GuestSerializer
+from hotels.serializers.hotel.serializers_hotel import HotelListSerializer
+from hotels.serializers.room.serializers_room import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
 
@@ -20,6 +22,8 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
         fields = (
             "pk",
             "tour",
+            "hotel",
+            "room",
             "email",
             "phone_number",
             "status",
@@ -41,6 +45,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
     """
 
     tour = TourListSerializer()
+    hotel = HotelListSerializer()
+    room = RoomDetailSerializer()
     quantity_guests = GuestSerializer(many=True)
     # user_owner = UserSerializer()
 
