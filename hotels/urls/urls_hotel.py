@@ -1,7 +1,8 @@
 from django.urls import path
 
-from hotels.views.hotel.views_hotel import HotelViewSet, HotelWarpUpViewSet
+from hotels.views.hotel.views_hotel import HotelViewSet
 from hotels.views.hotel.views_hotel_photo import HotelPhotoViewSet
+from hotels.views.hotel.views_hotel_what_about import HotelWarpUpViewSet
 
 
 urlpatterns = [
@@ -36,8 +37,8 @@ urlpatterns = [
         name="hotels-photos-detail",
     ),
     path(
-        "hotels/warms/",
+        "hotels/whats_about/",
         HotelWarpUpViewSet.as_view({"get": "list"}),
-        name="hotels-warms-up-list",
+        name="hotels-whats-about-list",
     ),
 ]
