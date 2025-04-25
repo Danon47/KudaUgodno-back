@@ -18,7 +18,10 @@ class HotelAdmin(admin.ModelAdmin):
 
 @admin.register(HotelWhatAbout)
 class HotelWhatAboutAdmin(admin.ModelAdmin):
-    list_display = ("id", "name_set", "city")
+    list_display = (
+        "id",
+        "name_set",
+    )
 
 
 @admin.register(Room)
