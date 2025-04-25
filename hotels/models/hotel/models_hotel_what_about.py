@@ -1,7 +1,6 @@
 from django.db import models
 
 from all_fixture.choices import WhatAboutChoices
-from all_fixture.fixture_views import NULLABLE, WARM_CITY, WARM_COUNTRIES
 from hotels.models.hotel.models_hotel import Hotel
 
 
@@ -22,18 +21,6 @@ class HotelWhatAbout(models.Model):
         choices=WhatAboutChoices.choices,
         default="",
     )
-    country = models.CharField(
-        max_length=100,
-        verbose_name="Страна",
-        help_text="Введите страну",
-        **NULLABLE,
-    )
-    city = models.CharField(
-        max_length=100,
-        verbose_name="Город",
-        help_text="Введите город",
-        **NULLABLE,
-    )
     hotel = models.ManyToManyField(
         Hotel,
         verbose_name="Отель",
@@ -47,8 +34,3 @@ class HotelWhatAbout(models.Model):
 
     def __str__(self):
         return self.name_set
-
-    def save(self, *args, **kwargs):
-        # Проверяем, находится ли страна отеля в списке тёплых стран
-        self.warm = self.country in WARM_COUNTRIES and self.city in WARM_CITY
-        super().save(*args, **kwargs)
