@@ -18,11 +18,17 @@ class Flight(models.Model):
         " где A-латинские буквы в верхнем регистре, X- цифры",
     )
     airline = models.CharField(max_length=100, verbose_name="Авиакомпания", help_text="Введите название авиакомпании")
+    departure_country = models.CharField(
+        max_length=50, verbose_name="Страна вылета", help_text="Введите страну вылета", **NULLABLE
+    )
     departure_city = models.CharField(
         max_length=50, verbose_name="Город вылета", help_text="Введите город вылета", **NULLABLE
     )
     departure_airport = models.CharField(
         max_length=100, verbose_name="Аэропорт вылета", help_text="Введите аэропорт вылета"
+    )
+    arrival_country = models.CharField(
+        max_length=50, verbose_name="Страна прибытия", help_text="Введите страна прибытия", **NULLABLE
     )
     arrival_city = models.CharField(
         max_length=50, verbose_name="Город прибытия", help_text="Введите город прибытия", **NULLABLE
