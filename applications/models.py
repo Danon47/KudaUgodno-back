@@ -14,26 +14,10 @@ from tours.models import Tour
 
 class Application(models.Model):
     """
-    Модель Заявки
+    Модель Заявки на тур
     """
 
     tour = models.ForeignKey(Tour, on_delete=models.PROTECT, verbose_name="Тур", **NULLABLE)
-    hotel = models.ForeignKey(
-        Hotel,
-        on_delete=models.SET_NULL,
-        verbose_name="Отель",
-        related_name="applications",
-        help_text="Введите ID отеля",
-        **NULLABLE,
-    )
-    room = models.ForeignKey(
-        Room,
-        on_delete=models.SET_NULL,
-        verbose_name="Номер",
-        related_name="applications",
-        help_text="Введите ID номера",
-        **NULLABLE,
-    )
     email = models.EmailField(
         verbose_name="Email",
     )
@@ -62,6 +46,37 @@ class Application(models.Model):
     class Meta:
         verbose_name = "Заявка"
         verbose_name_plural = "Заявки"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"Заявка N {self.pk}"
+
+
+class HotelApplication(Application):
+    """
+    Модель Заявки на отель
+    """
+
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.SET_NULL,
+        verbose_name="Отель",
+        related_name="hotel_applications",
+        help_text="Введите ID отеля",
+        **NULLABLE,
+    )
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_NULL,
+        verbose_name="Номер",
+        related_name="hotel_applications",
+        help_text="Введите ID номера",
+        **NULLABLE,
+    )
+
+    class Meta:
+        verbose_name = "Заявка на отель"
+        verbose_name_plural = "Заявки на отель"
         ordering = ("-pk",)
 
     def __str__(self):
