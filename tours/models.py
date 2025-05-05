@@ -81,6 +81,7 @@ class Tour(models.Model):
         decimal_places=2,
         verbose_name="Стоимость тура",
         help_text="Введите стоимость тура",
+        validators=[MinValueValidator(0)],
         **NULLABLE,
     )
     stock = models.ForeignKey(
