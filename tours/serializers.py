@@ -1,8 +1,10 @@
-from rest_framework.fields import IntegerField
-from rest_framework.serializers import CharField, ModelSerializer, SerializerMethodField
+from rest_framework.serializers import DecimalField, ModelSerializer, SerializerMethodField
 
+from all_fixture.fixture_views import decimal_ivalid
+from flights.serializers import FlightSerializer
+from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
 from tours.models import Tour, TourStock
-from tours.validators import EndDateValidator, StartDateValidator
+from tours.validators import EndDateValidator, PriceValidator, StartDateValidator
 
 
 class TourSerializer(ModelSerializer):
@@ -11,6 +13,15 @@ class TourSerializer(ModelSerializer):
     POST, PUT.
     Создание, Обновление.
     """
+
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость тура",
+        error_messages=decimal_ivalid,
+    )
 
     class Meta:
         model = Tour
@@ -34,7 +45,7 @@ class TourSerializer(ModelSerializer):
             "is_active",
         )
         read_only_fields = ("created_at", "updated_at")
-        validators = [StartDateValidator(), EndDateValidator()]
+        validators = [StartDateValidator(), EndDateValidator(), PriceValidator()]
 
 
 class TourPatchSerializer(ModelSerializer):
@@ -56,14 +67,13 @@ class TourListSerializer(TourSerializer):
     Список всех туров, детальная информация о туре.
     """
 
-    hotel = CharField()
-    hotel_id = IntegerField()
+    hotel = HotelListWithPhotoSerializer()
     tour_operator = SerializerMethodField()
-    flight_to = CharField()
-    flight_from = CharField()
+    flight_to = FlightSerializer()
+    flight_from = FlightSerializer()
 
     class Meta(TourSerializer.Meta):
-        fields = ("hotel_id",) + TourSerializer.Meta.fields
+        fields = TourSerializer.Meta.fields
 
     def get_tour_operator(self, obj: Tour) -> str:
         return obj.tour_operator.company_name

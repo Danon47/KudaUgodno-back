@@ -77,21 +77,35 @@ class HotelDetailSerializer(serializers.ModelSerializer):
         return instance
 
 
-class HotelListSerializer(HotelDetailSerializer):
+class HotelListWithPhotoSerializer(HotelDetailSerializer):
+    """
+    Серилазиация по выводу информации по отелю, включая фотографии отеля.
+    """
+
     photo = HotelPhotoSerializer(
         source="hotel_photos",
         many=True,
         read_only=True,
     )
+
+    class Meta(HotelDetailSerializer.Meta):
+        fields = HotelDetailSerializer.Meta.fields + ("photo",)
+
+
+class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
+    """
+    Полная сериализация отеля со всеми вложенными данными.
+    Фотографии отеля, номера в отеле.
+    """
+
     rooms = RoomDetailSerializer(
         many=True,
         read_only=True,
     )
     # created_by = serializers.SerializerMethodField()
 
-    class Meta(HotelDetailSerializer.Meta):
-        fields = HotelDetailSerializer.Meta.fields + (
-            "photo",
+    class Meta(HotelListWithPhotoSerializer.Meta):
+        fields = HotelListWithPhotoSerializer.Meta.fields + (
             "rooms",
             # "created_by",
         )

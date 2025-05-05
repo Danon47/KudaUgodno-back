@@ -4,7 +4,11 @@ from rest_framework import viewsets
 from all_fixture.fixture_views import hotel_settings, id_hotel, limit, offset
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.serializers.hotel.serializers_hotel import HotelBaseSerializer, HotelDetailSerializer, HotelListSerializer
+from hotels.serializers.hotel.serializers_hotel import (
+    HotelBaseSerializer,
+    HotelDetailSerializer,
+    HotelListRoomAndPhotoSerializer,
+)
 
 
 class CreatedByUserFilterMixin:
@@ -38,7 +42,7 @@ class CreatedByUserFilterMixin:
         description="Получение списка всех отелей с пагинацией",
         parameters=[offset, limit],
         responses={
-            200: HotelListSerializer(many=True),
+            200: HotelListRoomAndPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[hotel_settings["name"]],
@@ -58,7 +62,7 @@ class CreatedByUserFilterMixin:
         description="Получение полной информации об отеле",
         parameters=[id_hotel],
         responses={
-            200: HotelListSerializer,
+            200: HotelListRoomAndPhotoSerializer,
             404: OpenApiResponse(description="Отель не найден"),
         },
         tags=[hotel_settings["name"]],
@@ -95,6 +99,6 @@ class HotelViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return HotelBaseSerializer
         elif self.action in ["list", "retrieve"]:
-            return HotelListSerializer
+            return HotelListRoomAndPhotoSerializer
         else:
             return HotelDetailSerializer

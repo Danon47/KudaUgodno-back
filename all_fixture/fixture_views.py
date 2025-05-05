@@ -24,6 +24,9 @@ application_guest_settings = {"name": "Гости", "description": "Методы
 insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 what_about_settings = {"name": "Что на счёт ...", "description": "Получаем список подборок что насчёт..."}
 
+# Отображение ошибки
+decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
+
 
 # ID пользователя
 user_id = OpenApiParameter(
