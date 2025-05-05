@@ -1,5 +1,6 @@
 from rest_framework.serializers import DecimalField, ModelSerializer, SerializerMethodField
 
+from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
 from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
 from tours.models import Tour, TourStock
@@ -19,9 +20,7 @@ class TourSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость тура",
-        error_messages={
-            "invalid": "Введите цену с точкой, а не с запятой.",  # <-- тут меняем текст ошибки
-        },
+        error_messages=decimal_ivalid,
     )
 
     class Meta:
