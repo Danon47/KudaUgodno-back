@@ -3,7 +3,7 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import Application, HotelApplication
 from guests.serializers import GuestSerializer
-from hotels.serializers.hotel.serializers_hotel import HotelListSerializer
+from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
 from hotels.serializers.room.serializers_room import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
@@ -84,7 +84,7 @@ class HotelApplicationSerializer(serializers.ModelSerializer):
     методы GET.
     """
 
-    hotel = HotelListSerializer()
+    hotel = HotelListWithPhotoSerializer()
     room = RoomDetailSerializer()
     quantity_guests = GuestSerializer(many=True)
 

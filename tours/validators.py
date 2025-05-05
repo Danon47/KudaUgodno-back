@@ -10,7 +10,7 @@ class StartDateValidator:
 
     def __call__(self, value):
         tmp_val = value.get("start_date")
-        if tmp_val is not None and tmp_val < date.today():
+        if tmp_val < date.today():
             raise serializers.ValidationError("Дата начала тура не может быть в прошлом.")
 
 
@@ -23,5 +23,17 @@ class EndDateValidator:
         start_date_field = value.get("start_date")
         end_date_field = value.get("end_date")
 
-        if start_date_field is not None and end_date_field is not None:
+        if end_date_field < start_date_field:
             raise serializers.ValidationError("Дата окончания тура не может быть раньше даты начала.")
+
+
+class PriceValidator:
+    """
+    Валидатор для проверки, стоимости номера, она может быть пустой или же только положительной.
+    """
+
+    def __call__(self, attrs):
+        price = attrs.get("price")
+        if price is not None and price < 0:
+            raise serializers.ValidationError({"price": "Стоимость не может быть отрицательной."})
+        return attrs
