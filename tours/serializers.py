@@ -14,7 +14,14 @@ class TourSerializer(ModelSerializer):
     """
 
     price = DecimalField(
-        max_digits=10, decimal_places=2, coerce_to_string=False, required=False, help_text="Стоимость тура"
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость тура",
+        error_messages={
+            "invalid": "Введите цену с точкой, а не с запятой.",  # <-- тут меняем текст ошибки
+        },
     )
 
     class Meta:
