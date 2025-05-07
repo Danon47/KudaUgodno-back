@@ -77,7 +77,7 @@ class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
 
     def get_serializer_class(self):
-        if self.action == "patch":
+        if self.action == "partial_update":
             return TourPatchSerializer
         elif self.action in ["list", "retrieve"]:
             return TourListSerializer
