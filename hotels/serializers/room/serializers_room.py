@@ -10,8 +10,6 @@ from hotels.serializers.room.photo.serializers_room_photo import RoomPhotoSerial
 class RoomBaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор номера"""
 
-    type_of_meals = TypeOfMealSerializer(many=True)
-
     class Meta:
         model = Room
         fields = (
@@ -24,8 +22,6 @@ class RoomBaseSerializer(serializers.ModelSerializer):
             "double_bed",
             "area",
             "quantity_rooms",
-            # "discount",
-            # "unavailable",
             "amenities_common",
             "amenities_coffee",
             "amenities_bathroom",
@@ -41,6 +37,7 @@ class RoomDetailSerializer(RoomBaseSerializer):
         read_only=True,
     )
     date = serializers.SerializerMethodField()
+    type_of_meals = TypeOfMealSerializer(many=True)
 
     class Meta(RoomBaseSerializer.Meta):
         model = Room
@@ -49,7 +46,7 @@ class RoomDetailSerializer(RoomBaseSerializer):
             "photo",
         )
 
-    def get_date(self, obj):
+    def get_date(self, obj: RoomDate) -> list:
         """Получение всех RoomDate, связанных с этим Room через RoomCategory"""
         # сначала идёт RoomDate, потом RoomCategory
         room_dates = RoomDate.objects.filter(categories__room=obj).distinct()
