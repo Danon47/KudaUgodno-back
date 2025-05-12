@@ -2,8 +2,8 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings
-from hotels.models.hotel.models_hotel_photo import HotelPhoto
-from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
+from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
+from hotels.serializers.hotel.photo.serializers_hotel_photo import HotelPhotoSerializer
 
 
 @extend_schema_view(
@@ -22,7 +22,7 @@ from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerialize
         description="Создание новых фотографий отеля",
         parameters=[hotel_id],
         request={
-            "multipart/form-data": HotelPhotoSerializer,  # Указываем формат данных
+            "multipart/form-data": HotelPhotoSerializer,
         },
         responses={
             201: HotelPhotoSerializer,

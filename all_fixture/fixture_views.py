@@ -23,6 +23,11 @@ application_settings = {"name": "Заявки", "description": "Методы д�
 application_guest_settings = {"name": "Гости", "description": "Методы для работы с гостями"}
 insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 what_about_settings = {"name": "Что на счёт ...", "description": "Получаем список подборок что насчёт..."}
+type_of_meal_settings = {"name": "Тип питания", "description": "Методы для работы с типами питания"}
+room_date_settings = {
+    "name": "Даты доступности номеров",
+    "description": "Методы для работы с датами доступности номеров",
+}
 
 # Отображение ошибки
 decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
@@ -66,6 +71,14 @@ hotel_id = OpenApiParameter(
     name="hotel_id",
     type=int,
     description="ID Отеля",
+    required=False,
+)
+# ID типа питания
+type_of_meal_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="type_of_meal_id",
+    type=int,
+    description="ID типа питания",
     required=False,
 )
 # ID номера

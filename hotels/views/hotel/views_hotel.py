@@ -11,31 +11,6 @@ from hotels.serializers.hotel.serializers_hotel import (
 )
 
 
-class CreatedByUserFilterMixin:
-    """
-    Миксин для фильтрации queryset по полю created_by.
-    Если пользователь принадлежит к группе 'tur' (например, туроператоры),
-    то возвращаются только записи, где created_by совпадает с текущим пользователем.
-    Если пользователь принадлежит к группе 'user' или является администратором,
-    возвращаются все записи.
-    """
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        user = self.request.user
-        # Если пользователь администратор или суперпользователь, возвращаем все данные
-        if user.is_staff or user.is_superuser:
-            return qs
-        # Если пользователь принадлежит к группе "user", возвращаем все данные
-        if user.groups.filter(name="user").exists():
-            return qs
-        # Если пользователь принадлежит к группе "tur", фильтруем по созданным данным
-        if user.groups.filter(name="tur").exists():
-            return qs.filter(created_by=user)
-        # По умолчанию можно вернуть либо пустой queryset, либо фильтрацию по created_by
-        return qs.filter(created_by=user)
-
-
 @extend_schema_view(
     list=extend_schema(
         summary="Список отелей",

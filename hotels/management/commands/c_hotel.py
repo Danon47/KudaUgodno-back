@@ -10,10 +10,10 @@ from django.db import transaction
 from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
 from flights.models import Flight
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.models_hotel_photo import HotelPhoto
-from hotels.models.hotel.models_hotel_rules import HotelRules
+from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
+from hotels.models.hotel.rules.models_hotel_rules import HotelRules
 from hotels.models.room.models_room import Room
-from hotels.models.room.models_room_photo import RoomPhoto
+from hotels.models.room.photo.models_room_photo import RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
 
@@ -88,11 +88,6 @@ class Command(BaseCommand):
                 description=f"Так себе описание отеля под номером {i+1}",
                 check_in_time=time(random.randint(14, 16), 0),
                 check_out_time=time(random.randint(10, 12), 0),
-                type_of_meals_ultra_all_inclusive=random.randint(3000, 10000),
-                type_of_meals_all_inclusive=random.randint(3000, 8000),
-                type_of_meals_full_board=random.randint(2000, 5000),
-                type_of_meals_half_board=random.randint(2000, 2500),
-                type_of_meals_only_breakfast=random.randint(100, 1000),
                 user_rating=round(random.uniform(2, 9), 1),
                 type_of_rest=random.choice(types_of_holiday),
                 is_active=random.choice([True, False]),

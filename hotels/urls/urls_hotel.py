@@ -1,8 +1,9 @@
 from django.urls import path
 
+from hotels.views.hotel.photo.views_hotel_photo import HotelPhotoViewSet
+from hotels.views.hotel.type_of_meals.views_type_of_meals import TypeOfMealViewSet
 from hotels.views.hotel.views_hotel import HotelViewSet
-from hotels.views.hotel.views_hotel_photo import HotelPhotoViewSet
-from hotels.views.hotel.views_hotel_what_about import HotelWarpUpViewSet
+from hotels.views.hotel.what_about.views_hotel_what_about import HotelWarpUpViewSet
 
 
 urlpatterns = [
@@ -40,5 +41,17 @@ urlpatterns = [
         "hotels/whats_about/",
         HotelWarpUpViewSet.as_view({"get": "list"}),
         name="hotels-whats-about-list",
+    ),
+    # Добавление и просмотр всех типов питания
+    path(
+        "hotels/<int:hotel_id>/type_of_meals/",
+        TypeOfMealViewSet.as_view({"get": "list", "post": "create"}),
+        name="hotels-type-of-meals-list-create",
+    ),
+    # Удаление выбранного типа питания
+    path(
+        "hotels/<int:hotel_id>/type_of_meals/<int:pk>/",
+        TypeOfMealViewSet.as_view({"delete": "destroy"}),
+        name="hotels-type-of-meals-destroy",
     ),
 ]

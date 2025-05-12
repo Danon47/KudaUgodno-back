@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from hotels.models.room.models_room_photo import RoomPhoto
+from hotels.models.room.photo.models_room_photo import RoomPhoto
 
 
 class RoomPhotoSerializer(serializers.ModelSerializer):

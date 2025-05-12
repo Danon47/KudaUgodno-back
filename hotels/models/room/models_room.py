@@ -2,8 +2,11 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from all_fixture.choices import RoomCategoryChoices
 from all_fixture.fixture_views import NULLABLE
 from hotels.models.hotel.models_hotel import Hotel
+from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
+from hotels.models.room.rules.models_room_rules import RoomRules
 
 
 class Room(models.Model):
@@ -20,23 +23,17 @@ class Room(models.Model):
         **NULLABLE,
     )
     category = models.CharField(
+        choices=RoomCategoryChoices.choices,
+        default=RoomCategoryChoices.STANDARD,
         max_length=100,
         verbose_name="Категория номера",
         help_text="Категория номера",
     )
-    price = models.IntegerField(
-        verbose_name="Цена за ночь",
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(1000000),
-        ],
-        default=0,
-    )
-    type_of_meals = models.CharField(
-        max_length=99,
+    type_of_meals = models.ManyToManyField(
+        TypeOfMeal,
+        related_name="rooms",
         verbose_name="Тип питания",
-        help_text="Тип питания из отеля",
-        **NULLABLE,
+        help_text="Тип питания",
     )
     number_of_adults = models.IntegerField(
         verbose_name="Количество проживающих взрослых",
@@ -56,18 +53,18 @@ class Room(models.Model):
         ],
         **NULLABLE,
     )
-    single_bed = models.IntegerField(
-        verbose_name="Односпальная кровать",
-        help_text="Односпальная кровать",
+    double_bed = models.IntegerField(
+        verbose_name="Двуспальная кровать",
+        help_text="Двуспальная кровать",
         validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
         ],
         **NULLABLE,
     )
-    double_bed = models.IntegerField(
-        verbose_name="Двуспальная кровать",
-        help_text="Двуспальная кровать",
+    single_bed = models.IntegerField(
+        verbose_name="Односпальная кровать",
+        help_text="Односпальная кровать",
         validators=[
             MinValueValidator(0),
             MaxValueValidator(3),
@@ -91,49 +88,44 @@ class Room(models.Model):
         ],
         default=0,
     )
-    discount = models.ManyToManyField(
-        "RoomDiscount",
-        verbose_name="Скидки",
-        help_text="Скидки",
-        related_name="rooms_discount",
-        blank=True,
-    )
-    unavailable = models.ManyToManyField(
-        "RoomUnavailable",
-        verbose_name="Недоступность номера",
-        help_text="Недоступность номера",
-        related_name="rooms_unavailable",
-        blank=True,
-    )
     amenities_common = ArrayField(
         models.CharField(max_length=100),
         verbose_name="Общие удобства в номере",
-        help_text="Общие удобства в номере",
+        help_text="Общие удобства в номере, введите через запятую",
         **NULLABLE,
     )
     amenities_coffee = ArrayField(
         models.CharField(max_length=100),
         verbose_name="Удобства кофе станции в номере",
-        help_text="Удобства кофе станции в номере",
+        help_text="Удобства кофе станции в номере, введите через запятую",
         **NULLABLE,
     )
     amenities_bathroom = ArrayField(
         models.CharField(max_length=100),
         verbose_name="Удобства ванной комнаты в номере",
-        help_text="Удобства ванной комнаты в номере",
+        help_text="Удобства ванной комнаты в номере, введите через запятую",
         **NULLABLE,
     )
     amenities_view = ArrayField(
         models.CharField(max_length=100),
         verbose_name="Удобства вид в номере",
-        help_text="Удобства вид в номере",
+        help_text="Удобства вид в номере, введите через запятую",
         **NULLABLE,
+    )
+    rules = models.ManyToManyField(
+        RoomRules,
+        related_name="rooms",
+        verbose_name="Название правила",
+        help_text="Введите название правила, а потом выберите его возможность использования Да/Нет",
     )
 
     class Meta:
         verbose_name = "Номер"
         verbose_name_plural = "Номера"
-        ordering = ("category",)
+        ordering = (
+            "hotel",
+            "category",
+        )
 
     def __str__(self):
-        return f"{self.id} {self.category}"
+        return self.category
