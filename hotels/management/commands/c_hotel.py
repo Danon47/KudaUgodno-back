@@ -182,6 +182,35 @@ class Command(BaseCommand):
             "Шарм-Эль-Шейх": "SSH",
         }
 
+        city_to_country = {
+            # Турция
+            "Анталия": "Турция",
+            "Стамбул": "Турция",
+            "Измир": "Турция",
+            # Греция
+            "Афины": "Греция",
+            "Салоники": "Греция",
+            "Ираклион": "Греция",
+            # Франция
+            "Париж": "Франция",
+            "Ницца": "Франция",
+            "Марсель": "Франция",
+            # Италия
+            "Рим": "Италия",
+            "Милан": "Италия",
+            "Венеция": "Италия",
+            # Испания
+            "Мадрид": "Испания",
+            "Барселона": "Испания",
+            "Валенсия": "Испания",
+            # Кипр
+            "Лимассол": "Кипр",
+            "Никосия": "Кипр",
+            "Пафос": "Кипр",
+            # Египет
+            "Шарм-Эль-Шейх": "Египет",
+        }
+
         flight_numbers = ["AT-5555", "TT-6666", "TQ-7777", "TS-8888"]
         airlines = ["Azure", "Аэрофлот"]
         service_classes = ["Эконом", "Бизнес", "Первый"]
@@ -197,17 +226,21 @@ class Command(BaseCommand):
             if city not in arrival_city_airport:
                 continue
 
+            arrival_country = city_to_country.get(city, "Неизвестно")
+
             # --- Рейс туда ---
             # Дата в мае 2025, случайный день с 1 по 24
-            dep_date = date(2025, 5, random.randint(1, 24))
+            dep_date = date(2025, 9, random.randint(1, 24))
             dep_time = time(hour=random.randint(0, 23), minute=random.choice([0, 15, 30, 45]))
             arrival_time = self.generate_arrival_time(dep_time, same_day=True)
 
             flight_to = Flight.objects.create(
                 flight_number=random.choice(flight_numbers),
                 airline=random.choice(airlines),
+                departure_country="Россия",
                 departure_city="Москва",
                 departure_airport="SVO",
+                arrival_country=arrival_country,
                 arrival_city=city,
                 arrival_airport=arrival_city_airport[city],
                 departure_date=dep_date,
@@ -230,8 +263,10 @@ class Command(BaseCommand):
             flight_back = Flight.objects.create(
                 flight_number=random.choice(flight_numbers),
                 airline=random.choice(airlines),
+                departure_country=arrival_country,  # Новое поле
                 departure_city=city,
                 departure_airport=arrival_city_airport[city],
+                arrival_country="Россия",
                 arrival_city="Москва",
                 arrival_airport="SVO",
                 departure_date=return_date,
@@ -261,25 +296,6 @@ class Command(BaseCommand):
             arr_min = random.choice([0, 15, 30, 45])
 
         return time(arr_hour, arr_min)
-
-    # def create_tours(self, hotel, rooms, flights):
-    #     date_start_end = date(2025, 5, random.randint(1, 15))
-    #     Tour.objects.create(
-    #         start_date=date_start_end,
-    #         end_date=date_start_end + timedelta(days=7),
-    #         flight_to=flights,
-    #         flight_from=flights,
-    #         departure_country=flights.departure_country,
-    #         departure_city=flights.departure_city,
-    #         arrival_country=flights.arrival_country,
-    #         arrival_city=flights.arrival_city,
-    #         tour_operator=1,
-    #         transfer=random.choice([True, False]),
-    #         hotel=hotel,
-    #         rooms=rooms,
-    #         price=round(random.uniform(10000, 50000), 2),
-    #         is_active=random.choice([True, False]),
-    #     )
 
     def create_test_tours(self, flights, hotels, rooms, count=20):
         """
