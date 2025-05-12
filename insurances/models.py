@@ -1,6 +1,6 @@
 from django.db import models
 
-from all_fixture.choices import TypeInsuranceChoices
+from all_fixture.choices import TypeInsuranceChoices, TypeMedicalInsuranceChoices
 from all_fixture.fixture_views import NULLABLE
 
 
@@ -9,7 +9,7 @@ class Insurances(models.Model):
         "users.User", on_delete=models.CASCADE, primary_key=True, related_name="insurance", verbose_name="Пользователь"
     )
     medical = models.CharField(
-        choices=TypeInsuranceChoices.choices,
+        choices=TypeMedicalInsuranceChoices.choices,
         default="",
         verbose_name="Медицинская страховка",
         help_text="Медицинская страховка",

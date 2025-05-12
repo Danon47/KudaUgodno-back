@@ -21,6 +21,26 @@ class TypeInsuranceChoices(models.TextChoices):
     NOTSELECTED = "Не выбрано", "Не выбрано"
 
 
+class TypeMedicalInsuranceChoices(models.TextChoices):
+    """
+    Выбор страховых компаний
+    """
+
+    TSINSURANCE = "Т-Страхование", "Т-Страхование"
+    SOVCOMINSURANCE = "Совкомбанк Страхование", "Совкомбанк Страхование"
+    SBERINSURANCE = "Сбербанк Страхование", "Сбербанк Страхование"
+    VSKINSURANCE = "ВСК Страхование", "ВСК Страхование"
+    ROSGORINSURANCE = "Росгорстрах", "Росгорстрах"
+    RESOINSURANCE = "РЕСО Страхование", "РЕСО Страхование"
+    SOGLASIEINSURANCE = "Согласие", "Согласие"
+    SOGAZINSURANCE = "СОГАЗ", "СОГАЗ"
+    ALFAINSURANCE = "Альфа Страхование", "Альфа Страхование"
+    RENESSANSINSURANCE = "Ренессанс Страхование", "Ренессанс Страхование"
+    INGOSTRAHINSURANCE = "Ингострах", "Ингострах"
+    INTOUCHINSURANCE = "INTOUCH", "INTOUCH"
+    NOTSELECTED = "Не выбрано", "Не выбрано"
+
+
 class PlaceChoices(models.TextChoices):
     """
     Выбор типом размещения
@@ -141,11 +161,20 @@ class RoomCategoryChoices(models.TextChoices):
     Категория номера
     """
 
-    STANDARD = "Стандарт", "Стандарт"
-    COMFORT = "Комфорт", "Комфорт"
-    DELUXE = "Делюкс", "Делюкс"
-    LUX = "Люкс", "Люкс"
-    FAMILY = "Семейный", "Семейный"
+    STANDART = "Standart", "Standart"
+    SINGLE_ROOM = "Single Room", "Single Room"
+    DOUBLE_ROOM = "Double Room", "Double Room"
+    TWIN_ROOM = "Twin Room", "Twin Room"
+    TRIPLE_ROOM = "Triple Room", "Triple Room"
+    FAMILY_ROOM = "Family Room", "Family Room"
+    SUPERIOR_ROOM = "Superior Room", "Superior Room"
+    DELUXE_ROOM = "Deluxe Room", "Deluxe Room"
+    STUDIO = "Studio", "Studio"
+    SUITE = "Suite", "Suite"
+    JUNIOR_SUITE = "Junior Suite", "Junior Suite"
+    RESIDENCE = "Residence", "Residence"
+    ROYAL_SUITE = "Royal Suite", "Royal Suite"
+    PENTHOUSE = "Penthouse", "Penthouse"
 
 
 class TypeOfMealChoices(models.TextChoices):
