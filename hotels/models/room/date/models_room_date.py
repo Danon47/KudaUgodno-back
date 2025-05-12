@@ -70,7 +70,6 @@ class RoomDate(models.Model):
         related_name="room_date",
         verbose_name="Категория номера и его стоимость за сутки",
         help_text="Выберите категорию номера и его стоимость за сутки",
-        **NULLABLE,
     )
 
     class Meta:
