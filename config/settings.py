@@ -231,6 +231,7 @@ SPECTACULAR_SETTINGS = {
         insurance_settings,
     ],
     "SORT_OPERATIONS": True,
+    "SORT_OPERATION_PARAMETERS": False,
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
