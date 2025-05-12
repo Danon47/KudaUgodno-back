@@ -67,7 +67,7 @@ class Room(models.Model):
         help_text="Односпальная кровать",
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(3),
+            MaxValueValidator(5),
         ],
         **NULLABLE,
     )
