@@ -13,7 +13,7 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
     list=extend_schema(
         summary="Список номеров",
         description="Получение списка всех номеров с пагинацией",
-        parameters=[limit, offset, hotel_id],
+        parameters=[hotel_id, limit, offset],
         responses={
             200: RoomDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
