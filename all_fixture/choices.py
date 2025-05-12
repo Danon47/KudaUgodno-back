@@ -161,7 +161,7 @@ class RoomCategoryChoices(models.TextChoices):
     Категория номера
     """
 
-    STANDART = "Standart", "Standart"
+    STANDARD = "Standard", "Standard"
     SINGLE_ROOM = "Single Room", "Single Room"
     DOUBLE_ROOM = "Double Room", "Double Room"
     TWIN_ROOM = "Twin Room", "Twin Room"
