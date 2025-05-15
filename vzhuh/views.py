@@ -1,9 +1,12 @@
 import logging
 
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import filters as drf_filters
 from rest_framework.exceptions import NotFound
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from vzhuh.filters import VzhuhFilterSet
 from vzhuh.models import Vzhuh
 from vzhuh.serializers import VzhuhSerializer
 
@@ -25,6 +28,12 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
 
     queryset = Vzhuh.objects.filter(is_published=True)
     serializer_class = VzhuhSerializer
+
+    filter_backends = [DjangoFilterBackend, drf_filters.OrderingFilter, drf_filters.SearchFilter]
+    filterset_class = VzhuhFilterSet
+    ordering_fields = ["created_at", "updated_at", "tours__start_date"]
+    ordering = ["-created_at"]
+    search_fields = ["arrival_city", "departure_city", "description"]
 
     def get_object(self):
         try:
