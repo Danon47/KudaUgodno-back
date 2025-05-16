@@ -128,4 +128,4 @@ class Room(models.Model):
         )
 
     def __str__(self):
-        return self.category
+        return f"№{self.pk} - {self.category} в {self.hotel.name} №{self.hotel.pk}"
