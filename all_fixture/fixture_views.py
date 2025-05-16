@@ -153,6 +153,14 @@ insurance_id = OpenApiParameter(
     description="ID Страховки",
     required=True,
 )
+# ID Даты стоимости номеров
+room_date_id = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Даты стоимости номеров",
+    required=True,
+)
 
 # Для пагинации
 limit = OpenApiParameter(

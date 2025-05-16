@@ -1,10 +1,10 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import hotel_id, id_room, limit, offset, room_date_settings
+from all_fixture.fixture_views import hotel_id, limit, offset, room_date_id, room_date_settings
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.room.date.models_room_date import RoomDate
-from hotels.serializers.room.date.serializers_room_date import RoomDateSerializer
+from hotels.serializers.room.date.serializers_room_date import RoomDateDetailSerializer, RoomDateListSerializer
 
 
 # Номер
@@ -14,7 +14,7 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
         description="Получение списка всех номеров с пагинацией",
         parameters=[limit, offset, hotel_id],
         responses={
-            200: RoomDateSerializer(many=True),
+            200: RoomDateListSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_date_settings["name"]],
@@ -22,10 +22,10 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
     create=extend_schema(
         summary="Добавление номера",
         description="Создание нового номера",
-        request=RoomDateSerializer,
+        request=RoomDateListSerializer,
         parameters=[hotel_id],
         responses={
-            201: RoomDateSerializer,
+            201: RoomDateListSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_date_settings["name"]],
@@ -33,9 +33,9 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
     retrieve=extend_schema(
         summary="Детали номера",
         description="Получение информации о номере",
-        parameters=[hotel_id, id_room],
+        parameters=[hotel_id, room_date_id],
         responses={
-            200: RoomDateSerializer,
+            200: RoomDateListSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_date_settings["name"]],
@@ -43,10 +43,10 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
     update=extend_schema(
         summary="Полное обновление номера",
         description="Обновление всех полей номера",
-        request=RoomDateSerializer,
-        parameters=[hotel_id, id_room],
+        request=RoomDateListSerializer,
+        parameters=[hotel_id, room_date_id],
         responses={
-            200: RoomDateSerializer,
+            200: RoomDateListSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Номер не найден"),
         },
@@ -55,7 +55,7 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
     destroy=extend_schema(
         summary="Удаление номера",
         description="Полное удаление номера",
-        parameters=[hotel_id, id_room],
+        parameters=[hotel_id, room_date_id],
         responses={
             204: OpenApiResponse(description="Номер удален"),
             404: OpenApiResponse(description="Номер не найден"),
@@ -65,11 +65,15 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateSerialize
 )
 class RoomDateViewSet(viewsets.ModelViewSet):
     pagination_class = CustomLOPagination
-    serializer_class = RoomDateSerializer
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return RoomDateListSerializer
+        return RoomDateDetailSerializer
 
     def get_queryset(self):
         # Получаем ID отеля из URL параметров
         hotel_id = self.kwargs["hotel_id"]
 
         # Фильтруем Room по связи с Hotel
-        return RoomDate.objects.filter(room__categories__hotel_id=hotel_id).distinct()
+        return RoomDate.objects.filter(categories__room__hotel_id=hotel_id).distinct()
