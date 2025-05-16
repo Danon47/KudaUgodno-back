@@ -7,5 +7,7 @@ class RoomRulesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomRules
-        fields = ("id", "name", "option", "created_by")
-        created_by = "created_by"
+        fields = (
+            "name",
+            "option",
+        )
