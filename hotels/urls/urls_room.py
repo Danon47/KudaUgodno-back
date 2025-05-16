@@ -42,13 +42,13 @@ urlpatterns = [
     ),
     # Добавление и просмотр всех дат для номеров
     path(
-        "<int:hotel_id>/rooms/date/",
+        "<int:hotel_id>/rooms/dates/",
         RoomDateViewSet.as_view({"get": "list", "post": "create"}),
-        name="rooms-date-list",
+        name="rooms-dates-list",
     ),
     # Обновление, детальный просмотр и удаление дат для номеров
     path(
-        "<int:hotel_id>/rooms/date/<int:pk>/",
+        "<int:hotel_id>/rooms/dates/<int:pk>/",
         RoomDateViewSet.as_view(
             {
                 "get": "retrieve",
@@ -56,6 +56,6 @@ urlpatterns = [
                 "delete": "destroy",
             }
         ),
-        name="rooms-date-detail",
+        name="rooms-dates-detail",
     ),
 ]
