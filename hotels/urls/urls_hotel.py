@@ -37,6 +37,7 @@ urlpatterns = [
         HotelPhotoViewSet.as_view({"delete": "destroy"}),
         name="hotels-photos-detail",
     ),
+    # Подборка, что на счёт
     path(
         "hotels/whats_about/",
         HotelWarpUpViewSet.as_view({"get": "list"}),
