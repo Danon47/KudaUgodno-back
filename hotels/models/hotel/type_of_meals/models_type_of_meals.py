@@ -38,6 +38,7 @@ class TypeOfMeal(models.Model):
     class Meta:
         verbose_name = "Тип питания"
         verbose_name_plural = "Типы питания"
+        constraints = [models.UniqueConstraint(fields=["hotel", "name"], name="unique_type_of_meal_in_hotel")]
 
     def __str__(self):
         return f"{self.name} ({self.price})"
