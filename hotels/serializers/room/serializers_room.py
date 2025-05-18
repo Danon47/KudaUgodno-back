@@ -1,4 +1,3 @@
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from hotels.models.room.date.models_room_date import RoomDate
@@ -55,7 +54,6 @@ class RoomDetailSerializer(RoomBaseSerializer):
             "photo",
         )
 
-    @extend_schema_field(RoomDateDetailSerializer(many=True))
     def get_date(self, obj: RoomDate) -> list:
         """
         Получает список объектов RoomDate связанных с номером.
