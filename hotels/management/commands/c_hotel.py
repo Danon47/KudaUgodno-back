@@ -11,11 +11,9 @@ from all_fixture.choices import PlaceChoices, RoomCategoryChoices, TypeOfHoliday
 from flights.models import Flight
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
-from hotels.models.hotel.rules.models_hotel_rules import HotelRules
 from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
 from hotels.models.room.models_room import Room
 from hotels.models.room.photo.models_room_photo import RoomPhoto
-from hotels.models.room.rules.models_room_rules import RoomRules
 from tours.models import Tour, TourStock
 from users.models import User
 
@@ -113,7 +111,7 @@ class Command(BaseCommand):
             hotels.append(hotel)
 
             for rule_name, rule_description in rules.items():
-                HotelRules.objects.create(
+                hotel.rules.create(
                     hotel=hotel,
                     name=rule_name,
                     description=rule_description,
@@ -144,14 +142,13 @@ class Command(BaseCommand):
         amenities_coffee = ["Кофе машина в номере", "Чайный сет"]
         amenities_bathroom = ["Душевые принадлежности", "Фен"]
         amenities_view = ["Море", "Горы", "Сад"]
-
-        room_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_room")
-
         rules_names = [
             "Курить",
             "С животными",
             "Алкоголь",
         ]
+
+        room_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_room")
 
         rooms = []
         for hotel in hotels:
@@ -198,7 +195,7 @@ class Command(BaseCommand):
                     room.type_of_meals.set(selected)
 
                 for rule_name in rules_names:
-                    RoomRules.objects.create(
+                    room.rules.create(
                         name=rule_name,
                         option=random.choice([True, False]),
                         created_by=None,
