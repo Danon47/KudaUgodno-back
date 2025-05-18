@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from all_fixture.fixture_views import hotel_id, limit, offset, room_date_id, room_date_settings
 from all_fixture.pagination import CustomLOPagination
 from hotels.models.room.date.models_room_date import RoomDate
-from hotels.serializers.room.date.serializers_room_date import RoomDateDetailSerializer, RoomDateListSerializer
+from hotels.serializers.room.date.serializers_room_date import RoomDateListSerializer
 
 
 # Номер
@@ -65,11 +65,7 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateDetailSer
 )
 class RoomDateViewSet(viewsets.ModelViewSet):
     pagination_class = CustomLOPagination
-
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return RoomDateListSerializer
-        return RoomDateDetailSerializer
+    serializer_class = RoomDateListSerializer
 
     def get_queryset(self):
         # Получаем ID отеля из URL параметров
