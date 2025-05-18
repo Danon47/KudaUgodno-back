@@ -10,16 +10,10 @@ class RoomCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomCategory
-        fields = ("price",)
-
-
-class RoomCategoryIdSerializer(RoomCategorySerializer):
-    """
-    Сериализация для того, чтобы к стоимости добавить номер
-    """
-
-    class Meta(RoomCategorySerializer.Meta):
-        fields = ("room",) + RoomCategorySerializer.Meta.fields
+        fields = (
+            "room",
+            "price",
+        )
 
 
 class RoomDateBaseSerializer(serializers.ModelSerializer):
@@ -44,10 +38,38 @@ class RoomDateListSerializer(RoomDateBaseSerializer):
     Сериализатор списка дат для номеров, с деталями по категориям номеров.
     """
 
-    categories = RoomCategoryIdSerializer(many=True)
+    categories = RoomCategorySerializer(many=True)
 
     class Meta(RoomDateBaseSerializer.Meta):
         fields = RoomDateBaseSerializer.Meta.fields + ("categories",)
+
+    def create(self, validated_data):
+        categories_data = validated_data.pop("categories")
+        room_date = RoomDate.objects.create(**validated_data)
+
+        # Создание и привязка категорий
+        for category_data in categories_data:
+            room_category = RoomCategory.objects.create(**category_data)
+            room_date.categories.add(room_category)
+
+        return room_date
+
+    def update(self, instance, validated_data):
+        categories_data = validated_data.pop("categories", None)
+
+        # Обновляем основные поля
+        instance = super().update(instance, validated_data)
+
+        if categories_data is not None:
+            # Очищаем старые связи, но не удаляем сами категории
+            instance.categories.clear()
+
+            # Добавляем новые категории
+            for category_data in categories_data:
+                room_category, created = RoomCategory.objects.get_or_create(**category_data)
+                instance.categories.add(room_category)
+
+        return instance
 
 
 class RoomDateDetailSerializer(RoomDateBaseSerializer):
@@ -67,8 +89,6 @@ class RoomDateDetailSerializer(RoomDateBaseSerializer):
         Если номер не задан (например, если мы не передаем `room` в контекст сериализатора), то возвращает None.
         """
         room = self.context.get("room")
-        if not room:
-            return None
         try:
             return room_date.categories.get(room=room).price
         except RoomCategory.DoesNotExist:
