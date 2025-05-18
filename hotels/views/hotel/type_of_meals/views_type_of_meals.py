@@ -30,6 +30,28 @@ from hotels.serializers.hotel.type_of_meals.serializers_type_of_meals import Typ
         },
         tags=[type_of_meal_settings["name"]],
     ),
+    retrieve=extend_schema(
+        summary="Получение типа питания в определённом отеле",
+        description="Получение типа питания в определённом отеле",
+        parameters=[hotel_id, type_of_meal_id],
+        responses={
+            200: TypeOfMealSerializer,
+            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+        },
+        tags=[type_of_meal_settings["name"]],
+    ),
+    update=extend_schema(
+        summary="Полное обновление типа питания в определённом отеле",
+        description="Обновление всех полей типа питания в определённом отеле",
+        request=TypeOfMealSerializer,
+        parameters=[hotel_id, type_of_meal_id],
+        responses={
+            200: TypeOfMealSerializer,
+            400: OpenApiResponse(description="Ошибка запроса"),
+            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+        },
+        tags=[type_of_meal_settings["name"]],
+    ),
     destroy=extend_schema(
         summary="Удаление типа питания в определённом отеле",
         description="Полное удаление типа питания в определённом отеле",
@@ -43,7 +65,7 @@ from hotels.serializers.hotel.type_of_meals.serializers_type_of_meals import Typ
 )
 class TypeOfMealViewSet(viewsets.ModelViewSet):
     serializer_class = TypeOfMealSerializer
-    http_method_names = ["get", "post", "delete", "head", "options", "trace"]  # исключаем обновления
+    http_method_names = ["get", "post", "delete", "put", "head", "options", "trace"]  # исключаем обновления
 
     def get_queryset(self):
         hotel_id = self.kwargs["hotel_id"]
