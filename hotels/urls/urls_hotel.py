@@ -51,7 +51,13 @@ urlpatterns = [
     # Удаление выбранного типа питания
     path(
         "hotels/<int:hotel_id>/type_of_meals/<int:pk>/",
-        TypeOfMealViewSet.as_view({"delete": "destroy"}),
+        TypeOfMealViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "delete": "destroy",
+            }
+        ),
         name="hotels-type-of-meals-destroy",
     ),
 ]
