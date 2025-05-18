@@ -76,7 +76,7 @@ hotel_id = OpenApiParameter(
 # ID типа питания
 type_of_meal_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
-    name="type_of_meal_id",
+    name="id",
     type=int,
     description="ID типа питания",
     required=False,
