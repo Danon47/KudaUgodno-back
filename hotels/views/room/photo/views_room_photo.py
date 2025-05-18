@@ -46,6 +46,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
     ),
 )
 class RoomPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
+    queryset = RoomPhoto.objects.none()
     serializer_class = RoomPhotoSerializer
     pagination_class = CustomLOPagination
 

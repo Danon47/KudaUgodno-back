@@ -67,6 +67,7 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
     ),
 )
 class GuestViewSet(viewsets.ModelViewSet):
+    queryset = Guest.objects.none()
     permission_classes = [IsAuthenticated]
 
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]

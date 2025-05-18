@@ -64,6 +64,7 @@ from hotels.serializers.room.date.serializers_room_date import RoomDateListSeria
     ),
 )
 class RoomDateViewSet(viewsets.ModelViewSet):
+    queryset = RoomDate.objects.none()
     pagination_class = CustomLOPagination
     serializer_class = RoomDateListSerializer
 

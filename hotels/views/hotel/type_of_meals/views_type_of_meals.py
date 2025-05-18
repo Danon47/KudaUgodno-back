@@ -1,7 +1,9 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import hotel_id, type_of_meal_id, type_of_meal_settings
+from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
 from hotels.serializers.hotel.type_of_meals.serializers_type_of_meals import TypeOfMealSerializer
 
@@ -64,6 +66,7 @@ from hotels.serializers.hotel.type_of_meals.serializers_type_of_meals import Typ
     ),
 )
 class TypeOfMealViewSet(viewsets.ModelViewSet):
+    queryset = TypeOfMeal.objects.none()
     serializer_class = TypeOfMealSerializer
     http_method_names = ["get", "post", "delete", "put", "head", "options", "trace"]  # исключаем обновления
 
@@ -72,4 +75,5 @@ class TypeOfMealViewSet(viewsets.ModelViewSet):
         return TypeOfMeal.objects.filter(hotel_id=hotel_id)
 
     def perform_create(self, serializer):
-        serializer.save(hotel_id=self.kwargs["hotel_id"])
+        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
+        serializer.save(hotel=hotel)

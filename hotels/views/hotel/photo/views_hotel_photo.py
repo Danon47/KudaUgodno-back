@@ -1,7 +1,9 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import hotel_id, hotel_id_photo, hotel_photo_settings
+from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
 from hotels.serializers.hotel.photo.serializers_hotel_photo import HotelPhotoSerializer
 
@@ -42,6 +44,7 @@ from hotels.serializers.hotel.photo.serializers_hotel_photo import HotelPhotoSer
     ),
 )
 class HotelPhotoViewSet(viewsets.ModelViewSet):
+    queryset = HotelPhoto.objects.none()
     serializer_class = HotelPhotoSerializer
     http_method_names = ["get", "post", "delete", "head", "options", "trace"]  # исключаем обновления
 
@@ -50,4 +53,5 @@ class HotelPhotoViewSet(viewsets.ModelViewSet):
         return HotelPhoto.objects.filter(hotel_id=hotel_id)
 
     def perform_create(self, serializer):
-        serializer.save(hotel_id=self.kwargs["hotel_id"])
+        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
+        serializer.save(hotel=hotel)

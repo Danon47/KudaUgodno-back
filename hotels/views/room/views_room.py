@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
@@ -65,10 +66,10 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
     ),
 )
 class RoomViewSet(viewsets.ModelViewSet):
+    queryset = Room.objects.none()
     pagination_class = CustomLOPagination
 
     def get_serializer_class(self):
-        # Исправляем проверку действия
         if self.action in ["create", "update", "partial_update"]:
             return RoomBaseSerializer
         return RoomDetailSerializer
@@ -76,12 +77,11 @@ class RoomViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Получаем ID отеля из URL параметров
         hotel_id = self.kwargs["hotel_id"]
-
         # Фильтруем Room по связи с Hotel
         return Room.objects.filter(hotel__id=hotel_id)
 
     def perform_create(self, serializer):
         # Получаем объект Hotel по ID
-        hotel = Hotel.objects.get(id=self.kwargs["hotel_id"])
+        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
         # Сохраняем Room с привязкой к Hotel
         serializer.save(hotel=hotel)
