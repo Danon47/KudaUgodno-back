@@ -250,28 +250,20 @@ CORS_ALLOW_CREDENTIALS = True
 # Разрешенные домены для CORS (кросс-доменных запросов)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
-    "http://127.0.0.1",
     "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://anywhere-dev.god-it.ru",
-    "https://anywhere-test.god-it.ru",
 ]
-
-# Для продакшена добавляем HTTPS-домены и IP
-if not DEBUG:
-    CORS_ALLOWED_ORIGINS += [
-        "https://anywhere.god-it.ru",
-    ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
-    "http://127.0.0.1",
+    "http://localhost:3000",
     "http://localhost:8000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://anywhere.god-it.ru",
-    "https://anywhere-dev.god-it.ru",
-    "https://anywhere-test.god-it.ru",
 ]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
