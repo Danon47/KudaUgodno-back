@@ -129,7 +129,7 @@ class Command(BaseCommand):
                 if meal_name == TypeOfMealChoices.NO_MEAL:
                     price = 0
                 else:
-                    price = random.randint(250, 10000)
+                    price = random.choice(range(500, 10001, 500))
                 TypeOfMeal.objects.create(
                     hotel=hotel,
                     name=meal_name,
@@ -154,11 +154,10 @@ class Command(BaseCommand):
         for hotel in hotels:
             # Получаем все типы питания, которые мы только что создали
             available_meals = list(hotel.type_of_meals.all())
-            for _ in range(count):
+            for iteration_bed in range(count):
                 number_of_adults = random.randint(2, 4)
                 number_of_children = random.randint(0, 4)
-
-                # --- Кровати для взрослых ---
+                # Кровати для взрослых
                 if number_of_adults == 2:
                     double_bed = 1
                     single_bed = 0
@@ -171,10 +170,9 @@ class Command(BaseCommand):
                 else:
                     double_bed = 1
                     single_bed = 0
-
-                # --- Кровати для детей ---
+                # Кровати для детей
                 if number_of_children > 0:
-                    single_bed += number_of_children  # каждому ребенку по односпальной кровати
+                    single_bed += number_of_children
 
                 room = Room.objects.create(
                     hotel=hotel,
