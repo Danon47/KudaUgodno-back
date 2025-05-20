@@ -8,19 +8,11 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from all_fixture.tests.fixture_hotel import get_hotel_data
-from all_fixture.tests.fixture_hotel_room import (
-    get_hotel_room_data,
-    get_hotel_room_discount_data,
-    get_hotel_room_photo_data,
-    get_hotel_room_unavailable_data,
-    update_hotel_room_data,
-)
+from all_fixture.tests.fixture_hotel_room import get_hotel_room_data, get_hotel_room_photo_data, update_hotel_room_data
 from all_fixture.tests.test_temp_image import create_test_image
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.room.models_room import Room
-from hotels.models.room.models_room_discount import RoomDiscount
-from hotels.models.room.models_room_photo import RoomPhoto
-from hotels.models.room.models_room_unavailable import RoomUnavailable
+from hotels.models.room.photo.models_room_photo import RoomPhoto
 
 
 class RoomModelTest(TestCase):
@@ -41,8 +33,6 @@ class RoomModelTest(TestCase):
         self.client = APIClient()
         self.hotel = Hotel.objects.create(**get_hotel_data())
         self.room = Room.objects.create(**get_hotel_room_data(self.hotel))
-        self.discount = RoomDiscount.objects.create(**get_hotel_room_discount_data())
-        self.unavailable = RoomUnavailable.objects.create(**get_hotel_room_unavailable_data())
         self.room.discount.add(self.discount)
         self.room.unavailable.add(self.unavailable)
         self.photo = RoomPhoto.objects.create(**get_hotel_room_photo_data(self.room))

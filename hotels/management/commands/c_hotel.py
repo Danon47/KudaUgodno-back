@@ -7,13 +7,13 @@ from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
+from all_fixture.choices import PlaceChoices, RoomCategoryChoices, TypeOfHolidayChoices, TypeOfMealChoices
 from flights.models import Flight
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.models_hotel_photo import HotelPhoto
-from hotels.models.hotel.models_hotel_rules import HotelRules
+from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
+from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
 from hotels.models.room.models_room import Room
-from hotels.models.room.models_room_photo import RoomPhoto
+from hotels.models.room.photo.models_room_photo import RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
 
@@ -24,6 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         with transaction.atomic():
             hotels = self.create_test_hotels(10)
+            self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
             flights = self.create_flights()
             tours = self.create_test_tours(flights, hotels, rooms)
@@ -53,6 +54,10 @@ class Command(BaseCommand):
     def create_test_hotels(self, count):
         places = [choice[0] for choice in PlaceChoices.choices]
         types_of_holiday = [choice[0] for choice in TypeOfHolidayChoices.choices]
+        amenities_common = ["Общие", "Общие 2", "Общие 3"]
+        amenities_in_the_room = ["В номере", "В номере 2", "В номере 3"]
+        amenities_sports_and_recreation = ["Зал", "Фитнес"]
+        amenities_for_children = ["Аквапарк", "Детская площадка", "Аниматоры"]
 
         countries_cities = {
             "Турция": ["Анталия", "Стамбул", "Измир"],
@@ -64,7 +69,6 @@ class Command(BaseCommand):
             "Россия": ["Москва", "Санкт-Петербург"],
         }
 
-        room_categories = ["Стандарт", "Делюкс", "Полулюкс", "Семейный"]
         rules = {"С животными": "Можно если за ними следить", "Бухать": "Можно если за Вами следит жена"}
         # Пути к тестовым фотографиям отелей
         hotel_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_hotel")
@@ -88,23 +92,26 @@ class Command(BaseCommand):
                 description=f"Так себе описание отеля под номером {i+1}",
                 check_in_time=time(random.randint(14, 16), 0),
                 check_out_time=time(random.randint(10, 12), 0),
-                type_of_meals_ultra_all_inclusive=random.randint(3000, 10000),
-                type_of_meals_all_inclusive=random.randint(3000, 8000),
-                type_of_meals_full_board=random.randint(2000, 5000),
-                type_of_meals_half_board=random.randint(2000, 2500),
-                type_of_meals_only_breakfast=random.randint(100, 1000),
+                amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
+                amenities_in_the_room=random.sample(
+                    amenities_in_the_room, k=random.randint(1, len(amenities_in_the_room))
+                ),
+                amenities_sports_and_recreation=random.sample(
+                    amenities_sports_and_recreation, k=random.randint(1, len(amenities_sports_and_recreation))
+                ),
+                amenities_for_children=random.sample(
+                    amenities_for_children, k=random.randint(1, len(amenities_for_children))
+                ),
                 user_rating=round(random.uniform(2, 9), 1),
                 type_of_rest=random.choice(types_of_holiday),
                 is_active=random.choice([True, False]),
-                room_categories=random.sample(room_categories, k=random.randint(1, len(room_categories))),
                 width=round(random.uniform(-90, 90), 6),
                 longitude=round(random.uniform(-180, 180), 6),
-                warm=random.choice([True, False]),
             )
             hotels.append(hotel)
 
             for rule_name, rule_description in rules.items():
-                HotelRules.objects.create(
+                hotel.rules.create(
                     hotel=hotel,
                     name=rule_name,
                     description=rule_description,
@@ -112,27 +119,68 @@ class Command(BaseCommand):
         self.add_photos(hotels, hotel_photos_dir, HotelPhoto, "hotel", 4)
         return hotels
 
+    def create_type_of_meals(self, hotels):
+        """
+        Для каждого отеля создаём все доступные типы питания с рандомной ценой.
+        """
+        meal_choices = [choice[0] for choice in TypeOfMealChoices.choices]
+        for hotel in hotels:
+            for meal_name in meal_choices:
+                if meal_name == TypeOfMealChoices.NO_MEAL:
+                    price = 0
+                else:
+                    price = random.choice(range(500, 10001, 500))
+                TypeOfMeal.objects.create(
+                    hotel=hotel,
+                    name=meal_name,
+                    price=price,
+                )
+
     def create_test_rooms(self, hotels, count=5):
-        room_categories = ["Стандарт", "Делюкс", "Полулюкс", "Семейный"]
+        room_categories = [choice[0] for choice in RoomCategoryChoices.choices]
         amenities_common = ["WiFi", "ТВ", "Минибар", "Кондиционер"]
         amenities_coffee = ["Кофе машина в номере", "Чайный сет"]
         amenities_bathroom = ["Душевые принадлежности", "Фен"]
         amenities_view = ["Море", "Горы", "Сад"]
+        rules_names = [
+            "Курить",
+            "С животными",
+            "Алкоголь",
+        ]
 
         room_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_room")
 
         rooms = []
         for hotel in hotels:
-            for _ in range(count):
+            # Получаем все типы питания, которые мы только что создали
+            available_meals = list(hotel.type_of_meals.all())
+            for iteration_bed in range(count):
+                number_of_adults = random.randint(2, 4)
+                number_of_children = random.randint(0, 4)
+                # Кровати для взрослых
+                if number_of_adults == 2:
+                    double_bed = 1
+                    single_bed = 0
+                elif number_of_adults == 3:
+                    double_bed = 1
+                    single_bed = 1
+                elif number_of_adults == 4:
+                    double_bed = 1
+                    single_bed = 2
+                else:
+                    double_bed = 1
+                    single_bed = 0
+                # Кровати для детей
+                if number_of_children > 0:
+                    single_bed += number_of_children
+
                 room = Room.objects.create(
                     hotel=hotel,
                     category=random.choice(room_categories),
-                    price=random.randint(1000, 50000),
-                    type_of_meals=["Только завтраки", "Полупансион", "Ультра всё включено"],
-                    number_of_adults=random.randint(1, 4),
-                    number_of_children=random.randint(1, 4),
-                    single_bed=random.randint(1, 3),
-                    double_bed=random.randint(1, 3),
+                    number_of_adults=number_of_adults,
+                    number_of_children=number_of_children,
+                    single_bed=single_bed,
+                    double_bed=double_bed,
                     area=random.randint(20, 100),
                     quantity_rooms=random.randint(1, 10),
                     amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
@@ -140,6 +188,17 @@ class Command(BaseCommand):
                     amenities_bathroom=random.sample(amenities_bathroom, k=random.randint(1, len(amenities_bathroom))),
                     amenities_view=random.sample(amenities_view, k=random.randint(1, len(amenities_view))),
                 )
+                if available_meals:
+                    selected = random.sample(available_meals, k=random.randint(1, len(available_meals)))
+                    room.type_of_meals.set(selected)
+
+                for rule_name in rules_names:
+                    room.rules.create(
+                        name=rule_name,
+                        option=random.choice([True, False]),
+                        created_by=None,
+                    )
+
                 rooms.append(room)
 
         self.add_photos(rooms, room_photos_dir, RoomPhoto, "room", 6)
@@ -320,7 +379,10 @@ class Command(BaseCommand):
             end = flight_back.departure_date
 
             hotel = random.choice(hotels)
-            room = random.choice(rooms) if random.choice([True, False]) else None
+
+            # Теперь выбираем номер из доступных номеров этого отеля
+            available_rooms = hotel.rooms.all()
+            room = random.choice(available_rooms) if available_rooms else None
 
             operator = random.choice(operators) if operators else None
 
@@ -330,6 +392,9 @@ class Command(BaseCommand):
                 discount = random.randint(5, 30)
                 end_stock = end - timedelta(days=random.randint(1, 5))
                 stock = TourStock.objects.create(active_stock=True, discount_amount=discount, end_date=end_stock)
+
+            # Вставляем выбранную категорию комнаты
+            room_category = room.category if room else None
 
             tour = Tour.objects.create(
                 start_date=start,
@@ -342,7 +407,7 @@ class Command(BaseCommand):
                 arrival_city=hotel.city,
                 tour_operator=operator,
                 hotel=hotel,
-                room=room.category if room else hotel.room_categories[0],
+                room=room_category,
                 transfer=random.choice([True, False]),
                 price=round(random.uniform(50000, 200000), 2),
                 stock=stock,

@@ -4,8 +4,8 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import what_about_settings
-from hotels.models.hotel.models_hotel_what_about import HotelWhatAbout
-from hotels.serializers.what_about.serializers_hotel_what_about import HotelWhatAboutFullSerializer
+from hotels.models.hotel.what_about.models_hotel_what_about import HotelWhatAbout
+from hotels.serializers.hotel.what_about.serializers_hotel_what_about import HotelWhatAboutFullSerializer
 
 
 @extend_schema_view(
@@ -20,6 +20,7 @@ from hotels.serializers.what_about.serializers_hotel_what_about import HotelWhat
     )
 )
 class HotelWarpUpViewSet(viewsets.ModelViewSet):
+    queryset = HotelWhatAbout.objects.none()
     serializer_class = HotelWhatAboutFullSerializer
 
     def get_queryset(self):

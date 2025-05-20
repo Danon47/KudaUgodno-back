@@ -2,7 +2,7 @@ from django.db.models import Min
 from rest_framework import serializers
 
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.models_hotel_what_about import HotelWhatAbout
+from hotels.models.hotel.what_about.models_hotel_what_about import HotelWhatAbout
 
 
 class HotelShortSerializer(serializers.ModelSerializer):

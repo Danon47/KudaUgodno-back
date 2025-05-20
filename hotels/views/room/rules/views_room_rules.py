@@ -1,22 +1,19 @@
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework.generics import get_object_or_404
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin
-from rest_framework.viewsets import GenericViewSet
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
-from all_fixture.fixture_views import limit, offset, room_id, room_id_photo, room_photo_settings
-from all_fixture.pagination import CustomLOPagination
-from hotels.models.room.models_room import Room
-from hotels.models.room.models_room_photo import RoomPhoto
-from hotels.serializers.room.serializers_room import RoomPhotoSerializer
+from all_fixture.fixture_views import limit, offset, room_id, room_photo_settings
+from hotels.models.room.rules.models_room_rules import RoomRules
+from hotels.serializers.room.rules.serializers_room_rules import RoomRulesSerializer
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список фотографий номера",
         description="Получение списка всех фотографий номера с пагинацией",
-        parameters=[limit, offset, room_id],
+        parameters=[limit, offset],
         responses={
-            200: RoomPhotoSerializer(many=True),
+            200: RoomRulesSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_photo_settings["name"]],
@@ -26,10 +23,10 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
         description="Создание новой фотографии номера",
         parameters=[room_id],
         request={
-            "multipart/form-data": RoomPhotoSerializer,  # Указываем формат данных
+            "multipart/form-data": RoomRulesSerializer,  # Указываем формат данных
         },
         responses={
-            201: RoomPhotoSerializer,
+            201: RoomRulesSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
         tags=[room_photo_settings["name"]],
@@ -37,7 +34,7 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
     destroy=extend_schema(
         summary="Удаление фотографии номера",
         description="Полное удаление фотографии номера",
-        parameters=[room_id, room_id_photo],
+        parameters=[],
         responses={
             204: OpenApiResponse(description="Фотография номера удалена"),
             404: OpenApiResponse(description="Фотография номера не найдена"),
@@ -45,14 +42,10 @@ from hotels.serializers.room.serializers_room import RoomPhotoSerializer
         tags=[room_photo_settings["name"]],
     ),
 )
-class RoomPhotoViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
-    serializer_class = RoomPhotoSerializer
-    pagination_class = CustomLOPagination
-
-    def get_queryset(self):
-        room_id = self.kwargs["room_id"]
-        return RoomPhoto.objects.filter(room_id=room_id)
+class RoomRulesViewSet(viewsets.ModelViewSet):
+    queryset = RoomRules.objects.all()
+    serializer_class = RoomRulesSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        room = get_object_or_404(Room, id=self.kwargs["room_id"])
-        serializer.save(room=room)
+        serializer.save(created_by=self.request.user)

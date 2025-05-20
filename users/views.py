@@ -101,6 +101,7 @@ logger = logging.getLogger(__name__)
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для обычных пользователей (туристов)."""
 
+    queryset = User.objects.none()
     serializer_class = UserSerializer
     pagination_class = CustomLOPagination
     # Админ видит всех, юзер — только себя

@@ -134,3 +134,37 @@ class FlightTypeChoices(models.TextChoices):
     REGULAR = "Регулярный", "Регулярный"
     CHARTER = "Чартерный", "Чартерный"
     TRANZIT = "Транзитный", "Транзитный"
+
+
+class RoomCategoryChoices(models.TextChoices):
+    """
+    Категория номера
+    """
+
+    STANDARD = "Standard", "Standard"
+    SINGLE_ROOM = "Single Room", "Single Room"
+    DOUBLE_ROOM = "Double Room", "Double Room"
+    TWIN_ROOM = "Twin Room", "Twin Room"
+    TRIPLE_ROOM = "Triple Room", "Triple Room"
+    FAMILY_ROOM = "Family Room", "Family Room"
+    SUPERIOR_ROOM = "Superior Room", "Superior Room"
+    DELUXE_ROOM = "Deluxe Room", "Deluxe Room"
+    STUDIO = "Studio", "Studio"
+    SUITE = "Suite", "Suite"
+    JUNIOR_SUITE = "Junior Suite", "Junior Suite"
+    RESIDENCE = "Residence", "Residence"
+    ROYAL_SUITE = "Royal Suite", "Royal Suite"
+    PENTHOUSE = "Penthouse", "Penthouse"
+
+
+class TypeOfMealChoices(models.TextChoices):
+    """
+    Тип питания
+    """
+
+    NO_MEAL = "Без питания", "Без питания"
+    BREAKFAST = "Завтрак", "Завтрак"
+    BREAKFAST_AND_DINNER = "Завтрак и ужин", "Завтрак и ужин"
+    FULL_BOARD = "Полный пансион", "Полный пансион"
+    ALL_INCLUSIVE = "All inclusive", "All inclusive"
+    ULTRA_ALL_INCLUSIVE = "Ultra all inclusive", "Ultra all inclusive"

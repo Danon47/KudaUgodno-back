@@ -1,12 +1,10 @@
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import hotel_id, id_room, limit, offset, room_settings
+from all_fixture.fixture_views import hotel_id, limit, offset, room_date_id, room_date_settings
 from all_fixture.pagination import CustomLOPagination
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.room.models_room import Room
-from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDetailSerializer
+from hotels.models.room.date.models_room_date import RoomDate
+from hotels.serializers.room.date.serializers_room_date import RoomDateListSerializer
 
 
 # Номер
@@ -14,74 +12,65 @@ from hotels.serializers.room.serializers_room import RoomBaseSerializer, RoomDet
     list=extend_schema(
         summary="Список номеров",
         description="Получение списка всех номеров с пагинацией",
-        parameters=[hotel_id, limit, offset],
+        parameters=[limit, offset, hotel_id],
         responses={
-            200: RoomDetailSerializer(many=True),
+            200: RoomDateListSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[room_date_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление номера",
         description="Создание нового номера",
-        request=RoomBaseSerializer,
+        request=RoomDateListSerializer,
         parameters=[hotel_id],
         responses={
-            201: RoomBaseSerializer,
+            201: RoomDateListSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[room_date_settings["name"]],
     ),
     retrieve=extend_schema(
         summary="Детали номера",
         description="Получение информации о номере",
-        parameters=[hotel_id, id_room],
+        parameters=[hotel_id, room_date_id],
         responses={
-            200: RoomDetailSerializer,
+            200: RoomDateListSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[room_date_settings["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление номера",
         description="Обновление всех полей номера",
-        request=RoomBaseSerializer,
-        parameters=[hotel_id, id_room],
+        request=RoomDateListSerializer,
+        parameters=[hotel_id, room_date_id],
         responses={
-            200: RoomBaseSerializer,
+            200: RoomDateListSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[room_settings["name"]],
+        tags=[room_date_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление номера",
         description="Полное удаление номера",
-        parameters=[hotel_id, id_room],
+        parameters=[hotel_id, room_date_id],
         responses={
             204: OpenApiResponse(description="Номер удален"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[room_settings["name"]],
+        tags=[room_date_settings["name"]],
     ),
 )
-class RoomViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.none()
+class RoomDateViewSet(viewsets.ModelViewSet):
+    queryset = RoomDate.objects.none()
     pagination_class = CustomLOPagination
-
-    def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
-            return RoomBaseSerializer
-        return RoomDetailSerializer
+    serializer_class = RoomDateListSerializer
 
     def get_queryset(self):
         # Получаем ID отеля из URL параметров
         hotel_id = self.kwargs["hotel_id"]
-        # Фильтруем Room по связи с Hotel
-        return Room.objects.filter(hotel__id=hotel_id)
 
-    def perform_create(self, serializer):
-        # Получаем объект Hotel по ID
-        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
-        # Сохраняем Room с привязкой к Hotel
-        serializer.save(hotel=hotel)
+        # Фильтруем Room по связи с Hotel
+        return RoomDate.objects.filter(categories__room__hotel_id=hotel_id).distinct()

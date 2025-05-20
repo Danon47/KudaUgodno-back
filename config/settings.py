@@ -15,10 +15,12 @@ from all_fixture.fixture_views import (
     hotel_photo_settings,
     hotel_settings,
     insurance_settings,
+    room_date_settings,
     room_photo_settings,
     room_settings,
     tour_settings,
     tour_stock_settings,
+    type_of_meal_settings,
     user_settings,
     what_about_settings,
 )
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Сторонние библиотеки
+    "django_filters",
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
@@ -167,11 +170,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_LOGIN_METHOD = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_LOGIN_METHODS = ["email"]
 
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "users.serializers.CustomRegisterSerializer",
@@ -187,6 +188,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "TIME_FORMAT": "%H:%M:%S",
     "TIME_INPUT_FORMATS": ["%H:%M:%S", "%H:%M"],
 }
@@ -216,9 +218,11 @@ SPECTACULAR_SETTINGS = {
         entreprise,
         hotel_settings,
         hotel_photo_settings,
+        type_of_meal_settings,
         what_about_settings,
         room_settings,
         room_photo_settings,
+        room_date_settings,
         tour_settings,
         tour_stock_settings,
         flight_settings,
@@ -227,6 +231,7 @@ SPECTACULAR_SETTINGS = {
         insurance_settings,
     ],
     "SORT_OPERATIONS": True,
+    "SORT_OPERATION_PARAMETERS": False,
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -245,28 +250,20 @@ CORS_ALLOW_CREDENTIALS = True
 # Разрешенные домены для CORS (кросс-доменных запросов)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
-    "http://127.0.0.1",
     "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://anywhere-dev.god-it.ru",
-    "https://anywhere-test.god-it.ru",
 ]
-
-# Для продакшена добавляем HTTPS-домены и IP
-if not DEBUG:
-    CORS_ALLOWED_ORIGINS += [
-        "https://anywhere.god-it.ru",
-    ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
-    "http://127.0.0.1",
+    "http://localhost:3000",
     "http://localhost:8000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://anywhere.god-it.ru",
-    "https://anywhere-dev.god-it.ru",
-    "https://anywhere-test.god-it.ru",
 ]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000

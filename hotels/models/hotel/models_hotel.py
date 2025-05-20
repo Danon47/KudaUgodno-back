@@ -4,8 +4,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.choices import TypeOfHolidayChoices
-from all_fixture.fixture_views import NULLABLE, WARM_CITY, WARM_COUNTRIES
+from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
+from all_fixture.fixture_views import NULLABLE
 
 
 class Hotel(models.Model):
@@ -29,6 +29,8 @@ class Hotel(models.Model):
         **NULLABLE,
     )
     place = models.CharField(
+        choices=PlaceChoices.choices,
+        default=PlaceChoices.HOTEL,
         max_length=100,
         verbose_name="Тип размещения",
         help_text="Тип размещения",
@@ -140,55 +142,8 @@ class Hotel(models.Model):
         default=list,
         **NULLABLE,
     )
-    type_of_meals_ultra_all_inclusive = models.IntegerField(
-        verbose_name="Тип питания Ultra All inclusive",
-        help_text="Стоимость за одного человека",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(500000),
-        ],
-        **NULLABLE,
-    )
-    type_of_meals_all_inclusive = models.IntegerField(
-        verbose_name="Тип питания All inclusive",
-        help_text="Стоимость за одного человека",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(500000),
-        ],
-        **NULLABLE,
-    )
-    type_of_meals_full_board = models.IntegerField(
-        verbose_name="Тип питания полный пансион",
-        help_text="Стоимость за одного человека",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(400000),
-        ],
-        **NULLABLE,
-    )
-    type_of_meals_half_board = models.IntegerField(
-        verbose_name="Тип питания полу пансион",
-        help_text="Стоимость за одного человека",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(300000),
-        ],
-        **NULLABLE,
-    )
-    type_of_meals_only_breakfast = models.IntegerField(
-        verbose_name="Тип питания только завтрак",
-        help_text="Стоимость за одного человека",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(100000),
-        ],
-        **NULLABLE,
-    )
-    user_rating = models.DecimalField(
+    user_rating = models.FloatField(
         verbose_name="Пользовательская оценка",
-        max_digits=3,
-        decimal_places=1,
         default=0.0,
         help_text="Пользовательская оценка",
         **NULLABLE,
@@ -220,38 +175,23 @@ class Hotel(models.Model):
     #     help_text="Создал отель",
     #     **NULLABLE,
     # )
-    room_categories = ArrayField(
-        models.CharField(max_length=100),
-        verbose_name="Категории номеров в отеле",
-        help_text="Категории номеров в отеле",
-        **NULLABLE,
-    )
-    width = models.DecimalField(
+    width = models.FloatField(
         verbose_name="Широта",
         help_text="Широта (от -90 до 90)",
-        max_digits=11,
-        decimal_places=6,
         validators=[
             MinValueValidator(Decimal("-90.0")),
             MaxValueValidator(Decimal("90.0")),
         ],
         **NULLABLE,
     )
-    longitude = models.DecimalField(
+    longitude = models.FloatField(
         verbose_name="Долгота",
         help_text="Долгота (от -180 до 180)",
-        max_digits=11,
-        decimal_places=6,
         validators=[
             MinValueValidator(Decimal("-180.0")),
             MaxValueValidator(Decimal("180.0")),
         ],
         **NULLABLE,
-    )
-    warm = models.BooleanField(
-        default=False,
-        verbose_name="Тёплая страна",
-        help_text="Признак того, что отель находится в тёплой стране",
     )
 
     class Meta:
@@ -261,8 +201,3 @@ class Hotel(models.Model):
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        # Проверяем, находится ли страна отеля в списке тёплых стран
-        self.warm = self.country in WARM_COUNTRIES and self.city in WARM_CITY
-        super().save(*args, **kwargs)

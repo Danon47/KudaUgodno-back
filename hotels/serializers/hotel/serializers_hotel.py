@@ -1,12 +1,16 @@
 from rest_framework import serializers
 
 from hotels.models.hotel.models_hotel import Hotel
-from hotels.serializers.hotel.serializers_hotel_photo import HotelPhotoSerializer
-from hotels.serializers.hotel.serializers_hotel_rules import HotelRulesSerializer
+from hotels.serializers.hotel.photo.serializers_hotel_photo import HotelPhotoSerializer
+from hotels.serializers.hotel.rules.serializers_hotel_rules import HotelRulesSerializer
 from hotels.serializers.room.serializers_room import RoomDetailSerializer
 
 
 class HotelBaseSerializer(serializers.ModelSerializer):
+    """
+    Базовая сериализация для создания отеля
+    Метод POST (create)
+    """
 
     class Meta:
         model = Hotel
@@ -20,6 +24,12 @@ class HotelBaseSerializer(serializers.ModelSerializer):
 
 
 class HotelDetailSerializer(serializers.ModelSerializer):
+    """
+    Сериализация для обновления всех полей отеля
+    Метод PUT, DELETE, PATCH - но его не используем, позже будет отдельная сериализация
+    по добавлению отеля в архив методом PATCH
+    """
+
     rules = HotelRulesSerializer(many=True, source="hotels_rules", required=False)
     user_rating = serializers.FloatField(required=False)
     width = serializers.DecimalField(required=False, max_digits=11, decimal_places=6)
@@ -47,16 +57,10 @@ class HotelDetailSerializer(serializers.ModelSerializer):
             "amenities_in_the_room",
             "amenities_sports_and_recreation",
             "amenities_for_children",
-            "type_of_meals_ultra_all_inclusive",
-            "type_of_meals_all_inclusive",
-            "type_of_meals_full_board",
-            "type_of_meals_half_board",
-            "type_of_meals_only_breakfast",
             "user_rating",
             "type_of_rest",
             "rules",
             "is_active",
-            "room_categories",
             "width",
             "longitude",
         )
@@ -79,7 +83,7 @@ class HotelDetailSerializer(serializers.ModelSerializer):
 
 class HotelListWithPhotoSerializer(HotelDetailSerializer):
     """
-    Серилазиация по выводу информации по отелю, включая фотографии отеля.
+    Промежуточная сериализация, где не нужны номера. Возвращает все поля, и фотографии отеля.
     """
 
     photo = HotelPhotoSerializer(
@@ -96,6 +100,7 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     """
     Полная сериализация отеля со всеми вложенными данными.
     Фотографии отеля, номера в отеле.
+    Метод GET(list), GET id (retrieve)
     """
 
     rooms = RoomDetailSerializer(
