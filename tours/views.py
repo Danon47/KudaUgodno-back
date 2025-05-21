@@ -113,6 +113,7 @@ from tours.serializers import (
 )
 class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
+    pagination_class = CustomLOPagination
 
     def get_serializer_class(self):
         if self.action == "partial_update":

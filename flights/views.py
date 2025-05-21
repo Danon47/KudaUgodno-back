@@ -2,6 +2,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_
 from rest_framework import viewsets
 
 from all_fixture.fixture_views import flight_id, flight_settings, limit, offset
+from all_fixture.pagination import CustomLOPagination
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 
@@ -75,3 +76,4 @@ from flights.serializers import FlightSerializer
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
+    pagination_class = CustomLOPagination
