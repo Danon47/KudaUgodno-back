@@ -12,6 +12,7 @@ from flights.models import Flight
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
 from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
+from hotels.models.room.date.models_room_date import RoomCategory, RoomDate
 from hotels.models.room.models_room import Room
 from hotels.models.room.photo.models_room_photo import RoomPhoto
 from tours.models import Tour, TourStock
@@ -26,6 +27,7 @@ class Command(BaseCommand):
             hotels = self.create_test_hotels(10)
             self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
+            self.create_room_prices(hotels)
             flights = self.create_flights()
             tours = self.create_test_tours(flights, hotels, rooms)
             self.print_success_message(len(hotels), len(flights), len(tours))
@@ -38,6 +40,8 @@ class Command(BaseCommand):
                 f"- {hotels_count*5} номеров с 6 фото каждом\n"
                 f"- {flights_count} рейсов\n"
                 f"- {tours_count} туров\n"
+                f"- {hotels_count} периодов цен на номера (01.06.2026-01.12.2026)\n"
+                f"- {hotels_count*5} ценовых категорий номеров\n"
             )
         )
 
@@ -204,6 +208,28 @@ class Command(BaseCommand):
         self.add_photos(rooms, room_photos_dir, RoomPhoto, "room", 6)
 
         return rooms
+
+    def create_room_prices(self, hotels):
+        for hotel in hotels:
+            rooms = hotel.rooms.all()
+            room_categories = []
+
+            # Создаем категории с ценами для каждого номера
+            for room in rooms:
+                price = random.choice(range(2000, 50001, 1000))
+                category = RoomCategory.objects.create(room=room, price=price)
+                room_categories.append(category)
+
+            # Создаем запись с датами
+            stock = random.choice([True, False])
+            room_date = RoomDate.objects.create(
+                start_date=date(2025, 5, 1),
+                end_date=date(2026, 12, 1),
+                available_for_booking=True,
+                stock=stock,
+                share_size=random.randint(1, 30) if stock else None,
+            )
+            room_date.categories.set(room_categories)
 
     def create_flights(self):
         """
