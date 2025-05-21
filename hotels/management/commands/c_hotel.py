@@ -82,7 +82,7 @@ class Command(BaseCommand):
             country = random.choice(list(countries_cities.keys()))
             city = random.choice(countries_cities[country])
             hotel = Hotel.objects.create(
-                name=f"Отель под номером в {city}",
+                name=f"Отель в {city} {i+1}",
                 star_category=random.randint(1, 5),
                 place=random.choice(places),
                 country=country,
