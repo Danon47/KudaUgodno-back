@@ -15,7 +15,7 @@ router.register("stocks", TourStockViewSet, basename="tours_stocks")
 urlpatterns = [
     path(
         "tours/searches/",
-        TourSearchView.as_view({"get": "searches"}),
+        TourSearchView.as_view({"get": "search"}),
         name="tour-searches",
     ),
     path(
