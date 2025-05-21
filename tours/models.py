@@ -9,7 +9,7 @@ from users.models import User
 
 class Tour(models.Model):
     """
-    Модель для хранения информации о турах
+    Модель для хранения информации о турах.
     """
 
     start_date = models.DateField(verbose_name="Дата начала тура", help_text="Введите дату начала тура")

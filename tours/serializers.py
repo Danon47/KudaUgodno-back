@@ -1,4 +1,14 @@
-from rest_framework.serializers import DecimalField, ModelSerializer, SerializerMethodField
+from drf_spectacular.utils import extend_schema_field
+from rest_framework.serializers import (
+    CharField,
+    DateField,
+    DecimalField,
+    FloatField,
+    IntegerField,
+    ModelSerializer,
+    Serializer,
+    SerializerMethodField,
+)
 
 from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
@@ -83,3 +93,65 @@ class TourStockSerializer(ModelSerializer):
     class Meta:
         model = TourStock
         fields = ("id", "active_stock", "end_date", "discount_amount")
+
+
+class TourSearchResponseSerializer(TourListSerializer):
+    """Сериализатор только для формирования ответа поиска."""
+
+    nights = SerializerMethodField()
+    guests = SerializerMethodField()
+
+    class Meta(TourListSerializer.Meta):
+        fields = TourListSerializer.Meta.fields + ("nights", "guests")
+
+    @extend_schema_field(int)
+    def get_nights(self, obj) -> int:
+        """Расчет количества ночей."""
+        return (obj.end_date - obj.start_date).days
+
+    @extend_schema_field(int)
+    def get_guests(self, obj) -> int:
+        """Получение количества гостей из контекста."""
+        return int(self.context.get("guests", 1))
+
+
+class TourSearchRequestSerializer(Serializer):
+    """Сериализатор только для валидации параметров запроса поиска (все поля обязательные).."""
+
+    departure_city = CharField(required=True)
+    arrival_city = CharField(required=True)
+    start_date = DateField(
+        required=True,
+        input_formats=["%Y-%m-%d"],
+        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
+    )
+    nights = IntegerField(min_value=1, required=True)
+    guests = IntegerField(min_value=1, required=True)
+    validators = [StartDateValidator()]
+
+
+class TourFiltersRequestSerializer(Serializer):
+    """Сериализатор для параметров расширенного поиска (все поля необязательные)."""
+
+    # Параметры фильтрации верхнего поиска
+    departure_city = CharField(required=False)
+    arrival_city = CharField(required=False)
+    start_date = DateField(
+        required=False,
+        input_formats=["%Y-%m-%d"],
+        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
+    )
+    nights = IntegerField(min_value=1, required=False)
+    guests = IntegerField(min_value=1, required=False)
+
+    # Параметры фильтрации
+    city = CharField(required=False)
+    type_of_rest = CharField(required=False)
+    place = CharField(required=False)
+    price_gte = IntegerField(min_value=0, required=False)
+    price_lte = IntegerField(min_value=0, required=False)
+    user_rating = FloatField(min_value=0, max_value=10, required=False)
+    star_category = IntegerField(min_value=0, required=False)
+    distance_to_the_airport = IntegerField(min_value=0, required=False)
+    tour_operator = CharField(required=False)
+    validators = [StartDateValidator()]

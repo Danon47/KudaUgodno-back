@@ -1,10 +1,48 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
-from all_fixture.fixture_views import limit, offset, tour_id, tour_settings, tour_stock_id, tour_stock_settings
+from all_fixture.fixture_views import (
+    filter_city,
+    filter_distance_to_the_airport,
+    filter_place,
+    filter_star_category,
+    filter_tour_operator,
+    filter_type_of_rest,
+    filter_user_rating,
+    limit,
+    offset,
+    tour_arrival_city,
+    tour_arrival_city_optional,
+    tour_departure_city,
+    tour_departure_city_optional,
+    tour_guests,
+    tour_guests_optional,
+    tour_id,
+    tour_nights,
+    tour_nights_optional,
+    tour_price_gte,
+    tour_price_lte,
+    tour_settings,
+    tour_start_date,
+    tour_start_date_optional,
+    tour_stock_id,
+    tour_stock_settings,
+)
 from all_fixture.pagination import CustomLOPagination
+from tours.filters import TourExtendedFilter, TourSearchFilter
 from tours.models import Tour, TourStock
-from tours.serializers import TourListSerializer, TourPatchSerializer, TourSerializer, TourStockSerializer
+from tours.serializers import (
+    TourFiltersRequestSerializer,
+    TourListSerializer,
+    TourPatchSerializer,
+    TourSearchRequestSerializer,
+    TourSearchResponseSerializer,
+    TourSerializer,
+    TourStockSerializer,
+)
 
 
 @extend_schema_view(
@@ -84,23 +122,6 @@ class TourViewSet(viewsets.ModelViewSet):
         else:
             return TourSerializer
 
-    # def perform_create(self, serializer):
-    #     tour = serializer.save()
-    #     total_price = 0
-    #     guests_number = tour.number_of_adults + tour.number_of_children
-    #     if tour.number_of_children:
-    #         guests_number = tour.number_of_adults + tour.number_of_children
-    #     if tour.room and tour.flight_from and tour.flight_to:
-    #         for room in tour.room.all():
-    #             total_price += (
-    #                 tour.end_date - tour.start_date
-    #             ).days * room.nightly_price
-    #         total_price += (
-    #             tour.flight_to.price + tour.flight_from.price
-    #         ) * guests_number
-    #     tour.price = total_price
-    #     tour.save()
-
 
 @extend_schema_view(
     list=extend_schema(
@@ -161,3 +182,90 @@ class TourStockViewSet(viewsets.ModelViewSet):
     serializer_class = TourStockSerializer
     pagination_class = CustomLOPagination
     http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
+
+
+@extend_schema_view(
+    search=extend_schema(
+        summary="Поиск туров",
+        description="Поиск туров по городам вылета/прилета, дате вылета, количеству ночей и гостей.",
+        parameters=[tour_departure_city, tour_arrival_city, tour_start_date, tour_nights, tour_guests, limit, offset],
+        tags=[tour_settings["name"]],
+        responses={
+            200: TourSearchResponseSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+    )
+)
+class TourSearchView(viewsets.ModelViewSet):
+    """Поиск туров с учетом фильтров город вылета/прилёта, даты вылета, кол-ва ночей/гостей."""
+
+    queryset = Tour.objects.filter(is_active=True)
+    serializer_class = TourSearchResponseSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TourSearchFilter
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["guests"] = self.request.query_params.get("guests", 1)
+        return context
+
+    @action(detail=False, methods=["get"])
+    def search(self, request):
+        request_serializer = TourSearchRequestSerializer(data=request.query_params)
+        if not request_serializer.is_valid():
+            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return self.list(request)
+
+
+@extend_schema_view(
+    filters=extend_schema(
+        summary="Расширенный поиск туров",
+        description="Расширенный поиск туров по фильтрам.",
+        parameters=[
+            tour_departure_city_optional,
+            tour_arrival_city_optional,
+            tour_start_date_optional,
+            tour_nights_optional,
+            tour_guests_optional,
+            filter_city,
+            filter_type_of_rest,
+            filter_place,
+            tour_price_gte,
+            tour_price_lte,
+            filter_user_rating,
+            filter_star_category,
+            filter_distance_to_the_airport,
+            filter_tour_operator,
+            limit,
+            offset,
+        ],
+        tags=[tour_settings["name"]],
+        responses={
+            200: TourSearchResponseSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+    ),
+)
+class TourFiltersView(viewsets.ModelViewSet):
+    """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
+
+    queryset = Tour.objects.filter(is_active=True)
+    serializer_class = TourSearchResponseSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TourExtendedFilter
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["guests"] = self.request.query_params.get("guests", 1)
+        return context
+
+    @action(detail=False, methods=["get"])
+    def filters(self, request):
+        request_serializer = TourFiltersRequestSerializer(data=request.query_params)
+        if not request_serializer.is_valid():
+            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return self.list(request)
