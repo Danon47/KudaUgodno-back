@@ -17,6 +17,7 @@ vzhuh_settings = {
 
 @extend_schema_view(
     list=extend_schema(summary="Список Вжухов", tags=["Вжухи"], operation_id="vzhuh_list"),
+    retrieve=extend_schema(exclude=True),
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
     """Только список опубликованных Вжухов."""

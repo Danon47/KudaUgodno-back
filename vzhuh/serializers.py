@@ -6,13 +6,14 @@ from vzhuh.models import Vzhuh
 
 
 class HotelShortSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
 
     class Meta:
         model = Hotel
         fields = (
             "id",
-            "photo",
+            "photo",  # ← теперь OK
             "country",
             "city",
             "star_category",
@@ -22,14 +23,18 @@ class HotelShortSerializer(serializers.ModelSerializer):
             "price",
         )
 
+    def get_photo(self, obj):
+        """Возвращает URL первой фотографии отеля (если есть)"""
+        first_photo = obj.hotel_photos.first()
+        return first_photo.photo.url if first_photo and first_photo.photo else None
+
     def get_price(self, obj):
-        # Минимальная цена из всех туров этого отеля
         tours = obj.tours.filter(price__isnull=False)
         return min(t.price for t in tours) if tours.exists() else None
 
 
 class TourShortSerializer(serializers.ModelSerializer):
-    photo = serializers.ImageField(source="hotel.photo")
+    photo = serializers.SerializerMethodField()
     country = serializers.CharField(source="hotel.country")
     city = serializers.CharField(source="hotel.city")
     star_category = serializers.IntegerField(source="hotel.star_category")
@@ -54,6 +59,14 @@ class TourShortSerializer(serializers.ModelSerializer):
             "end_date",
             "number_of_days",
         )
+
+    def get_photo(self, obj):
+        hotel = obj.hotel
+        if not hotel:
+            return None
+
+        photo_obj = hotel.hotel_photos.first()
+        return photo_obj.photo.url if photo_obj and photo_obj.photo else None
 
     def get_sale(self, obj):
         if obj.stock and obj.stock.active_stock:

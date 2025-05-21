@@ -6,7 +6,7 @@ from vzhuh.views import VzhuhViewSet
 
 # Роутер для ViewSet
 router = DefaultRouter()
-router.register(r"vzhuh", VzhuhViewSet, basename="vzhuh")
+router.register(r"vzhuhs", VzhuhViewSet, basename="vzhuhs")
 
 urlpatterns = [
     path("", include(router.urls)),

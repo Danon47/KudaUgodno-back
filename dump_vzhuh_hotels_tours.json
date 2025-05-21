@@ -11,7 +11,6 @@
       "address": "ул. Палмовая, 1",
       "is_active": true,
       "user_rating": "8.5",
-      "room_categories": ["Стандарт", "Люкс"],
       "width": "36.884804",
       "longitude": "30.704044"
     }
@@ -28,7 +27,6 @@
       "address": "ул. Кокосовая, 99",
       "is_active": true,
       "user_rating": "9.0",
-      "room_categories": ["Стандарт", "Супериор"],
       "width": "7.880448",
       "longitude": "98.392293"
     }
@@ -45,7 +43,6 @@
       "address": "ул. Олимпийская, 10",
       "is_active": true,
       "user_rating": "8.0",
-      "room_categories": ["Люкс", "Семейный"],
       "width": "37.983810",
       "longitude": "23.727539"
     }
@@ -102,22 +99,21 @@
     }
   },
   {
-  "model": "vzhuh.vzhuh",
-  "pk": 1,
-  "fields": {
-    "departure_city": "Москва",
-    "arrival_city": "Мир",
-    "description": "Спецпредложения на лето в топовых локациях.",
-    "best_time_to_travel": "Июнь – Август",
-    "suitable_for_whom": "Для всей семьи",
-    "description_tour": "Самые выгодные туры лета!",
-    "description_hotel": "Подобраны отели с высоким рейтингом.",
-    "description_blog": "Читайте в блоге о каждом направлении подробнее.",
-    "is_published": true,
-    "tours": [1, 2, 3],
-    "hotels": [1, 2, 3],
-    "created_at": "2025-05-15T17:30:00",
-    "updated_at": "2025-05-15T17:30:00"
+    "model": "vzhuh.vzhuh",
+    "pk": 1,
+    "fields": {
+      "departure_city": "Москва",
+      "arrival_city": "Мир",
+      "description": "Спецпредложения на лето в топовых локациях.",
+      "best_time_to_travel": "Июнь – Август",
+      "suitable_for_whom": "Для всей семьи",
+      "description_hotel": "Подобраны отели с высоким рейтингом.",
+      "description_blog": "Читайте в блоге о каждом направлении подробнее.",
+      "is_published": true,
+      "tours": [1, 2, 3],
+      "hotels": [1, 2, 3],
+      "created_at": "2025-05-15T17:30:00",
+      "updated_at": "2025-05-15T17:30:00"
+    }
   }
-}
 ]
