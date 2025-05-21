@@ -289,7 +289,7 @@ class Command(BaseCommand):
 
             # --- Рейс туда ---
             # Дата в мае 2025, случайный день с 1 по 24
-            dep_date = date(2025, 9, random.randint(1, 24))
+            dep_date = date(2026, 6, random.randint(1, 24))
             dep_time = time(hour=random.randint(0, 23), minute=random.choice([0, 15, 30, 45]))
             arrival_time = self.generate_arrival_time(dep_time, same_day=True)
 

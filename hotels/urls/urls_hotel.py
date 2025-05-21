@@ -2,7 +2,7 @@ from django.urls import path
 
 from hotels.views.hotel.photo.views_hotel_photo import HotelPhotoViewSet
 from hotels.views.hotel.type_of_meals.views_type_of_meals import TypeOfMealViewSet
-from hotels.views.hotel.views_hotel import HotelViewSet
+from hotels.views.hotel.views_hotel import HotelFiltersView, HotelSearchView, HotelViewSet
 from hotels.views.hotel.what_about.views_hotel_what_about import HotelWarpUpViewSet
 
 
@@ -60,5 +60,15 @@ urlpatterns = [
             }
         ),
         name="hotels-type-of-meals-destroy",
+    ),
+    path(
+        "hotels/search/",
+        HotelSearchView.as_view({"get": "search"}),
+        name="hotels-search",
+    ),
+    path(
+        "hotels/filters/",
+        HotelFiltersView.as_view({"get": "filters"}),
+        name="tour-filters",
     ),
 ]

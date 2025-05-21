@@ -5,13 +5,26 @@ from rest_framework import serializers
 
 class StartDateValidator:
     """
-    Валидатор для проверки, что дата начала тура не в прошлом.
+    Валидатор для проверки, что дата начала тура не в прошлом  и корректна.
     """
 
     def __call__(self, value):
-        tmp_val = value.get("start_date")
-        if tmp_val < date.today():
-            raise serializers.ValidationError("Дата начала тура не может быть в прошлом.")
+        if isinstance(value, dict):
+            start_date = value.get("start_date")
+            if not start_date:
+                return
+            try:
+                date_start_date = date.fromisoformat(start_date)
+            except (ValueError, TypeError):
+                if isinstance(start_date, date):
+                    date_start_date = start_date
+                else:
+                    raise serializers.ValidationError("Некорректный формат даты. Используйте YYYY-MM-DD")
+        else:
+            date_start_date = value
+
+        if date_start_date < date.today():
+            raise serializers.ValidationError("Дата начала не может быть в прошлом")
 
 
 class EndDateValidator:
@@ -19,12 +32,11 @@ class EndDateValidator:
     Валидатор для проверки, что дата окончания тура позже даты начала.
     """
 
-    def __call__(self, value):
-        start_date_field = value.get("start_date")
-        end_date_field = value.get("end_date")
-
-        if end_date_field < start_date_field:
-            raise serializers.ValidationError("Дата окончания тура не может быть раньше даты начала.")
+    def __call__(self, attrs):
+        start_date = attrs.get("start_date")
+        end_date = attrs.get("end_date")
+        if start_date and end_date and end_date <= start_date:
+            raise serializers.ValidationError("Дата окончания должна быть позже даты начала")
 
 
 class PriceValidator:
