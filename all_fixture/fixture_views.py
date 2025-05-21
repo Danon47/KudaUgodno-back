@@ -65,6 +65,110 @@ tour_stock_id = OpenApiParameter(
     description="ID Акции тура",
     required=True,
 )
+# Город вылета(Обязательный)
+tour_departure_city = OpenApiParameter(
+    name="departure_city",
+    type=str,
+    description="Город вылета",
+    required=True,
+)
+# Город прилета(Обязательный)
+tour_arrival_city = OpenApiParameter(
+    name="arrival_city",
+    type=str,
+    description="Город прилета",
+    required=True,
+)
+# Дата вылета(Обязательный)
+tour_start_date = OpenApiParameter(
+    name="start_date",
+    type=str,
+    description="Дата начала тура",
+    required=True,
+)
+# Количество ночей в туре(Обязательный)
+tour_nights = OpenApiParameter(
+    name="nights",
+    type=int,
+    description="Количество ночей",
+    required=True,
+)
+# Количество гостей в туре(Обязательный)
+tour_guests = OpenApiParameter(
+    name="guests",
+    type=int,
+    description="Количество гостей",
+    required=True,
+)
+# Город вылета(Необязательный)
+tour_departure_city_optional = OpenApiParameter(
+    name="departure_city",
+    type=str,
+    description="Город вылета",
+    required=False,
+)
+# Город прилета(Необязательный)
+tour_arrival_city_optional = OpenApiParameter(
+    name="arrival_city",
+    type=str,
+    description="Город прилета",
+    required=False,
+)
+# Дата вылета(Необязательный)
+tour_start_date_optional = OpenApiParameter(
+    name="start_date", description="Дата начала тура", required=False, type=str
+)
+# Количество нрочей в туре(Необязательный)
+tour_nights_optional = OpenApiParameter(name="nights", type=int, description="Количество ночей", required=False)
+# Количество гостей в туре(Необязательный)
+tour_guests_optional = OpenApiParameter(name="guests", type=int, description="Количество гостей", required=False)
+# Город отеля
+filter_city = OpenApiParameter(name="city", type=str, description="Город отеля", required=False)
+# Тип размещения
+filter_place = OpenApiParameter(
+    name="place",
+    type=str,
+    description="Тип размещения",
+    required=False,
+)
+# Тип отдыха
+filter_type_of_rest = OpenApiParameter(name="type_of_rest", type=str, description="Тип отдыха", required=False)
+# Пользовательская оценка
+filter_user_rating = OpenApiParameter(
+    name="user_rating", type=float, description="Пользовательская оценка", required=False
+)
+# Расстояние от отеля до аэропорта
+filter_distance_to_the_airport = OpenApiParameter(
+    name="distance_to_the_airport", type=int, description="Расстояние до аэропорта в метрах", required=False
+)
+# Максимальная стоимость тура
+tour_price_lte = OpenApiParameter(
+    name="price_lte",
+    type=int,
+    description="Максимальная стоимость тура",
+    required=False,
+)
+# Минимальная стоимость тура
+tour_price_gte = OpenApiParameter(
+    name="price_gte",
+    type=int,
+    description="Минимальная стоимость тура",
+    required=False,
+)
+# Туроператор
+filter_tour_operator = OpenApiParameter(
+    name="tour_operator",
+    type=str,
+    description="Туроператор",
+    required=False,
+)
+# Категория отеля в кол-ве звед
+filter_star_category = OpenApiParameter(
+    name="star_category",
+    type=str,
+    description="Категорию отеля (от 0 до 5)",
+    required=False,
+)
 # ID отеля
 hotel_id = OpenApiParameter(
     location=OpenApiParameter.PATH,
@@ -153,6 +257,48 @@ insurance_id = OpenApiParameter(
     description="ID Страховки",
     required=True,
 )
+# Дата заезда в отель(Обязательный)
+hotel_check_in = OpenApiParameter(
+    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=True, type=str
+)
+# Дата выезда из отеля(Обязательный)
+hotel_check_out = OpenApiParameter(
+    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=True, type=str
+)
+# Количество гостей в отеле(Обязательный)
+hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=True, type=int)
+# Название отеля
+hotel_city = OpenApiParameter(
+    name="hotel_city",
+    type=str,
+    description="Название города",
+    required=False,
+)
+# Дата заезда в отель(Необязательный)
+hotel_check_in_optional = OpenApiParameter(
+    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=False, type=str
+)
+# Дата выезда из отеля(Необязательный)
+hotel_check_out_optional = OpenApiParameter(
+    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=False, type=str
+)
+# Количество гостей в отеле(Необязательный)
+hotel_guests_optional = OpenApiParameter(name="guests", description="Количество гостей", required=False, type=int)
+# Максимальная стоимость отеля
+hotel_price_lte = OpenApiParameter(
+    name="price_lte",
+    type=int,
+    description="Максимальная стоимость отеля",
+    required=False,
+)
+# Минимальная стоимость отеля
+hotel_price_gte = OpenApiParameter(
+    name="price_gte",
+    type=int,
+    description="Минимальная стоимость отеля",
+    required=False,
+)
+
 # ID Даты стоимости номеров
 room_date_id = OpenApiParameter(
     location=OpenApiParameter.PATH,

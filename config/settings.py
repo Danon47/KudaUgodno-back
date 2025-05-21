@@ -208,7 +208,7 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "API приложения Куда Угодно",
     "DESCRIPTION": "Полная документация API приложения Куда Угодно",
-    "VERSION": "0.5.7",
+    "VERSION": "0.8.1",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "TYPESCRIPT_GENERATOR": {"TYPED_PATH_PARAMETERS": True},
@@ -232,6 +232,9 @@ SPECTACULAR_SETTINGS = {
     ],
     "SORT_OPERATIONS": True,
     "SORT_OPERATION_PARAMETERS": False,
+    "SWAGGER_UI_SETTINGS": {
+        "defaultModelsExpandDepth": -1,
+    },
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
