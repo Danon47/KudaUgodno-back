@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.what_about.models_hotel_what_about import HotelWhatAbout
+from hotels.models.room.date.models_room_date import RoomCategory
 
 
 class HotelShortSerializer(serializers.ModelSerializer):
@@ -31,7 +32,7 @@ class HotelShortSerializer(serializers.ModelSerializer):
         return None
 
     def get_min_price(self, obj: Hotel) -> int:
-        return obj.rooms.aggregate(min_price=Min("price"))["min_price"]
+        return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
 
 
 class HotelWhatAboutFullSerializer(serializers.ModelSerializer):
