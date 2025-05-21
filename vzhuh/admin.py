@@ -42,7 +42,7 @@ class VzhuhAdmin(admin.ModelAdmin):
                 ),
             },
         ),
-        ("Туры", {"fields": ("tours", "description_tour")}),
+        ("Туры", {"fields": ("tours",)}),
         ("Отели", {"fields": ("hotels", "description_hotel")}),
         ("Блог", {"fields": ("description_blog",)}),
         ("Системные", {"fields": ("created_at", "updated_at", "is_published")}),

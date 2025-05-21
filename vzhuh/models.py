@@ -16,7 +16,6 @@ class Vzhuh(models.Model):
 
     # Туры
     tours = models.ManyToManyField("tours.Tour", related_name="vzhuhs", verbose_name="Вжухнутые туры", blank=True)
-    description_tour = models.TextField(verbose_name="Описание к турам", **NULLABLE)
 
     # Отели
     hotels = models.ManyToManyField("hotels.Hotel", related_name="vzhuhs", verbose_name="Вжухнутые отели", blank=True)
