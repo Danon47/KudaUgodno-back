@@ -1,8 +1,7 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
-from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
-from users.choices import RoleChoices
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
 from users.models import User
 from users.validators import ForbiddenWordValidator
 

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
 
+from all_fixture.choices import RoleChoices
 from insurances.models import Insurances
-from users.choices import RoleChoices
 
 
 class CustomUserManager(BaseUserManager):

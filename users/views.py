@@ -17,10 +17,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from all_fixture.choices import RoleChoices
 from all_fixture.fixture_views import auth, entreprise, entreprise_id, limit, offset, user_id, user_settings
 from all_fixture.pagination import CustomLOPagination
 from config.settings import EMAIL_HOST_USER
-from users.choices import RoleChoices
 from users.models import User
 from users.permissions import IsAdminOrOwner
 from users.serializers import (

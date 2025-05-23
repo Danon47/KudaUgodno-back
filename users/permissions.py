@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from users.choices import RoleChoices
+from all_fixture.choices import RoleChoices
 
 
 class IsAdminUser(BasePermission):
