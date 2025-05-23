@@ -1,26 +1,22 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
 from applications.apps import ApplicationsConfig
-from applications.views import ApplicationViewSet, HotelApplicationViewSet
+from applications.views import ApplicationHotelViewSet, ApplicationTourViewSet
 
 
 app_name = ApplicationsConfig.name
 
-router = DefaultRouter()
-router.register("", ApplicationViewSet)
-
 urlpatterns = [
-    # Добавление и просмотр всех заявок на отель
+    # Добавление и просмотр всех заявок на тур
     path(
-        "hotel_applications/",
-        HotelApplicationViewSet.as_view({"get": "list", "post": "create"}),
+        "tours/",
+        ApplicationTourViewSet.as_view({"get": "list", "post": "create"}),
         name="hotel-applications-list",
     ),
-    # Обновление, детальный просмотр и удаление заявки на отель
+    # Обновление, детальный просмотр и удаление заявки на тур
     path(
-        "hotel_applications/<int:pk>/",
-        HotelApplicationViewSet.as_view(
+        "tours/<int:pk>/",
+        ApplicationTourViewSet.as_view(
             {
                 "get": "retrieve",
                 "put": "update",
@@ -29,4 +25,22 @@ urlpatterns = [
         ),
         name="hotel-applications-detail",
     ),
-] + router.urls
+    # Добавление и просмотр всех заявок на отель
+    path(
+        "hotels/",
+        ApplicationHotelViewSet.as_view({"get": "list", "post": "create"}),
+        name="hotel-applications-list",
+    ),
+    # Обновление, детальный просмотр и удаление заявки на отель
+    path(
+        "hotels/<int:pk>/",
+        ApplicationHotelViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "delete": "destroy",
+            }
+        ),
+        name="hotel-applications-detail",
+    ),
+]
