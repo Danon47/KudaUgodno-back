@@ -26,8 +26,8 @@ class RoomCategory(models.Model):
     )
 
     class Meta:
-        verbose_name = "Категория и номер"
-        verbose_name_plural = "Категории и номера"
+        verbose_name = "Стоимость номера"
+        verbose_name_plural = "Стоимости номеров"
 
     def __str__(self):
         return f"{self.room} ({self.price})"
