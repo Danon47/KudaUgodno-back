@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
         ("Даты", {"fields": ("last_login", "date_joined")}),
     )
 
-    list_display = ("email", "first_name", "last_name", "role", "is_active", "is_staff", "is_superuser")
+    list_display = ("email", "first_name", "last_name", "role", "is_active", "is_staff", "is_superuser", "role")
     list_filter = ("role", "is_active", "is_staff", "is_superuser", "groups")
     search_fields = ("email", "first_name", "last_name")
     ordering = ("-date_joined",)
