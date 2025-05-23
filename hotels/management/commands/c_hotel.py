@@ -7,11 +7,22 @@ from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from all_fixture.choices import PlaceChoices, RoomCategoryChoices, TypeOfHolidayChoices, TypeOfMealChoices
+from all_fixture.choices import (
+    PlaceChoices,
+    RoleChoices,
+    RoomCategoryChoices,
+    StatusChoices,
+    TypeOfHolidayChoices,
+    TypeOfMealChoices,
+    WhatAboutChoices,
+)
+from applications.models import ApplicationHotel, ApplicationTour
 from flights.models import Flight
+from guests.models import Guest
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
 from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
+from hotels.models.hotel.what_about.models_hotel_what_about import HotelWhatAbout
 from hotels.models.room.date.models_room_date import RoomCategory, RoomDate
 from hotels.models.room.models_room import Room
 from hotels.models.room.photo.models_room_photo import RoomPhoto
@@ -24,24 +35,63 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         with transaction.atomic():
+            # Создание админка
+            self.create_admin()
+            # Создание туроператора
+            tour_operators = self.create_tour_operators()
+            # Создание туриста
+            tourists = self.create_tourists()
+            # Создание гостей у туристов
+            total_guests = 0
+            all_guests = []
+            for tourist in tourists:
+                guests = self.create_guests(tourist)
+                total_guests += len(guests)
+                all_guests.extend(guests)
+            # Создание отелей, типов питания, номеров, стоимости номеров по датам, рейсов, туров
             hotels = self.create_test_hotels(10)
             self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
             self.create_room_prices(hotels)
             flights = self.create_flights()
             tours = self.create_test_tours(flights, hotels, rooms)
-            self.print_success_message(len(hotels), len(flights), len(tours))
+            # Создание подборки, что насчёт
+            what_abouts = self.create_what_about(hotels)
+            # Создание заявок на туры и отели
+            applications = self.create_applications(tours, hotels, rooms, tourists, all_guests)
+            self.print_success_message(
+                len(hotels),
+                len(flights),
+                len(tours),
+                total_guests,
+                len(tour_operators),
+                len(what_abouts),
+                len(applications),
+            )
 
-    def print_success_message(self, hotels_count, flights_count, tours_count):
+    def print_success_message(
+        self,
+        hotels_count,
+        flights_count,
+        tours_count,
+        total_guests,
+        tour_operators_count,
+        what_abouts_count,
+        applications_count,
+    ):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Успешно создано:\n"
+                f"- {tour_operators_count} туроператоров\n"
                 f"- {hotels_count} отелей c 4 фото в каждом\n"
                 f"- {hotels_count*5} номеров с 6 фото каждом\n"
                 f"- {flights_count} рейсов\n"
                 f"- {tours_count} туров\n"
-                f"- {hotels_count} периодов цен на номера (01.06.2026-01.12.2026)\n"
+                f"- {hotels_count} периодов цен на номера (01.05.2026-01.12.2026)\n"
                 f"- {hotels_count*5} ценовых категорий номеров\n"
+                f"- {total_guests} гостей\n"
+                f"- {what_abouts_count} подборок Что насчёт...\n"
+                f"- {applications_count} заявок"
             )
         )
 
@@ -54,6 +104,143 @@ class Command(BaseCommand):
                 with open(full_path, "rb") as f:
                     django_file = File(f, name=filename)
                     photo_model.objects.create(**{fk_name: obj}, photo=django_file)
+
+    def generate_arrival_time(self, dep_time, same_day=True):
+        """Генерирует реалистичное время прибытия"""
+        if same_day:
+            arr_hour = random.randint(dep_time.hour, 23)
+            if arr_hour == dep_time.hour:
+                arr_min = random.randint(dep_time.minute + 1, 59)
+            else:
+                arr_min = random.choice([0, 15, 30, 45])
+        else:
+            arr_hour = random.randint(0, 23)
+            arr_min = random.choice([0, 15, 30, 45])
+
+        return time(arr_hour, arr_min)
+
+    def create_admin(self):
+        email = os.getenv("ADMIN_EMAIL")
+        password = os.getenv("ADMIN_PASSWORD")
+
+        # Проверяем, существует ли уже администратор с указанным именем пользователя
+        if not User.objects.filter(email=os.getenv("ADMIN_EMAIL")).exists():
+            user = User.objects.create_superuser(
+                email=email,
+                first_name="Admin",
+                last_name="Admin",
+                role=RoleChoices.ADMIN,
+            )
+            user.set_password(password)
+            user.save()
+
+            self.stdout.write(
+                self.style.SUCCESS(f"=== ADMIN с таким email {os.getenv('ADMIN_EMAIL')} успешно создан ===")
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(f"=== ADMIN с таким email {os.getenv('ADMIN_EMAIL')} уже существует ===")
+            )
+
+    def create_tour_operators(self):
+        name_to_surname = {
+            "Никита": "ТимаБэков",
+            "Тимофей": "ТимаФронтов",
+        }
+        operators = []
+        for i, (first_name, last_name) in enumerate(name_to_surname.items()):
+            company_name = f"ООО Тима {last_name[4:]}"
+            email = f"operator.{i+1}{random.randint(1, 9999)}@mail.ru"
+            phone_number = f"+7995{random.randint(1000000, 9999999)}"
+            user = User.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone_number=phone_number,
+                password="123456",
+                company_name=company_name,
+                role=RoleChoices.TOUR_OPERATOR,
+            )
+            operators.append(user)
+        return operators
+
+    def create_tourists(self):
+        name_to_surname = {
+            "Татьяна": "ПМ",
+            "Вячеслав": "ПМ",
+            "Марина": "QA",
+            "Оксана": "QA",
+        }
+        tourists = []
+        for i, (first_name, last_name) in enumerate(name_to_surname.items()):
+            email = f"tourists.{i+1}{random.randint(1, 9999)}@mail.ru"
+            phone_number = f"+7926{random.randint(1000000, 9999999)}"
+            birth_date = date(random.randint(2000, 2004), random.randint(1, 12), random.randint(1, 28))
+            user = User.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone_number=phone_number,
+                birth_date=birth_date,
+                password="123456",
+                role=RoleChoices.USER,
+            )
+            tourists.append(user)
+        return tourists
+
+    def create_guests(self, tourist):
+        name_to_surname_back = {
+            "Никита": "Бэкендов",
+            "Евгений": "Бэкендов",
+            "Максим": "Бэкендов",
+            "Дмитрий": "Бэкендов",
+            "Александр": "Бэкендов",
+            "Андрей": "Бэкендов",
+            "Виктория": "Бэкендова",
+            "Мария": "Бэкендова",
+            "Елена": "Бэкендова",
+            "Анна": "Бэкендова",
+        }
+        name_to_surname_front = {
+            "Тимофей": "Фронтендов",
+            "Егор": "Фронтендов",
+            "Игорь": "Фронтендов",
+            "Артем": "Фронтендов",
+            "Владислав": "Фронтендов",
+            "Екатерина": "Фронтендова",
+            "Анастасия": "Фронтендова",
+            "Ольга": "Фронтендова",
+            "София": "Фронтендова",
+            "Полина": "Фронтендова",
+        }
+
+        guests = []
+        if tourist.last_name == "ПМ":
+            names_dict = name_to_surname_back
+        else:
+            names_dict = name_to_surname_front
+
+        num_guests = random.randint(2, 3)
+        selected_names = random.sample(list(names_dict.items()), min(num_guests, len(names_dict)))
+
+        for first_name, last_name in selected_names:
+            date_born = date(random.randint(1991, 2004), random.randint(1, 12), random.randint(1, 28))
+            ru_passport = f"{random.randint(1000, 9999)} {random.randint(100000, 999999)}"
+            int_passport = f"{random.randint(10, 99)} {random.randint(1000000, 9999999)}"
+            int_passport_valid = date(random.randint(2025, 2035), random.randint(1, 12), random.randint(1, 28))
+            guest = Guest.objects.create(
+                firstname=first_name,
+                lastname=last_name,
+                surname="Кудоугодновичи",
+                date_born=date_born,
+                citizenship="РФ",
+                russian_passport_no=ru_passport,
+                international_passport_no=int_passport,
+                validity_international_passport=int_passport_valid,
+                user_owner=tourist,
+            )
+            guests.append(guest)
+        return guests
 
     def create_test_hotels(self, count):
         places = [choice[0] for choice in PlaceChoices.choices]
@@ -120,7 +307,7 @@ class Command(BaseCommand):
                     name=rule_name,
                     description=rule_description,
                 )
-        self.add_photos(hotels, hotel_photos_dir, HotelPhoto, "hotel", 4)
+        self.add_photos(hotels, hotel_photos_dir, HotelPhoto, "hotel", 5)
         return hotels
 
     def create_type_of_meals(self, hotels):
@@ -296,7 +483,12 @@ class Command(BaseCommand):
             "Шарм-Эль-Шейх": "Египет",
         }
 
-        flight_numbers = ["AT-5555", "TT-6666", "TQ-7777", "TS-8888"]
+        flight_numbers = [
+            f"AT-{random.randint(1000, 9999)}",
+            f"TT-{random.randint(1000, 9999)}",
+            f"TQ-{random.randint(1000, 9999)}",
+            f"TS-{random.randint(1000, 9999)}",
+        ]
         airlines = ["Azure", "Аэрофлот"]
         service_classes = ["Эконом", "Бизнес", "Первый"]
         flight_types = ["Регулярный", "Чартерный"]
@@ -315,7 +507,7 @@ class Command(BaseCommand):
 
             # --- Рейс туда ---
             # Дата в мае 2025, случайный день с 1 по 24
-            dep_date = date(2026, 6, random.randint(1, 24))
+            dep_date = date(2025, 9, random.randint(1, 24))
             dep_time = time(hour=random.randint(0, 23), minute=random.choice([0, 15, 30, 45]))
             arrival_time = self.generate_arrival_time(dep_time, same_day=True)
 
@@ -367,20 +559,6 @@ class Command(BaseCommand):
             created_flights.append(flight_back)
 
         return created_flights
-
-    def generate_arrival_time(self, dep_time, same_day=True):
-        """Генерирует реалистичное время прибытия"""
-        if same_day:
-            arr_hour = random.randint(dep_time.hour, 23)
-            if arr_hour == dep_time.hour:
-                arr_min = random.randint(dep_time.minute + 1, 59)
-            else:
-                arr_min = random.choice([0, 15, 30, 45])
-        else:
-            arr_hour = random.randint(0, 23)
-            arr_min = random.choice([0, 15, 30, 45])
-
-        return time(arr_hour, arr_min)
 
     def create_test_tours(self, flights, hotels, rooms, count=20):
         """
@@ -442,3 +620,84 @@ class Command(BaseCommand):
             tours.append(tour)
 
         return tours
+
+    def create_what_about(self, hotels):
+        what_abouts = []
+        for name, _ in WhatAboutChoices.choices:
+            for _ in range(3):
+                selected_hotels = random.sample(hotels, k=min(3, len(hotels)))
+                what_about = HotelWhatAbout.objects.create(
+                    name_set=name,
+                )
+                for hotel in selected_hotels:
+                    what_about.hotel.add(hotel)
+                what_abouts.append(what_about)
+        return what_abouts
+
+    def create_applications(self, tours, hotels, rooms, tourists, guests):
+        applications = []
+        wishes_samples = [
+            "Нужен ранний заезд",
+            "Просим вид на море",
+            "Без животных",
+            "Тихий номер",
+            "Близко к лифту",
+            "Высокий этаж",
+            "Дополнительные полотенца",
+            "Поздний выезд",
+            "",
+        ]
+
+        for i in range(10):
+            tourist = random.choice(tourists)
+            email = f"application.{i+1}{random.randint(1, 9999)}@mail.ru"
+            phone_number = f"+7915{random.randint(1000000, 9999999)}"
+            visa = random.choice([True, False])
+            med_insurance = random.choice([True, False])
+            cancellation_insurance = random.choice([True, False])
+            wishes = random.choice(wishes_samples)
+            status = StatusChoices.AWAIT_CONFIRM
+
+            user_guests = [g for g in guests if g.user_owner == tourist]
+            selected_guests = random.sample(user_guests, k=min(random.randint(2, 4), len(user_guests)))
+
+            if i < 5:
+                hotel = random.choice(hotels)
+                # Выбираем номер, связанный с отелем
+                valid_rooms = [r for r in rooms if r.hotel == hotel]
+                room = random.choice(valid_rooms) if valid_rooms else random.choice(rooms)
+                application = ApplicationHotel.objects.create(
+                    email=email,
+                    phone_number=phone_number,
+                    visa=visa,
+                    med_insurance=med_insurance,
+                    cancellation_insurance=cancellation_insurance,
+                    wishes=wishes if wishes else None,
+                    status=status,
+                    hotel=hotel,
+                    room=room,
+                )
+                for guest in selected_guests:
+                    application.quantity_guests.add(guest)
+                self.stdout.write(
+                    self.style.SUCCESS(f"Создана заявка на отель №{application.pk} с {len(selected_guests)} гостями")
+                )
+            else:
+                tour = random.choice(tours)
+                application = ApplicationTour.objects.create(
+                    email=email,
+                    phone_number=phone_number,
+                    visa=visa,
+                    med_insurance=med_insurance,
+                    cancellation_insurance=cancellation_insurance,
+                    wishes=wishes if wishes else None,
+                    status=status,
+                    tour=tour,
+                )
+                for guest in selected_guests:
+                    application.quantity_guests.add(guest)
+                self.stdout.write(
+                    self.style.SUCCESS(f"Создана заявка на тур №{application.pk} с {len(selected_guests)} гостями")
+                )
+            applications.append(application)
+        return applications
