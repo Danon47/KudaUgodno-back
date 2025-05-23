@@ -3,9 +3,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices
+from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
 from all_fixture.fixture_views import NULLABLE
-from users.choices import RoleChoices
 from users.managers import CustomUserManager
 
 
@@ -81,7 +80,7 @@ class User(AbstractUser):
 
     def __str__(self):
         """Строковое представление — email пользователя."""
-        return self.email
+        return f"{self.first_name} {self.last_name} ({self.email})"
 
     def clean(self):
         """
