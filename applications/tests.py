@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
-from applications.models import Application, Guest
+from applications.models import ApplicationTour, Guest
 from tours.models import Tour
 from users.models import User
 
@@ -24,7 +24,7 @@ class ApplicationTest(TestCase):
         self.guest = Guest.objects.create(
             firstname="Иван", lastname="Иванов", date_born="1999-09-09", citizenship="Россия", user_owner=self.user
         )
-        self.application = Application.objects.create(
+        self.application = ApplicationTour.objects.create(
             tour=self.tour,
             email="test@test.ru",
             phone_number="+7(999)999-99-99",
@@ -75,7 +75,7 @@ class ApplicationTest(TestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Application.objects.count(), 2)
+        self.assertEqual(ApplicationTour.objects.count(), 2)
 
     def test_forbidden_word_validator(self):
         """Тест на проверку запрещенных слов"""
@@ -138,4 +138,4 @@ class ApplicationTest(TestCase):
         url = reverse("applications:application-detail", args=(self.application.pk,))
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Application.objects.count(), 0)
+        self.assertEqual(ApplicationTour.objects.count(), 0)
