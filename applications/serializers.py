@@ -1,96 +1,80 @@
 from rest_framework import serializers
 
 from all_fixture.validators.validators import ForbiddenWordValidator
-from applications.models import Application, HotelApplication
+from applications.models import ApplicationHotel, ApplicationTour
 from guests.serializers import GuestSerializer
 from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
 from hotels.serializers.room.serializers_room import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
 
-# from users.serializers import UserSerializer
-
-
-class ApplicationDetailSerializer(serializers.ModelSerializer):
+class ApplicationBaseSerializer(serializers.ModelSerializer):
     """
-    Сериализатор заявок по турам.
-    методы PUT POST PATCH.
+    Базовая сериализация для заявок
     """
 
     class Meta:
-        model = Application
         fields = (
-            "pk",
-            "tour",
+            "id",
             "email",
             "phone_number",
-            "status",
-            "quantity_guests",
             "visa",
             "med_insurance",
             "cancellation_insurance",
             "wishes",
-            # "user_owner",
-        )
-        read_only_fields = ("status",)  # , "user_owner")
-        validators = [ForbiddenWordValidator(fields=["wishes"])]
-
-
-class ApplicationSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор заявок по турам.
-    методы GET.
-    """
-
-    tour = TourListSerializer()
-    quantity_guests = GuestSerializer(many=True)
-    # user_owner = UserSerializer()
-
-    class Meta(ApplicationDetailSerializer.Meta):
-        read_only_fields = (
-            "tour",
-            "quantity_guests",
-        )
-
-
-class HotelApplicationDetailSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор заявок по отелям.
-    методы PUT POST PATCH.
-    """
-
-    class Meta:
-        model = HotelApplication
-        fields = (
-            "pk",
-            "hotel",
-            "room",
-            "email",
-            "phone_number",
             "status",
-            "quantity_guests",
-            "visa",
-            "med_insurance",
-            "cancellation_insurance",
-            "wishes",
         )
-        read_only_fields = ("status",)  # , "user_owner")
         validators = [ForbiddenWordValidator(fields=["wishes"])]
 
 
-class HotelApplicationSerializer(serializers.ModelSerializer):
+class ApplicationTourSerializer(ApplicationBaseSerializer):
     """
-    Сериализатор заявок по отелям.
-    методы GET.
+    Сериализация заявки тура.
+    Методы PUT POST PATCH
     """
 
-    hotel = HotelListWithPhotoSerializer()
-    room = RoomDetailSerializer()
-    quantity_guests = GuestSerializer(many=True)
+    class Meta(ApplicationBaseSerializer.Meta):
+        model = ApplicationTour
+        fields = ApplicationBaseSerializer.Meta.fields + ("tour", "quantity_guests")
 
-    class Meta(HotelApplicationDetailSerializer.Meta):
-        read_only_fields = (
-            "hotel",
-            "room",
-            "quantity_guests",
-        )
+
+class ApplicationTourListSerializer(ApplicationBaseSerializer):
+    """
+    Сериализация заявки тура.
+    Методы GET
+    """
+
+    tour = TourListSerializer(read_only=True)
+    quantity_guests = GuestSerializer(many=True, read_only=True)
+
+    class Meta(ApplicationBaseSerializer.Meta):
+        model = ApplicationTour
+        fields = ApplicationBaseSerializer.Meta.fields + ("tour", "quantity_guests")
+        read_only_fields = ("status",)
+
+
+class ApplicationHotelSerializer(ApplicationBaseSerializer):
+    """
+    Сериализация заявки отеля.
+    Методы PUT POST PATCH
+    """
+
+    class Meta(ApplicationBaseSerializer.Meta):
+        model = ApplicationHotel
+        fields = ApplicationBaseSerializer.Meta.fields + ("hotel", "room", "quantity_guests")
+
+
+class ApplicationHotelListSerializer(ApplicationBaseSerializer):
+    """
+    Сериализация заявки отеля.
+    Методы GET
+    """
+
+    hotel = HotelListWithPhotoSerializer(read_only=True)
+    room = RoomDetailSerializer(read_only=True)
+    quantity_guests = GuestSerializer(many=True, read_only=True)
+
+    class Meta(ApplicationBaseSerializer.Meta):
+        model = ApplicationHotel
+        fields = ApplicationBaseSerializer.Meta.fields + ("hotel", "room", "quantity_guests")
+        read_only_fields = ("status",)
