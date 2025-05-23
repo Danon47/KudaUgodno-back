@@ -168,3 +168,24 @@ class TypeOfMealChoices(models.TextChoices):
     FULL_BOARD = "Полный пансион", "Полный пансион"
     ALL_INCLUSIVE = "All inclusive", "All inclusive"
     ULTRA_ALL_INCLUSIVE = "Ultra all inclusive", "Ultra all inclusive"
+
+
+class StatusChoices(models.TextChoices):
+    """
+    Выбор статуса для заявки
+    """
+
+    CONFIRM = "Подтвержден", "Подтвержден"
+    AWAIT_CONFIRM = "Ожидает подтверждения", "Ожидает подтверждения"
+    NEED_CONTACT = "Необходимо связаться", "Необходимо связаться"
+
+
+class RoleChoices(models.TextChoices):
+    """
+    Выбор роли пользователя
+    """
+
+    USER = "USER", "Пользователь"
+    TOUR_OPERATOR = "TOUR_OPERATOR", "Туроператор"
+    HOTELIER = "HOTELIER", "Отельер"
+    ADMIN = "ADMIN", "Администратор"
