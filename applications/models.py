@@ -1,23 +1,15 @@
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from all_fixture.choices import StatusChoices
 from all_fixture.fixture_views import NULLABLE
-from applications.choices import StatusChoices
 from guests.models import Guest
 from hotels.models.hotel.models_hotel import Hotel
 from hotels.models.room.models_room import Room
 from tours.models import Tour
 
 
-# from users.models import User
-
-
 class Application(models.Model):
-    """
-    Модель Заявки на тур
-    """
-
-    tour = models.ForeignKey(Tour, on_delete=models.PROTECT, verbose_name="Тур", **NULLABLE)
     email = models.EmailField(
         verbose_name="Email",
     )
@@ -25,12 +17,6 @@ class Application(models.Model):
         region="RU",
         verbose_name="Телефон",
         help_text="Формат: +X XXX XXX XX XX",
-    )
-    quantity_guests = models.ManyToManyField(
-        Guest,
-        verbose_name="Количество гостей",
-        related_name="guests",
-        blank=True,
     )
     visa = models.BooleanField(default=False, verbose_name="Оформление визы")
     med_insurance = models.BooleanField(default=False, verbose_name="Медицинская страховка")
@@ -41,18 +27,34 @@ class Application(models.Model):
         default=StatusChoices.AWAIT_CONFIRM,
         verbose_name="Статус заявки",
     )
-    # user_owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь кто создал заявку")
 
     class Meta:
-        verbose_name = "Заявка"
-        verbose_name_plural = "Заявки"
+        abstract = True
+
+
+class ApplicationTour(Application):
+    """
+    Модель Заявки на тур
+    """
+
+    tour = models.ForeignKey(Tour, on_delete=models.PROTECT, verbose_name="Тур", **NULLABLE)
+    quantity_guests = models.ManyToManyField(
+        Guest,
+        verbose_name="Количество гостей",
+        related_name="application_tour_guests",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Заявка на тур"
+        verbose_name_plural = "Заявки на тур"
         ordering = ("-pk",)
 
     def __str__(self):
-        return f"Заявка N {self.pk}"
+        return f"Заявка на тур № {self.pk}"
 
 
-class HotelApplication(Application):
+class ApplicationHotel(Application):
     """
     Модель Заявки на отель
     """
@@ -73,6 +75,12 @@ class HotelApplication(Application):
         help_text="Введите ID номера",
         **NULLABLE,
     )
+    quantity_guests = models.ManyToManyField(
+        Guest,
+        verbose_name="Количество гостей",
+        related_name="application_hotel_guests",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Заявка на отель"
@@ -80,4 +88,4 @@ class HotelApplication(Application):
         ordering = ("-pk",)
 
     def __str__(self):
-        return f"Заявка N {self.pk}"
+        return f"Заявка на отель № {self.pk}"
