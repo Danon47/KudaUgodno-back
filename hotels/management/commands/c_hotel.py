@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 all_guests.extend(guests)
             # Создание отелей, типов питания, номеров, стоимости номеров по датам, рейсов, туров
             hotels = self.create_test_hotels(10)
-            self.create_type_of_meals(hotels)
+            type_of_meals = self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
             self.create_room_prices(hotels)
             flights = self.create_flights()
@@ -60,22 +60,28 @@ class Command(BaseCommand):
             # Создание заявок на туры и отели
             applications = self.create_applications(tours, hotels, rooms, tourists, all_guests)
             self.print_success_message(
+                len(tour_operators),
                 len(hotels),
+                len(type_of_meals),
+                len(rooms),
                 len(flights),
                 len(tours),
+                len(tourists),
                 total_guests,
-                len(tour_operators),
                 len(what_abouts),
                 len(applications),
             )
 
     def print_success_message(
         self,
+        tour_operators_count,
         hotels_count,
+        type_of_meals_count,
+        rooms_count,
         flights_count,
         tours_count,
+        tourists_count,
         total_guests,
-        tour_operators_count,
         what_abouts_count,
         applications_count,
     ):
@@ -84,11 +90,11 @@ class Command(BaseCommand):
                 f"Успешно создано:\n"
                 f"- {tour_operators_count} туроператоров\n"
                 f"- {hotels_count} отелей c 4 фото в каждом\n"
-                f"- {hotels_count*5} номеров с 6 фото каждом\n"
+                f"- {type_of_meals_count} кол-во типов питания\n"
+                f"- {rooms_count} номеров с 6 фото каждом\n"
                 f"- {flights_count} рейсов\n"
                 f"- {tours_count} туров\n"
-                f"- {hotels_count} периодов цен на номера (01.05.2026-01.12.2026)\n"
-                f"- {hotels_count*5} ценовых категорий номеров\n"
+                f"- {tourists_count} туристов\n"
                 f"- {total_guests} гостей\n"
                 f"- {what_abouts_count} подборок Что насчёт...\n"
                 f"- {applications_count} заявок"
@@ -314,6 +320,7 @@ class Command(BaseCommand):
         """
         Для каждого отеля создаём все доступные типы питания с рандомной ценой.
         """
+        type_of_meals = []
         meal_choices = [choice[0] for choice in TypeOfMealChoices.choices]
         for hotel in hotels:
             for meal_name in meal_choices:
@@ -321,11 +328,13 @@ class Command(BaseCommand):
                     price = 0
                 else:
                     price = random.choice(range(500, 10001, 500))
-                TypeOfMeal.objects.create(
+                type_of_meal = TypeOfMeal.objects.create(
                     hotel=hotel,
                     name=meal_name,
                     price=price,
                 )
+                type_of_meals.append(type_of_meal)
+        return type_of_meals
 
     def create_test_rooms(self, hotels, count=5):
         room_categories = [choice[0] for choice in RoomCategoryChoices.choices]
@@ -407,16 +416,19 @@ class Command(BaseCommand):
                 category = RoomCategory.objects.create(room=room, price=price)
                 room_categories.append(category)
 
-            # Создаем запись с датами
-            stock = random.choice([True, False])
-            room_date = RoomDate.objects.create(
-                start_date=date(2025, 5, 1),
-                end_date=date(2026, 12, 1),
-                available_for_booking=True,
-                stock=stock,
-                share_size=random.randint(1, 30) if stock else None,
-            )
-            room_date.categories.set(room_categories)
+            # Создаем несколько записей с датами (от 1 до 5)
+            for _ in range(random.randint(1, 5)):
+                stock = random.choice([True, False])
+                start_date = date(2025, random.randint(5, 12), random.randint(1, 28))
+                end_date = date(2026, random.randint(1, 12), random.randint(1, 28))
+                room_date = RoomDate.objects.create(
+                    start_date=start_date,
+                    end_date=end_date,
+                    available_for_booking=True,
+                    stock=stock,
+                    share_size=random.randint(1, 30) if stock else None,
+                )
+                room_date.categories.set(room_categories)
 
     def create_flights(self):
         """
@@ -679,9 +691,6 @@ class Command(BaseCommand):
                 )
                 for guest in selected_guests:
                     application.quantity_guests.add(guest)
-                self.stdout.write(
-                    self.style.SUCCESS(f"Создана заявка на отель №{application.pk} с {len(selected_guests)} гостями")
-                )
             else:
                 tour = random.choice(tours)
                 application = ApplicationTour.objects.create(
@@ -696,8 +705,5 @@ class Command(BaseCommand):
                 )
                 for guest in selected_guests:
                     application.quantity_guests.add(guest)
-                self.stdout.write(
-                    self.style.SUCCESS(f"Создана заявка на тур №{application.pk} с {len(selected_guests)} гостями")
-                )
             applications.append(application)
         return applications
