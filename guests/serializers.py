@@ -3,7 +3,6 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from guests.models import Guest
 from guests.validators import DateBornValidator, ValidityOfForeignPassportValidator
-from users.serializers import UserSerializer
 
 
 class GuestDetailSerializer(serializers.ModelSerializer):
@@ -38,7 +37,10 @@ class GuestSerializer(GuestDetailSerializer):
     Сериализатор для модели Guest
     """
 
-    user_owner = UserSerializer(read_only=True)
+    user_owner = serializers.SerializerMethodField()
 
     class Meta(GuestDetailSerializer.Meta):
         fields = GuestDetailSerializer.Meta.fields
+
+    def get_user_owner(self, obj: Guest) -> str:
+        return f"{obj.user_owner.first_name} {obj.user_owner.last_name}"
