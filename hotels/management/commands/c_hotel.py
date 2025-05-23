@@ -408,27 +408,25 @@ class Command(BaseCommand):
     def create_room_prices(self, hotels):
         for hotel in hotels:
             rooms = hotel.rooms.all()
-            room_categories = []
 
             # Создаем категории с ценами для каждого номера
             for room in rooms:
-                price = random.choice(range(2000, 50001, 1000))
-                category = RoomCategory.objects.create(room=room, price=price)
-                room_categories.append(category)
-
-            # Создаем несколько записей с датами (от 1 до 5)
-            for _ in range(random.randint(1, 5)):
-                stock = random.choice([True, False])
-                start_date = date(2025, random.randint(5, 12), random.randint(1, 28))
-                end_date = date(2026, random.randint(1, 12), random.randint(1, 28))
-                room_date = RoomDate.objects.create(
-                    start_date=start_date,
-                    end_date=end_date,
-                    available_for_booking=True,
-                    stock=stock,
-                    share_size=random.randint(1, 30) if stock else None,
-                )
-                room_date.categories.set(room_categories)
+                num_dates = random.randint(1, 5)
+                current_start_date = date(2025, random.randint(6, 12), random.randint(1, 28))
+                for _ in range(num_dates):
+                    stock = random.choice([True, False])
+                    end_date = current_start_date + timedelta(days=random.randint(10, 14))
+                    price = random.choice(range(2000, 50001, 1000))
+                    category = RoomCategory.objects.create(room=room, price=price)
+                    room_date = RoomDate.objects.create(
+                        start_date=current_start_date,
+                        end_date=end_date,
+                        available_for_booking=True,
+                        stock=stock,
+                        share_size=random.randint(1, 30) if stock else None,
+                    )
+                    room_date.categories.set([category])
+                    current_start_date = end_date + timedelta(days=1)
 
     def create_flights(self):
         """
