@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
+from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices, TypeOfMealChoices, WhatAboutChoices
 from all_fixture.fixture_views import NULLABLE
 
 
@@ -168,13 +168,6 @@ class Hotel(models.Model):
         verbose_name="Отель работает?",
         help_text="Отель работает?",
     )
-    # created_by = models.ForeignKey(
-    #     User,
-    #     on_delete=models.SET_NULL,
-    #     verbose_name="Создал отель",
-    #     help_text="Создал отель",
-    #     **NULLABLE,
-    # )
     width = models.FloatField(
         verbose_name="Широта",
         help_text="Широта (от -90 до 90)",
@@ -193,6 +186,13 @@ class Hotel(models.Model):
         ],
         **NULLABLE,
     )
+    # created_by = models.ForeignKey(
+    #     User,
+    #     on_delete=models.SET_NULL,
+    #     verbose_name="Создал отель",
+    #     help_text="Создал отель",
+    #     **NULLABLE,
+    # )
 
     class Meta:
         verbose_name = "Отель"
@@ -201,3 +201,125 @@ class Hotel(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class HotelPhoto(models.Model):
+    """
+    Класс для загрузки нескольких фотографий отеля
+    """
+
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.CASCADE,
+        related_name="hotel_photos",
+        verbose_name="Отель",
+        help_text="Отель",
+        blank=True,
+    )
+    photo = models.ImageField(
+        upload_to="hotels/hotels/",
+        verbose_name="Фотография отеля",
+        help_text="Фотография отеля",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Фотография отеля"
+        verbose_name_plural = "Фотографии отеля"
+
+
+class HotelRules(models.Model):
+    """Правила в отеле"""
+
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.CASCADE,
+        related_name="hotels_rules",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Правила в отеле",
+        help_text="Правила в отеле",
+        **NULLABLE,
+    )
+    description = models.TextField(
+        verbose_name="Описание правил",
+        help_text="Описание правил",
+        **NULLABLE,
+    )
+
+    class Meta:
+        verbose_name = "Правило в отеле"
+        verbose_name_plural = "Правила в отеле"
+        ordering = ("name",)
+
+    def __str__(self):
+        return self.name
+
+
+class TypeOfMeal(models.Model):
+    """
+    Модель типов питания.
+    """
+
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.CASCADE,
+        related_name="type_of_meals",
+        verbose_name="Отель",
+        help_text="Отель, к которому добавляются типы питания",
+        **NULLABLE,
+    )
+    name = models.CharField(
+        choices=TypeOfMealChoices.choices,
+        default=TypeOfMealChoices.BREAKFAST,
+        verbose_name="Выберите типа питания",
+        help_text="Выберите тип питания",
+        max_length=100,
+    )
+    price = models.PositiveIntegerField(
+        verbose_name="Стоимость типа питания",
+        help_text="Введите стоимость типа питания",
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(500000),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Тип питания"
+        verbose_name_plural = "Типы питания"
+        constraints = [models.UniqueConstraint(fields=["hotel", "name"], name="unique_type_of_meal_in_hotel")]
+
+    def __str__(self):
+        return f"{self.name} ({self.price})"
+
+
+class HotelWhatAbout(models.Model):
+    """
+    Модель подборки, что насчёт...
+    """
+
+    name_set = models.CharField(
+        max_length=100,
+        verbose_name="Название подборки",
+        help_text="Выберите название подборки",
+        choices=WhatAboutChoices.choices,
+        default="",
+    )
+    hotel = models.ManyToManyField(
+        Hotel,
+        verbose_name="Отель",
+        help_text="Выберите отель",
+        related_name="what_about_hotels",
+    )
+
+    class Meta:
+        verbose_name = "Подборка что насчёт..."
+        verbose_name_plural = "Подборки что на счёт..."
+
+    def __str__(self):
+        return self.name_set

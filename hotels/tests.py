@@ -15,9 +15,7 @@ from all_fixture.tests.fixture_hotel import (
     update_hotel_data,
 )
 from all_fixture.tests.test_temp_image import create_test_image
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
-from hotels.models.hotel.rules.models_hotel_rules import HotelRules
+from hotels.models import Hotel, HotelPhoto, HotelRules
 
 
 class HotelModelTest(TestCase):

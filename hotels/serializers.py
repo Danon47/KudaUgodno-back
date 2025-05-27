@@ -1,46 +1,54 @@
 from datetime import datetime
 
+from django.db.models import Min
 from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
     DateField,
     DecimalField,
     FloatField,
+    ImageField,
     IntegerField,
     ModelSerializer,
     Serializer,
     SerializerMethodField,
 )
 
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.serializers.hotel.photo.serializers_hotel_photo import HotelPhotoSerializer
-from hotels.serializers.hotel.rules.serializers_hotel_rules import HotelRulesSerializer
-from hotels.serializers.room.serializers_room import RoomDetailSerializer
-from hotels.validators.hotel.validators_hotel import DateValidator
+from hotels.models import Hotel, HotelPhoto, HotelRules, HotelWhatAbout
+from hotels.validators import DateValidator
+from rooms.models import RoomCategory
+from rooms.serializers import RoomDetailSerializer
 
 
 class HotelBaseSerializer(ModelSerializer):
     """
     Базовая сериализация для создания отеля
-    Метод POST (create)
+    Метод POST (create).
     """
 
     class Meta:
         model = Hotel
-        fields = (
-            "id",
-            "name",
-        )
+        fields = ("id", "name")
 
     def create(self, validated_data):
         return Hotel.objects.create(**validated_data)
+
+
+class HotelRulesSerializer(ModelSerializer):
+    """
+    Сериализатор правил в отеле.
+    """
+
+    class Meta:
+        model = HotelRules
+        fields = ("name", "description")
 
 
 class HotelDetailSerializer(ModelSerializer):
     """
     Сериализация для обновления всех полей отеля
     Метод PUT, DELETE, PATCH - но его не используем, позже будет отдельная сериализация
-    по добавлению отеля в архив методом PATCH
+    по добавлению отеля в архив методом PATCH.
     """
 
     rules = HotelRulesSerializer(many=True, source="hotels_rules", required=False)
@@ -94,6 +102,19 @@ class HotelDetailSerializer(ModelSerializer):
         return instance
 
 
+class HotelPhotoSerializer(ModelSerializer):
+    """
+    Сериализатор фотографий отеля.
+    """
+
+    photo = ImageField()
+
+    class Meta:
+        model = HotelPhoto
+        fields = ("id", "photo", "hotel")
+        read_only_fields = ("id", "hotel")
+
+
 class HotelListWithPhotoSerializer(HotelDetailSerializer):
     """
     Промежуточная сериализация, где не нужны номера. Возвращает все поля, и фотографии отеля.
@@ -113,13 +134,10 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     """
     Полная сериализация отеля со всеми вложенными данными.
     Фотографии отеля, номера в отеле.
-    Метод GET(list), GET id (retrieve)
+    Метод GET(list), GET id (retrieve).
     """
 
-    rooms = RoomDetailSerializer(
-        many=True,
-        read_only=True,
-    )
+    rooms = RoomDetailSerializer(many=True, read_only=True)
     # created_by = SerializerMethodField()
 
     class Meta(HotelListWithPhotoSerializer.Meta):
@@ -134,7 +152,9 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
 
 
 class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
-    """Cериализатор отеля для получения ответа из поиска."""
+    """
+    Cериализатор отеля для получения ответа из поиска.
+    """
 
     nights = SerializerMethodField()
     guests = SerializerMethodField()
@@ -145,7 +165,9 @@ class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
 
     @extend_schema_field(field=RoomDetailSerializer(many=True))
     def get_rooms(self, obj):
-        """Возвращаем только отфильтрованные комнаты по количеству гостей и другим параметрам."""
+        """
+        Возвращаем только отфильтрованные комнаты по количеству гостей и другим параметрам.
+        """
         rooms = getattr(obj, "filtered_rooms", None)
         if rooms is None:
             return []  # если не было префетча
@@ -153,7 +175,9 @@ class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
 
     @extend_schema_field(int)
     def get_nights(self, obj) -> int:
-        """Подсчет количества ночей."""
+        """
+        Подсчет количества ночей.
+        """
         check_in = self.context.get("check_in_date")
         check_out = self.context.get("check_out_date")
         nights_default = 1
@@ -168,12 +192,16 @@ class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
 
     @extend_schema_field(int)
     def get_guests(self, obj) -> int:
-        """Получение количества гостей из контекста."""
+        """
+        Получение количества гостей из контекста.
+        """
         return int(self.context.get("guests", 1))
 
 
 class HotelSearchRequestSerializer(Serializer):
-    """Cериализатор отеля для поиска."""
+    """
+    Cериализатор отеля для поиска.
+    """
 
     city = CharField(required=False)
     check_in_date = DateField(
@@ -191,7 +219,9 @@ class HotelSearchRequestSerializer(Serializer):
 
 
 class HotelFiltersRequestSerializer(Serializer):
-    """Сериализатор для параметров расширенного поиска (все поля необязательные)."""
+    """
+    Сериализатор для параметров расширенного поиска (все поля необязательные).
+    """
 
     # Параметры фильтрации верхнего поиска
     hotel_city = CharField(required=False)
@@ -216,3 +246,41 @@ class HotelFiltersRequestSerializer(Serializer):
     user_rating = FloatField(min_value=0, max_value=10, required=False)
     star_category = IntegerField(min_value=0, required=False)
     validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
+
+
+class HotelShortSerializer(ModelSerializer):
+    photo = SerializerMethodField()
+    min_price = SerializerMethodField()
+
+    class Meta:
+        model = Hotel
+        fields = (
+            "id",
+            "photo",
+            "country",
+            "city",
+            "star_category",
+            "name",
+            "distance_to_the_center",
+            "min_price",
+            "user_rating",
+        )
+
+    def get_photo(self, obj: Hotel) -> str:
+        request = self.context.get("request")
+        first_photo = obj.hotel_photos.first()
+        if first_photo:
+            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
+        return None
+
+    def get_min_price(self, obj: Hotel) -> int:
+        return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
+
+
+class HotelWhatAboutFullSerializer(ModelSerializer):
+    hotel = HotelShortSerializer(many=True, read_only=True)
+    name_set = CharField(read_only=True)
+
+    class Meta:
+        model = HotelWhatAbout
+        fields = ("name_set", "hotel")
