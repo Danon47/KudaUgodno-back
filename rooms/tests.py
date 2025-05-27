@@ -10,9 +10,8 @@ from rest_framework.test import APIClient
 from all_fixture.tests.fixture_hotel import get_hotel_data
 from all_fixture.tests.fixture_hotel_room import get_hotel_room_data, get_hotel_room_photo_data, update_hotel_room_data
 from all_fixture.tests.test_temp_image import create_test_image
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.room.models_room import Room
-from hotels.models.room.photo.models_room_photo import RoomPhoto
+from hotels.models import Hotel
+from rooms.models import Room, RoomPhoto
 
 
 class RoomModelTest(TestCase):
