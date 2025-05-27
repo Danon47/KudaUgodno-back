@@ -12,7 +12,9 @@ from rest_framework.serializers import (
 
 from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
-from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
+from hotels.serializers import HotelListWithPhotoSerializer
+from hotels.serializers_type_of_meals import TypeOfMealSerializer
+from rooms.serializers import RoomDetailSerializer
 from tours.models import Tour, TourStock
 from tours.validators import EndDateValidator, PriceValidator, StartDateValidator
 
@@ -48,11 +50,12 @@ class TourSerializer(ModelSerializer):
             "tour_operator",
             "hotel",
             "room",
-            "transfer",
+            "type_of_meals",
             "price",
+            "transfer",
+            "is_active",
             "created_at",
             "updated_at",
-            "is_active",
         )
         read_only_fields = ("created_at", "updated_at")
         validators = [StartDateValidator(), EndDateValidator(), PriceValidator()]
@@ -78,6 +81,8 @@ class TourListSerializer(TourSerializer):
     """
 
     hotel = HotelListWithPhotoSerializer()
+    room = RoomDetailSerializer(many=True, read_only=True)
+    type_of_meals = TypeOfMealSerializer(many=True, read_only=True)
     tour_operator = SerializerMethodField()
     flight_to = FlightSerializer()
     flight_from = FlightSerializer()
