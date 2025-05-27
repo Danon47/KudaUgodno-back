@@ -3,8 +3,8 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import ApplicationHotel, ApplicationTour
 from guests.serializers import GuestSerializer
-from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
-from hotels.serializers.room.serializers_room import RoomDetailSerializer
+from hotels.serializers import HotelListWithPhotoSerializer
+from rooms.serializers import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
 

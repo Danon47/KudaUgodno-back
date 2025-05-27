@@ -4,8 +4,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from all_fixture.choices import StatusChoices
 from all_fixture.fixture_views import NULLABLE
 from guests.models import Guest
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.room.models_room import Room
+from hotels.models import Hotel
+from rooms.models import Room
 from tours.models import Tour
 
 
