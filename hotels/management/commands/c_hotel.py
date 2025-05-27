@@ -343,7 +343,7 @@ class Command(BaseCommand):
                         ) + random.choice(range(500, 5001, 500))
                 elif meal_name in PREMIUM_TYPES:
                     if meal_name == TypeOfMealChoices.ALL_INCLUSIVE:
-                        price = random.choice(range(11000, 10001, 1000))
+                        price = random.choice(range(1000, 10001, 1000))
                     elif meal_name == TypeOfMealChoices.ULTRA_ALL_INCLUSIVE:
                         price = meal_prices.get(TypeOfMealChoices.ALL_INCLUSIVE, 0) + random.choice(
                             range(1000, 100001, 1000)
@@ -618,9 +618,18 @@ class Command(BaseCommand):
 
             hotel = random.choice(hotels)
 
-            # Теперь выбираем номер из доступных номеров этого отеля
-            available_rooms = hotel.rooms.all()
-            room = random.choice(available_rooms) if available_rooms else None
+            # Выбираем случайное количество номеров (от 1 до 3, если доступно)
+            available_rooms = list(hotel.rooms.all())
+            num_rooms = random.randint(1, min(3, len(available_rooms))) if available_rooms else 0
+            selected_rooms = random.sample(available_rooms, num_rooms) if num_rooms > 0 else []
+
+            # Выбираем типы питания: по одному на каждый номер, с возможностью повторов
+            available_meals = list(hotel.type_of_meals.all())
+            selected_meals = (
+                [random.choice(available_meals) for _ in range(num_rooms)]
+                if available_meals and selected_rooms
+                else []
+            )
 
             operator = random.choice(operators) if operators else None
 
@@ -648,8 +657,10 @@ class Command(BaseCommand):
                 is_active=random.choice([True, False]),
             )
             tours.append(tour)
-            if room:
-                tour.room.set([room])
+            if selected_rooms:
+                tour.room.set(selected_rooms)
+            if selected_meals:
+                tour.type_of_meals.set(selected_meals)
 
         return tours
 
