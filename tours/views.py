@@ -1,3 +1,4 @@
+from dal import autocomplete
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
@@ -32,6 +33,8 @@ from all_fixture.fixture_views import (
     tour_stock_settings,
 )
 from all_fixture.pagination import CustomLOPagination
+from hotels.models import Hotel, TypeOfMeal
+from rooms.models import Room
 from tours.filters import TourExtendedFilter, TourSearchFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
@@ -270,3 +273,47 @@ class TourFiltersView(viewsets.ModelViewSet):
         if not request_serializer.is_valid():
             return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request)
+
+
+class HotelAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Hotel.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+
+        return qs
+
+
+class RoomAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Получаем отель из параметров запроса
+        hotel_id = self.forwarded.get("hotel", None)
+        qs = Room.objects.all()
+
+        if hotel_id:
+            # Фильтруем номера только для выбранного отеля
+            qs = qs.filter(hotel_id=hotel_id)
+
+        if self.q:
+            # Добавляем поиск по категории номера
+            qs = qs.filter(category__icontains=self.q)
+
+        return qs
+
+
+class TypeOfMealAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Получаем отель из параметров запроса
+        hotel_id = self.forwarded.get("hotel", None)
+        qs = TypeOfMeal.objects.all()
+
+        if hotel_id:
+            # Фильтруем типы питания только для выбранного отеля
+            qs = qs.filter(hotel_id=hotel_id)
+
+        if self.q:
+            # Добавляем поиск по названию типа питания
+            qs = qs.filter(name__icontains=self.q)
+
+        return qs.order_by("price")

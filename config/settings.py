@@ -38,6 +38,8 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 INSTALLED_APPS = [
     # Стандартные Django-приложения
+    "dal",
+    "dal_select2",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -66,6 +68,7 @@ INSTALLED_APPS = [
     "tours",
     "flights",
     "hotels",
+    "rooms",
     "applications",
     "guests",
     "insurances",
@@ -235,6 +238,10 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATION_PARAMETERS": False,
     "SWAGGER_UI_SETTINGS": {
         "defaultModelsExpandDepth": -1,
+    },
+    "ENUM_NAME_OVERRIDES": {
+        "MedicalInsuranceEnum": "insurances.models.MedicalInsuranceChoices",
+        "NotLeavingInsuranceEnum": "insurances.models.NotLeavingInsuranceChoices",
     },
 }
 
