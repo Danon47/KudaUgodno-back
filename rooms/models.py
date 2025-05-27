@@ -4,9 +4,33 @@ from django.db import models
 
 from all_fixture.choices import RoomCategoryChoices
 from all_fixture.fixture_views import NULLABLE
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
-from hotels.models.room.rules.models_room_rules import RoomRules
+from hotels.models import Hotel, TypeOfMeal
+from users.models import User
+
+
+class RoomRules(models.Model):
+    """Правила в номере"""
+
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Правила в номере",
+        help_text="Правила в номере",
+        **NULLABLE,
+    )
+    option = models.BooleanField(
+        verbose_name="Да/Нет",
+        help_text="Да/Нет",
+        default=False,
+    )
+    created_by = models.ForeignKey(User, verbose_name="Создана пользователем", on_delete=models.CASCADE, **NULLABLE)
+
+    class Meta:
+        verbose_name = "Правило в номере"
+        verbose_name_plural = "Правила в номерах"
+        ordering = ("name",)
+
+    def __str__(self):
+        return f"{self.name} ({self.option})"
 
 
 class Room(models.Model):
@@ -113,7 +137,7 @@ class Room(models.Model):
         **NULLABLE,
     )
     rules = models.ManyToManyField(
-        RoomRules,
+        "RoomRules",
         related_name="rooms",
         verbose_name="Название правила",
         help_text="Введите название правила, а потом выберите его возможность использования Да/Нет",
@@ -129,3 +153,104 @@ class Room(models.Model):
 
     def __str__(self):
         return f"№{self.pk} - {self.category} в {self.hotel.name} №{self.hotel.pk}"
+
+
+class RoomCategory(models.Model):
+    """
+    Модель для создания нескольких номеров, чтобы им можно было присвоить в определённые даты свою стоимость.
+    """
+
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        verbose_name="Категория номера",
+        help_text="Выберите категорию номера",
+    )
+    price = models.PositiveIntegerField(
+        verbose_name="Стоимость категории номеров в сутки",
+        help_text="Введите стоимость категории номеров в сутки",
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(500000),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Стоимость номера"
+        verbose_name_plural = "Стоимости номеров"
+
+    def __str__(self):
+        return f"{self.room} ({self.price})"
+
+
+class RoomDate(models.Model):
+    """
+    Даты для номеров
+    """
+
+    start_date = models.DateField(
+        verbose_name="Дата начала действия скидки",
+        help_text="Дата начала действия скидки",
+    )
+    end_date = models.DateField(
+        verbose_name="Дата окончания действия скидки",
+        help_text="Дата окончания действия скидки",
+    )
+    available_for_booking = models.BooleanField(
+        verbose_name="Доступна для бронирования",
+        help_text="Доступна Да/Нет?",
+        default=True,
+    )
+    stock = models.BooleanField(
+        verbose_name="Акция",
+        help_text="Акция Да/Нет?",
+        default=False,
+    )
+    share_size = models.PositiveIntegerField(
+        verbose_name="Размер скидки",
+        help_text="Введите размер скидки от 0 до 100",
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100),
+        ],
+        **NULLABLE,
+    )
+    categories = models.ManyToManyField(
+        RoomCategory,
+        related_name="room_date",
+        verbose_name="Категория номера и его стоимость за сутки",
+        help_text="Выберите категорию номера и его стоимость за сутки",
+    )
+
+    class Meta:
+        verbose_name = "Дата стоимости номера"
+        verbose_name_plural = "Даты стоимости номеров"
+        ordering = ["-start_date"]
+
+    def __str__(self):
+        return f"{self.start_date} - {self.end_date}"
+
+
+class RoomPhoto(models.Model):
+    """
+    Класс для загрузки нескольких фотографий номеров отеля
+    """
+
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="room_photos",
+        verbose_name="Номер",
+        help_text="Номер",
+        blank=True,
+    )
+    photo = models.ImageField(
+        upload_to="hotels/hotels/rooms/",
+        verbose_name="Фотография номера",
+        help_text="Фотография номера",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Фотография номера"
+        verbose_name_plural = "Фотографии номера"
