@@ -1,8 +1,8 @@
 from django.db.models import F, Prefetch, Q
 from django_filters import CharFilter, DateFilter, FilterSet, NumberFilter
 
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.room.models_room import Room
+from hotels.models import Hotel
+from rooms.models import Room
 
 
 class BaseHotelFilter(FilterSet):
