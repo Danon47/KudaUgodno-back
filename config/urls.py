@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+# noqa здесь для линтеров, чтобы не ругались на "неиспользуемый импорт".
+import users.extensions  # noqa
 from config import settings
 
 
