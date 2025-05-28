@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -206,13 +208,12 @@ class RoomDate(models.Model):
         help_text="Акция Да/Нет?",
         default=False,
     )
-    share_size = models.PositiveIntegerField(
+    share_size = models.DecimalField(
         verbose_name="Размер скидки",
         help_text="Введите размер скидки от 0 до 100",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(100),
-        ],
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
         **NULLABLE,
     )
     categories = models.ManyToManyField(
