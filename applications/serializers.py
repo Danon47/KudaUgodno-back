@@ -3,14 +3,14 @@ from rest_framework import serializers
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import ApplicationHotel, ApplicationTour
 from guests.serializers import GuestSerializer
-from hotels.serializers.hotel.serializers_hotel import HotelListWithPhotoSerializer
-from hotels.serializers.room.serializers_room import RoomDetailSerializer
+from hotels.serializers import HotelListWithPhotoSerializer
+from rooms.serializers import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
 
 class ApplicationBaseSerializer(serializers.ModelSerializer):
     """
-    Базовая сериализация для заявок
+    Базовая сериализация для заявок.
     """
 
     class Meta:
@@ -30,7 +30,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 class ApplicationTourSerializer(ApplicationBaseSerializer):
     """
     Сериализация заявки тура.
-    Методы PUT POST PATCH
+    Методы PUT POST PATCH.
     """
 
     class Meta(ApplicationBaseSerializer.Meta):
@@ -41,7 +41,7 @@ class ApplicationTourSerializer(ApplicationBaseSerializer):
 class ApplicationTourListSerializer(ApplicationBaseSerializer):
     """
     Сериализация заявки тура.
-    Методы GET
+    Методы GET.
     """
 
     tour = TourListSerializer(read_only=True)
@@ -56,7 +56,7 @@ class ApplicationTourListSerializer(ApplicationBaseSerializer):
 class ApplicationHotelSerializer(ApplicationBaseSerializer):
     """
     Сериализация заявки отеля.
-    Методы PUT POST PATCH
+    Методы PUT POST PATCH.
     """
 
     class Meta(ApplicationBaseSerializer.Meta):
@@ -67,7 +67,7 @@ class ApplicationHotelSerializer(ApplicationBaseSerializer):
 class ApplicationHotelListSerializer(ApplicationBaseSerializer):
     """
     Сериализация заявки отеля.
-    Методы GET
+    Методы GET.
     """
 
     hotel = HotelListWithPhotoSerializer(read_only=True)

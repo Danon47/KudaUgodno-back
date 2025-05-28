@@ -19,13 +19,8 @@ from all_fixture.choices import (
 from applications.models import ApplicationHotel, ApplicationTour
 from flights.models import Flight
 from guests.models import Guest
-from hotels.models.hotel.models_hotel import Hotel
-from hotels.models.hotel.photo.models_hotel_photo import HotelPhoto
-from hotels.models.hotel.type_of_meals.models_type_of_meals import TypeOfMeal
-from hotels.models.hotel.what_about.models_hotel_what_about import HotelWhatAbout
-from hotels.models.room.date.models_room_date import RoomCategory, RoomDate
-from hotels.models.room.models_room import Room
-from hotels.models.room.photo.models_room_photo import RoomPhoto
+from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
+from rooms.models import Room, RoomCategory, RoomDate, RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
 
@@ -318,16 +313,45 @@ class Command(BaseCommand):
 
     def create_type_of_meals(self, hotels):
         """
-        Для каждого отеля создаём все доступные типы питания с рандомной ценой.
+        Для каждого отеля создаём все доступные типы питания с рандомной ценой,
+        где каждый следующий тип питания стоит больше, чем предыдущий.
         """
         type_of_meals = []
-        meal_choices = [choice[0] for choice in TypeOfMealChoices.choices]
+        BASIC_TYPES = [
+            TypeOfMealChoices.BREAKFAST,
+            TypeOfMealChoices.BREAKFAST_AND_DINNER,
+            TypeOfMealChoices.FULL_BOARD,
+        ]
+        PREMIUM_TYPES = [
+            TypeOfMealChoices.ALL_INCLUSIVE,
+            TypeOfMealChoices.ULTRA_ALL_INCLUSIVE,
+        ]
         for hotel in hotels:
-            for meal_name in meal_choices:
+            # Создаем словарь для хранения цен предыдущих типов питания
+            meal_prices = {}
+            for meal_name in [choice[0] for choice in TypeOfMealChoices.choices]:
                 if meal_name == TypeOfMealChoices.NO_MEAL:
                     price = 0
+                elif meal_name in BASIC_TYPES:
+                    if meal_name == TypeOfMealChoices.BREAKFAST:
+                        price = random.choice(range(1000, 5001, 500))
+                    elif meal_name == TypeOfMealChoices.BREAKFAST_AND_DINNER:
+                        price = meal_prices.get(TypeOfMealChoices.BREAKFAST, 0) + random.choice(range(500, 5001, 500))
+                    elif meal_name == TypeOfMealChoices.FULL_BOARD:
+                        price = meal_prices.get(
+                            TypeOfMealChoices.BREAKFAST_AND_DINNER, meal_prices.get(TypeOfMealChoices.BREAKFAST, 0)
+                        ) + random.choice(range(500, 5001, 500))
+                elif meal_name in PREMIUM_TYPES:
+                    if meal_name == TypeOfMealChoices.ALL_INCLUSIVE:
+                        price = random.choice(range(1000, 10001, 1000))
+                    elif meal_name == TypeOfMealChoices.ULTRA_ALL_INCLUSIVE:
+                        price = meal_prices.get(TypeOfMealChoices.ALL_INCLUSIVE, 0) + random.choice(
+                            range(1000, 100001, 1000)
+                        )
                 else:
-                    price = random.choice(range(500, 10001, 500))
+                    price = random.choice(range(1000, 10001, 500))
+                # Сохраняем цену текущего типа питания
+                meal_prices[meal_name] = price
                 type_of_meal = TypeOfMeal.objects.create(
                     hotel=hotel,
                     name=meal_name,
@@ -594,9 +618,18 @@ class Command(BaseCommand):
 
             hotel = random.choice(hotels)
 
-            # Теперь выбираем номер из доступных номеров этого отеля
-            available_rooms = hotel.rooms.all()
-            room = random.choice(available_rooms) if available_rooms else None
+            # Выбираем случайное количество номеров (от 1 до 3, если доступно)
+            available_rooms = list(hotel.rooms.all())
+            num_rooms = random.randint(1, min(3, len(available_rooms))) if available_rooms else 0
+            selected_rooms = random.sample(available_rooms, num_rooms) if num_rooms > 0 else []
+
+            # Выбираем типы питания: по одному на каждый номер, с возможностью повторов
+            available_meals = list(hotel.type_of_meals.all())
+            selected_meals = (
+                [random.choice(available_meals) for _ in range(num_rooms)]
+                if available_meals and selected_rooms
+                else []
+            )
 
             operator = random.choice(operators) if operators else None
 
@@ -606,9 +639,6 @@ class Command(BaseCommand):
                 discount = random.randint(5, 30)
                 end_stock = end - timedelta(days=random.randint(1, 5))
                 stock = TourStock.objects.create(active_stock=True, discount_amount=discount, end_date=end_stock)
-
-            # Вставляем выбранную категорию комнаты
-            room_category = room.category if room else None
 
             tour = Tour.objects.create(
                 start_date=start,
@@ -621,13 +651,16 @@ class Command(BaseCommand):
                 arrival_city=hotel.city,
                 tour_operator=operator,
                 hotel=hotel,
-                room=room_category,
                 transfer=random.choice([True, False]),
                 price=round(random.uniform(50000, 200000), 2),
                 stock=stock,
                 is_active=random.choice([True, False]),
             )
             tours.append(tour)
+            if selected_rooms:
+                tour.room.set(selected_rooms)
+            if selected_meals:
+                tour.type_of_meals.set(selected_meals)
 
         return tours
 

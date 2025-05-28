@@ -18,8 +18,8 @@ urlpatterns = [
     path("api/v1/", include("guests.urls")),
     path("api/v1/", include("tours.urls")),
     path("api/v1/flights/", include("flights.urls")),
-    path("api/v1/", include("hotels.urls.urls_hotel")),
-    path("api/v1/hotels/", include("hotels.urls.urls_room")),
+    path("api/v1/", include("hotels.urls")),
+    path("api/v1/hotels/", include("rooms.urls")),
     path("api/v1/applications/", include("applications.urls")),
     path("api/v1/insurances/", include("insurances.urls")),
 ]

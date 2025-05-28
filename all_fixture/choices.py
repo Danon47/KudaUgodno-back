@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class TypeInsuranceChoices(models.TextChoices):
+class MedicalInsuranceChoices(models.TextChoices):
     """
     Выбор страховых компаний
     """
@@ -14,6 +14,26 @@ class TypeInsuranceChoices(models.TextChoices):
     RESOINSURANCE = "РЕСО Страхование", "РЕСО Страхование"
     SOGLASIEINSURANCE = "Согласие", "Согласие"
     SOGAZINSURANCE = "СОГАЗ", "СОГАЗ"
+    ALFAINSURANCE = "Альфа Страхование", "Альфа Страхование"
+    RENESSANSINSURANCE = "Ренессанс Страхование", "Ренессанс Страхование"
+    INGOSTRAHINSURANCE = "Ингострах", "Ингострах"
+    INTOUCHINSURANCE = "INTOUCH", "INTOUCH"
+    NOTSELECTED = "Не выбрано", "Не выбрано"
+
+
+class NotLeavingInsuranceChoices(models.TextChoices):
+    """
+    Выбор страховых компаний
+    """
+
+    SOGAZINSURANCE = "СОГАЗ", "СОГАЗ"
+    TSINSURANCE = "Т-Страхование", "Т-Страхование"
+    SOVCOMINSURANCE = "Совкомбанк Страхование", "Совкомбанк Страхование"
+    SBERINSURANCE = "Сбербанк Страхование", "Сбербанк Страхование"
+    VSKINSURANCE = "ВСК Страхование", "ВСК Страхование"
+    ROSGORINSURANCE = "Росгорстрах", "Росгорстрах"
+    RESOINSURANCE = "РЕСО Страхование", "РЕСО Страхование"
+    SOGLASIEINSURANCE = "Согласие", "Согласие"
     ALFAINSURANCE = "Альфа Страхование", "Альфа Страхование"
     RENESSANSINSURANCE = "Ренессанс Страхование", "Ренессанс Страхование"
     INGOSTRAHINSURANCE = "Ингострах", "Ингострах"

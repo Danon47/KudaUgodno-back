@@ -3,7 +3,8 @@ from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
 from flights.models import Flight
-from hotels.models.hotel.models_hotel import Hotel
+from hotels.models import Hotel, TypeOfMeal
+from rooms.models import Room
 from users.models import User
 
 
@@ -69,11 +70,19 @@ class Tour(models.Model):
         help_text="Введите ID отеля",
         **NULLABLE,
     )
-    room = models.CharField(
-        max_length=50,
-        verbose_name="Категория номера",
-        default="Standard",
-        help_text="Введите категорию номера",
+    room = models.ManyToManyField(
+        Room,
+        verbose_name="Номер",
+        related_name="tours",
+        help_text="Введите ID номера",
+        blank=True,
+    )
+    type_of_meals = models.ManyToManyField(
+        TypeOfMeal,
+        verbose_name="Типы питания",
+        related_name="tours",
+        help_text="Выберите типы питания, который есть в этом отеле для этого тура",
+        blank=True,
     )
     transfer = models.BooleanField(verbose_name="Трансфер", default=False, help_text="Отметьте наличие трансфера")
     price = models.DecimalField(

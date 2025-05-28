@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.models import Exists, F, OuterRef
 from django_filters import CharFilter, DateFilter, FilterSet, NumberFilter
 
-from hotels.models.room.models_room import Room
+from rooms.models import Room
 from tours.models import Tour
 
 
