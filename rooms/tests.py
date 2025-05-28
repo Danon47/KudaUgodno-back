@@ -64,7 +64,7 @@ class RoomModelTest(TestCase):
 
     def test_room_photo_creation(self):
         """Тест создания фотографии номера в отеле, Модель"""
-        self.assertEqual(self.photo.room, self.room)
+        self.assertEqual(self.photo.rooms, self.room)
         self.assertTrue(self.photo.photo)
         self.assertIn(self.photo, self.room.room_photos.all())
 

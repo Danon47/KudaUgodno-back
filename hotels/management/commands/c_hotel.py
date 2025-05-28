@@ -673,7 +673,7 @@ class Command(BaseCommand):
             )
             tours.append(tour)
             if selected_rooms:
-                tour.room.set(selected_rooms)
+                tour.rooms.set(selected_rooms)
             if selected_meals:
                 tour.type_of_meals.set(selected_meals)
 

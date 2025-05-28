@@ -72,7 +72,7 @@ class Tour(models.Model):
         help_text="Введите ID отеля",
         **NULLABLE,
     )
-    room = models.ManyToManyField(
+    rooms = models.ManyToManyField(
         Room,
         verbose_name="Номер",
         related_name="tours",

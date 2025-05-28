@@ -97,15 +97,15 @@ class RoomDetailSerializer(RoomBaseSerializer):
         many=True,
         read_only=True,
     )
-    date = SerializerMethodField()
+    dates = SerializerMethodField()
     type_of_meals = TypeOfMealSerializer(many=True)
     rules = RoomRulesSerializer(many=True)
 
     class Meta(RoomBaseSerializer.Meta):
         model = Room
-        fields = RoomBaseSerializer.Meta.fields + ("date", "photo")
+        fields = RoomBaseSerializer.Meta.fields + ("dates", "photo")
 
-    def get_date(self, obj: RoomDate) -> list:
+    def get_dates(self, obj: RoomDate) -> list:
         """
         Получает список объектов RoomDate связанных с номером.
         Этот метод фильтрует объекты RoomDate, связанные с указанным номером, по его категориям, обеспечивая
