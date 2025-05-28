@@ -280,12 +280,14 @@ class TypeOfMeal(models.Model):
         help_text="Выберите тип питания",
         max_length=100,
     )
-    price = models.PositiveIntegerField(
+    price = models.DecimalField(
         verbose_name="Стоимость типа питания",
         help_text="Введите стоимость типа питания",
+        max_digits=10,
+        decimal_places=2,
         validators=[
-            MinValueValidator(0),
-            MaxValueValidator(500000),
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("500000.00")),
         ],
     )
 
