@@ -49,7 +49,7 @@ class TourSerializer(ModelSerializer):
             "arrival_city",
             "tour_operator",
             "hotel",
-            "room",
+            "rooms",
             "type_of_meals",
             "price",
             "transfer",
@@ -81,7 +81,7 @@ class TourListSerializer(TourSerializer):
     """
 
     hotel = HotelListWithPhotoSerializer()
-    room = RoomDetailSerializer(many=True, read_only=True)
+    rooms = RoomDetailSerializer(many=True, read_only=True)
     type_of_meals = TypeOfMealSerializer(many=True, read_only=True)
     tour_operator = SerializerMethodField()
     flight_to = FlightSerializer()
