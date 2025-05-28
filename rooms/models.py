@@ -168,13 +168,12 @@ class RoomCategory(models.Model):
         verbose_name="Категория номера",
         help_text="Выберите категорию номера",
     )
-    price = models.PositiveIntegerField(
+    price = models.DecimalField(
         verbose_name="Стоимость категории номеров в сутки",
         help_text="Введите стоимость категории номеров в сутки",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(500000),
-        ],
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("9999999.99"))],
     )
 
     class Meta:
@@ -210,10 +209,11 @@ class RoomDate(models.Model):
     )
     share_size = models.DecimalField(
         verbose_name="Размер скидки",
-        help_text="Введите размер скидки от 0 до 100",
+        help_text="Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - "
+        "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01"))],
+        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("99999.99"))],
         **NULLABLE,
     )
     categories = models.ManyToManyField(
