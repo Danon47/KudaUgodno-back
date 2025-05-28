@@ -1,4 +1,6 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
+from decimal import Decimal
+
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -158,13 +160,12 @@ class TourStock(models.Model):
         verbose_name="Есть ли акция на тур?",
         help_text="Да/Нет",
     )
-    discount_amount = models.PositiveIntegerField(
+    discount_amount = models.DecimalField(
         verbose_name="Величина скидки",
         help_text="Введите какая скидка будет на тур в %",
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(100),
-        ],
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
     )
     end_date = models.DateField(verbose_name="Дата окончания скидки", help_text="Введите дату окончания скидки")
 
