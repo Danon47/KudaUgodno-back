@@ -27,7 +27,7 @@ class RoomRulesAdmin(admin.ModelAdmin):
 
 @admin.register(RoomDate)
 class RoomDateAdmin(admin.ModelAdmin):
-    list_display = ("id", "start_date", "end_date", "get_categories")
+    list_display = ("id", "start_date", "end_date", "get_categories", "stock", "share_size")
 
     def get_categories(self, obj):
         return ", ".join([str(category) for category in obj.categories.all()])

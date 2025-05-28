@@ -32,8 +32,8 @@ class TourAdmin(admin.ModelAdmin):
 
     @admin.display(description="Номера")
     def get_rooms(self, obj):
-        if obj.room.exists():
-            return ", ".join([room.category for room in obj.room.all()])
+        if obj.rooms.exists():
+            return ", ".join([room.category for room in obj.rooms.all()])
         return "-"
 
 

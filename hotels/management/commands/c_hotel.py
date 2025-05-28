@@ -334,22 +334,25 @@ class Command(BaseCommand):
                     price = 0
                 elif meal_name in BASIC_TYPES:
                     if meal_name == TypeOfMealChoices.BREAKFAST:
-                        price = random.choice(range(1000, 5001, 500))
+                        price = round(random.uniform(1000, 5001) / 500) * 500
                     elif meal_name == TypeOfMealChoices.BREAKFAST_AND_DINNER:
                         price = meal_prices.get(TypeOfMealChoices.BREAKFAST, 0) + random.choice(range(500, 5001, 500))
                     elif meal_name == TypeOfMealChoices.FULL_BOARD:
-                        price = meal_prices.get(
-                            TypeOfMealChoices.BREAKFAST_AND_DINNER, meal_prices.get(TypeOfMealChoices.BREAKFAST, 0)
-                        ) + random.choice(range(500, 5001, 500))
+                        price = (
+                            meal_prices.get(
+                                TypeOfMealChoices.BREAKFAST_AND_DINNER, meal_prices.get(TypeOfMealChoices.BREAKFAST, 0)
+                            )
+                            + round(random.uniform(1000, 5001) / 500) * 500
+                        )
                 elif meal_name in PREMIUM_TYPES:
                     if meal_name == TypeOfMealChoices.ALL_INCLUSIVE:
-                        price = random.choice(range(1000, 10001, 1000))
+                        price = round(random.uniform(1000, 100001) / 1000) * 1000
                     elif meal_name == TypeOfMealChoices.ULTRA_ALL_INCLUSIVE:
                         price = meal_prices.get(TypeOfMealChoices.ALL_INCLUSIVE, 0) + random.choice(
                             range(1000, 100001, 1000)
                         )
                 else:
-                    price = random.choice(range(1000, 10001, 500))
+                    price = round(random.uniform(1000, 50001) / 500) * 500
                 # Сохраняем цену текущего типа питания
                 meal_prices[meal_name] = price
                 type_of_meal = TypeOfMeal.objects.create(
@@ -440,14 +443,23 @@ class Command(BaseCommand):
                 for _ in range(num_dates):
                     stock = random.choice([True, False])
                     end_date = current_start_date + timedelta(days=random.randint(10, 14))
-                    price = random.choice(range(2000, 50001, 1000))
+                    price = round(random.uniform(2000, 50000), 2)
                     category = RoomCategory.objects.create(room=room, price=price)
+
+                    # Генерация share_size: либо 0.01-0.99, либо 100-2000
+                    if stock:
+                        if random.choice([True, False]):  # 50% вероятность для каждого диапазона
+                            share_size = round(random.uniform(0.01, 0.99), 2)
+                        else:
+                            share_size = random.randint(100, 2000)
+                    else:
+                        share_size = None
                     room_date = RoomDate.objects.create(
                         start_date=current_start_date,
                         end_date=end_date,
                         available_for_booking=True,
                         stock=stock,
-                        share_size=random.randint(1, 30) if stock else None,
+                        share_size=share_size,
                     )
                     room_date.categories.set([category])
                     current_start_date = end_date + timedelta(days=1)
@@ -636,7 +648,10 @@ class Command(BaseCommand):
             # Создаём скидку в половине случаев
             stock = None
             if random.random() < 0.5:
-                discount = random.randint(5, 30)
+                if random.choice([True, False]):
+                    discount = round(random.uniform(0.01, 0.99), 2)
+                else:
+                    discount = random.randint(100, 2000)
                 end_stock = end - timedelta(days=random.randint(1, 5))
                 stock = TourStock.objects.create(active_stock=True, discount_amount=discount, end_date=end_stock)
 
@@ -658,7 +673,7 @@ class Command(BaseCommand):
             )
             tours.append(tour)
             if selected_rooms:
-                tour.room.set(selected_rooms)
+                tour.rooms.set(selected_rooms)
             if selected_meals:
                 tour.type_of_meals.set(selected_meals)
 

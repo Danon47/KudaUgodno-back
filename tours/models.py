@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -72,7 +72,7 @@ class Tour(models.Model):
         help_text="Введите ID отеля",
         **NULLABLE,
     )
-    room = models.ManyToManyField(
+    rooms = models.ManyToManyField(
         Room,
         verbose_name="Номер",
         related_name="tours",
@@ -92,7 +92,7 @@ class Tour(models.Model):
         decimal_places=2,
         verbose_name="Стоимость тура",
         help_text="Введите стоимость тура",
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("9999999.99"))],
         **NULLABLE,
     )
     stock = models.ForeignKey(
@@ -162,10 +162,11 @@ class TourStock(models.Model):
     )
     discount_amount = models.DecimalField(
         verbose_name="Величина скидки",
-        help_text="Введите какая скидка будет на тур в %",
+        help_text="Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - "
+        "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01"))],
+        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("99999.99"))],
     )
     end_date = models.DateField(verbose_name="Дата окончания скидки", help_text="Введите дату окончания скидки")
 
