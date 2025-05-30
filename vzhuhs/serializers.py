@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from hotels.models.hotel.models_hotel import Hotel
+from hotels.models import Hotel
 from tours.models import Tour
 from vzhuhs.models import Vzhuh
 
