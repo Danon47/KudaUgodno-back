@@ -10,6 +10,10 @@ class GuestDetailSerializer(serializers.ModelSerializer):
     Сериализатор для модели Guest
     """
 
+    firstname = serializers.CharField(validators=[ForbiddenWordValidator()])
+    lastname = serializers.CharField(validators=[ForbiddenWordValidator()])
+    citizenship = serializers.CharField(validators=[ForbiddenWordValidator()])
+
     class Meta:
         model = Guest
         fields = (
@@ -26,7 +30,6 @@ class GuestDetailSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("user_owner",)
         validators = [
-            ForbiddenWordValidator(fields=["firstname", "lastname", "surname", "citizenship"]),
             DateBornValidator(),
             ValidityOfForeignPassportValidator(),
         ]
