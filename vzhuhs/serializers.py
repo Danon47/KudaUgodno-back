@@ -2,6 +2,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from hotels.models import Hotel
+from hotels.models.hotel.models_hotel import HotelPhoto
 from tours.models import Tour
 from vzhuhs.models import Vzhuh
 
@@ -26,7 +27,6 @@ class HotelShortSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.URLField(allow_null=True))
     def get_photo(self, obj):
-        """Возвращает URL первой фотографии отеля (если есть)"""
         first_photo = obj.hotel_photos.first()
         return first_photo.photo.url if first_photo and first_photo.photo else None
 
