@@ -4,8 +4,8 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
-from vzhuh.models import Vzhuh
-from vzhuh.serializers import VzhuhSerializer
+from vzhuhs.models import Vzhuh
+from vzhuhs.serializers import VzhuhSerializer
 
 
 logger = logging.getLogger(__name__)

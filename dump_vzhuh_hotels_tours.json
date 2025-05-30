@@ -99,7 +99,7 @@
     }
   },
   {
-    "model": "vzhuh.vzhuh",
+    "model": "vzhuhs.vzhuh",
     "pk": 1,
     "fields": {
       "departure_city": "Москва",

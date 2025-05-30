@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from vzhuh.views import VzhuhViewSet
+from vzhuhs.views import VzhuhViewSet
 
 
 # Роутер для ViewSet

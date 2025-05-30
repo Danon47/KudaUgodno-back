@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from vzhuh.models import Vzhuh
+from vzhuhs.models import Vzhuh
 
 
 # Это кастомный фильтр

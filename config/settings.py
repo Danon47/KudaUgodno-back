@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     "applications",
     "guests",
     "insurances",
-    "vzhuh",
+    "vzhuhs",
     # Поддержка CORS
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
