@@ -25,6 +25,7 @@ from all_fixture.views_fixture import (
     USER_SETTINGS,
     VZHUH_SETTINGS,
     WHAT_ABOUT_SETTINGS,
+    # BLOG_SETTINGS # TODO: удалить, если не понадобится
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,6 +78,7 @@ INSTALLED_APPS = [
     "mailings",
     "promocodes",
     "calendars",
+    "blogs",
     # Поддержка CORS
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
