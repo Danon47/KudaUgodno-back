@@ -28,6 +28,7 @@ room_date_settings = {
     "name": "Даты доступности номеров",
     "description": "Методы для работы с датами доступности номеров",
 }
+MAILING_SETTINGS = {"name": "Рассылки", "description": "Методы для работы с рассылками"}
 
 # Отображение ошибки
 decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
@@ -305,6 +306,14 @@ room_date_id = OpenApiParameter(
     name="id",
     type=int,
     description="ID Даты стоимости номеров",
+    required=True,
+)
+# ID рассылки
+MAILING_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Рассылки",
     required=True,
 )
 
