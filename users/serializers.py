@@ -2,8 +2,8 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
 from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
+from all_fixture.validators.validators import ForbiddenWordValidator
 from users.models import User
-from users.validators import ForbiddenWordValidator
 
 
 # ───── Пользователи ───────────────────────────────────────────────────────────
@@ -11,6 +11,10 @@ from users.validators import ForbiddenWordValidator
 
 class BaseUserSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для всех пользователей."""
+
+    first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
+    last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
+    avatar = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -20,10 +24,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 class UserSerializer(BaseUserSerializer):
     """Сериализатор для обычных пользователей (туристов) с пользовательскими настройками."""
 
-    first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
-    last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
-    avatar = serializers.ImageField(required=False, allow_null=True)
-
+    role = serializers.CharField(default=RoleChoices.USER)
     currency = serializers.ChoiceField(
         choices=CurrencyChoices.choices,
         default=CurrencyChoices.RUB,
@@ -56,10 +57,6 @@ class UserSerializer(BaseUserSerializer):
 class CompanyUserSerializer(BaseUserSerializer):
     """Сериализатор для Туроператоров и Отельеров."""
 
-    first_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
-    last_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
-    email = serializers.EmailField(required=True)
-    phone_number = serializers.CharField(required=True)
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
     documents = serializers.FileField(required=False, allow_null=True)
     role = serializers.CharField(default=RoleChoices.TOUR_OPERATOR)

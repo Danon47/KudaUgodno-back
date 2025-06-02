@@ -1,8 +1,11 @@
 import logging
 import random
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.mail import EmailMessage
+from django.utils.timezone import now
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -15,7 +18,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from all_fixture.choices import RoleChoices
 from all_fixture.fixture_views import auth, entreprise, entreprise_id, limit, offset, user_id, user_settings
@@ -284,6 +287,10 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
         return Response({"message": "Компания удалена"}, status=status.HTTP_204_NO_CONTENT)
 
 
+class RefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
 class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     """ViewSet для аутентификации по email-коду (без ID пользователя)."""
 
@@ -379,7 +386,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         if user:
             refresh = RefreshToken.for_user(user)
-            return Response(
+            response = Response(
                 {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
@@ -388,6 +395,27 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 },
                 status=status.HTTP_200_OK,
             )
+
+            expires = now() + timedelta(days=30)
+            secure = not settings.DEBUG
+
+            response.set_cookie(
+                key="access_token",
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=str(refresh),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
+            )
+            return response
 
         return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -427,7 +455,12 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"message": "Вы успешно вышли из системы"}, status=status.HTTP_200_OK)
+
+            response = Response({"message": "Вы вышли"}, status=status.HTTP_200_OK)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -452,3 +485,49 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def check_token(self, request):
         """Возвращает 200 OK, если токен валиден, иначе 401."""
         return Response({"message": "Токен активен"}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Обновление токенов",
+        description="Обновляет access и refresh токены. Возвращает новые токены и обновляет cookies.",
+        tags=[auth["name"]],
+        request=RefreshRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Новые токены выданы",
+                examples=[OpenApiExample(name="OK", value={"access": "str", "refresh": "str"}, response_only=True)],
+            ),
+            401: OpenApiResponse(
+                description="Невалидный или отозванный токен",
+                examples=[
+                    OpenApiExample(name="Ошибка", value={"error": "Token is invalid or expired"}, response_only=True)
+                ],
+            ),
+        },
+    )
+    @action(detail=False, methods=["post"], url_path="refresh", permission_classes=[AllowAny])
+    def refresh(self, request):
+        serializer = RefreshRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            refresh = RefreshToken(serializer.validated_data["refresh"])
+            access = refresh.access_token
+
+            response = Response(
+                {"refresh": str(refresh), "access": str(access)},
+                status=status.HTTP_200_OK,
+            )
+
+            expires = now() + timedelta(days=30)
+            secure = not settings.DEBUG
+
+            response.set_cookie(
+                "access_token", str(access), httponly=True, secure=secure, samesite="Lax", expires=expires
+            )
+            response.set_cookie(
+                "refresh_token", str(refresh), httponly=True, secure=secure, samesite="Lax", expires=expires
+            )
+            return response
+
+        except TokenError as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)

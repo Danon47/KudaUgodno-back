@@ -13,6 +13,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     Базовая сериализация для заявок.
     """
 
+    wishes = serializers.CharField(validators=[ForbiddenWordValidator()])
+
     class Meta:
         fields = (
             "id",
@@ -24,7 +26,6 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
             "wishes",
             "status",
         )
-        validators = [ForbiddenWordValidator(fields=["wishes"])]
 
 
 class ApplicationTourSerializer(ApplicationBaseSerializer):

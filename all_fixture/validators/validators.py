@@ -9,23 +9,28 @@ class ForbiddenWordValidator:
     Валидатор на наличие недопустимых слов в названии.
     """
 
-    def __init__(self, fields: list):
-        self.fields = fields
+    def __init__(self):
         self.forbidden_words = self.load_forbidden_words()
 
     def load_forbidden_words(self):
         """
         Загружает запрещенные слова из файла forbidden_words.txt.
         """
-        file_path = os.path.join(os.path.dirname(__file__), "forbidden_words.txt")
-        with open(file_path, "r", encoding="utf-8") as file:
-            return file.read().splitlines()
+        base_dir = os.path.dirname(__file__)
+        file_path = os.path.join(base_dir, "forbidden_words.txt")
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return [word.strip() for word in file.read().splitlines()]
+        except FileNotFoundError:
+            raise FileNotFoundError("Файл forbidden_words.txt не был найден.")
 
     def __call__(self, value):
-        for field in self.fields:
-            tmp_val = dict(value).get(field)
-            if tmp_val and any(word in tmp_val.lower() for word in self.forbidden_words):
-                raise ValidationError("Введено недопустимое слово")
+        """
+        Проверяет, содержит ли значение запрещённые слова.
+        """
+        if isinstance(value, str) and any(word in value.lower() for word in self.forbidden_words):
+            raise ValidationError("Введено недопустимое слово")
+        return value
 
 
 class DateValidator:

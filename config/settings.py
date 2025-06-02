@@ -184,6 +184,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "users.authentication.CookieJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -275,5 +276,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
 ]
+
+# Безопасность куки и CSRF (важно при работе с куками и кросс-доменом)
+CSRF_COOKIE_HTTPONLY = False  # Оставляем False, чтобы фронт мог читать CSRF токен, если понадобится
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG  # В проде — True, только по HTTPS
+SESSION_COOKIE_SECURE = not DEBUG  # В проде — True, только по HTTPS
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
