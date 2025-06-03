@@ -1,27 +1,14 @@
 from rest_framework import routers
 
-from blogs.apps import BlogsConfig
-from blogs.views import (
-    ArticlePhotoViewSet,
-    ArticleVideoViewSet,
-    ArticleViewSet,
-    CategoryViewSet,
-    CommentLikeViewSet,
-    CommentViewSet,
-    TagViewSet,
-    ThemeViewSet,
-)
+from blogs.views import ArticleImageViewSet, ArticleViewSet, CategoryViewSet, TagViewSet
 
-app_name = BlogsConfig.name
+app_name = "blogs"
+
 
 router = routers.DefaultRouter()
 router.register(r"categories", CategoryViewSet, basename="category")
 router.register(r"tags", TagViewSet, basename="tag")
-router.register(r"themes", ThemeViewSet, basename="theme")
 router.register(r"articles", ArticleViewSet, basename="article")
-router.register(r"comments", CommentViewSet, basename="comment")
-router.register(r"comment-likes", CommentLikeViewSet, basename="comment-like")
-router.register(r"article-photos", ArticlePhotoViewSet, basename="article-photo")
-router.register(r"article-videos", ArticleVideoViewSet, basename="article-video")
+router.register(r"articleimages", ArticleImageViewSet, basename="articleimage")
 
 urlpatterns = router.urls

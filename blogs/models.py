@@ -1,4 +1,5 @@
 from django.db import models
+
 from all_fixture.fixture_views import NULLABLE
 
 
@@ -83,7 +84,7 @@ class ArticleImage(models.Model):
 
     class Meta:
         verbose_name = "Изображение статьи"
-        verbose_name__plural = "Изображения для статьи"
+        verbose_name_plural = "Изображения для статьи"
         ordering = ["order"]
 
     def __str__(self):
