@@ -12,7 +12,7 @@ from rest_framework.serializers import (
 
 from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
-from hotels.serializers import HotelListWithPhotoSerializer
+from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
 from rooms.serializers import RoomDetailSerializer
 from tours.models import Tour, TourStock
@@ -92,6 +92,18 @@ class TourListSerializer(TourSerializer):
 
     def get_tour_operator(self, obj: Tour) -> str:
         return obj.tour_operator.company_name
+
+
+class TourShortSerializer(ModelSerializer):
+    """
+    Сериализатор для списка горящих туров.
+    """
+
+    hotel = HotelShortSerializer()
+
+    class Meta:
+        model = Tour
+        fields = ("hotel", "price")
 
 
 class TourStockSerializer(ModelSerializer):

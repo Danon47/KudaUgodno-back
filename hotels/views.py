@@ -1,5 +1,7 @@
 from random import choice
 
+from django.db.models import F, OuterRef, Subquery, Window
+from django.db.models.functions import RowNumber
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
@@ -44,9 +46,11 @@ from hotels.serializers import (
     HotelPhotoSerializer,
     HotelSearchRequestSerializer,
     HotelSearchResponseSerializer,
+    HotelShortWithPriceSerializer,
     HotelWhatAboutFullSerializer,
 )
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
+from rooms.models import RoomCategory
 
 
 @extend_schema_view(
@@ -210,6 +214,51 @@ class HotelFiltersView(viewsets.ModelViewSet):
         if not request_serializer.is_valid():
             return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список акционных отелей",
+        description="Получение списка всех акционных отелей",
+        parameters=[limit, offset],
+        tags=[hotel_settings["name"]],
+        responses={
+            200: HotelShortWithPriceSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+    )
+)
+class HotelsHotView(viewsets.ModelViewSet):
+    """Горящие туры по одному из каждой страны по минимальной цене."""
+
+    serializer_class = HotelShortWithPriceSerializer
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Получение отеля по одному из каждой страны с минимальной ценой."""
+        min_price_subquery = (
+            RoomCategory.objects.filter(
+                room_date__stock=True, room_date__available_for_booking=True, room__hotel=OuterRef("pk")
+            )
+            .order_by("price")
+            .values("price")[:1]
+        )
+
+        queryset = (
+            Hotel.objects.filter(is_active=True)
+            .annotate(min_price=Subquery(min_price_subquery))
+            .exclude(min_price=None)
+            .annotate(
+                grouped_countries=Window(
+                    expression=RowNumber(), partition_by=[F("country")], order_by=F("min_price").asc()
+                )
+            )
+            .filter(grouped_countries=1)
+            .order_by("country")
+        )
+
+        return queryset
 
 
 @extend_schema_view(

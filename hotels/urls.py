@@ -5,6 +5,7 @@ from hotels.views import (
     HotelFiltersView,
     HotelPhotoViewSet,
     HotelSearchView,
+    HotelsHotView,
     HotelViewSet,
     HotelWarpUpViewSet,
     TypeOfMealViewSet,
@@ -70,6 +71,11 @@ urlpatterns = [
     path(
         "hotels/filters/",
         HotelFiltersView.as_view({"get": "filters"}),
-        name="tour-filters",
+        name="hotels-filters",
+    ),
+    path(
+        "hotels/hot/",
+        HotelsHotView.as_view({"get": "list"}),
+        name="hotels-hot",
     ),
 ]

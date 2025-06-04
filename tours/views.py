@@ -1,4 +1,6 @@
 from dal import autocomplete
+from django.db.models import F, Min, Window
+from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
@@ -44,6 +46,7 @@ from tours.serializers import (
     TourSearchRequestSerializer,
     TourSearchResponseSerializer,
     TourSerializer,
+    TourShortSerializer,
     TourStockSerializer,
 )
 
@@ -273,6 +276,42 @@ class TourFiltersView(viewsets.ModelViewSet):
         if not request_serializer.is_valid():
             return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список горящих туров",
+        description="Получение списка всех горящих туров",
+        parameters=[limit, offset],
+        tags=[tour_settings["name"]],
+        responses={
+            200: TourShortSerializer(many=True),
+            400: OpenApiResponse(description="Ошибка валидации"),
+        },
+    )
+)
+class TourHotView(viewsets.ModelViewSet):
+    """Горящие туры по одному из каждой страны по минимальной цене."""
+
+    serializer_class = TourShortSerializer
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Получение тура по одной из каждой страны с минимальной ценой."""
+        queryset = (
+            Tour.objects.filter(is_active=True, stock__active_stock=True)
+            .annotate(
+                min_price_in_country=Min("price"),
+                grouped_countries=Window(
+                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                ),
+            )
+            .filter(grouped_countries=1)
+            .order_by("arrival_country")
+        )
+
+        return queryset
 
 
 class HotelAutocomplete(autocomplete.Select2QuerySetView):

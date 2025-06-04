@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.db.models import Min
 from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
@@ -16,7 +15,6 @@ from rest_framework.serializers import (
 
 from hotels.models import Hotel, HotelPhoto, HotelRules, HotelWhatAbout
 from hotels.validators import DateValidator
-from rooms.models import RoomCategory
 from rooms.serializers import RoomDetailSerializer
 
 
@@ -250,7 +248,6 @@ class HotelFiltersRequestSerializer(Serializer):
 
 class HotelShortSerializer(ModelSerializer):
     photo = SerializerMethodField()
-    min_price = SerializerMethodField()
 
     class Meta:
         model = Hotel
@@ -262,7 +259,6 @@ class HotelShortSerializer(ModelSerializer):
             "star_category",
             "name",
             "distance_to_the_center",
-            "min_price",
             "user_rating",
         )
 
@@ -273,8 +269,17 @@ class HotelShortSerializer(ModelSerializer):
             return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
         return None
 
-    def get_min_price(self, obj: Hotel) -> int:
-        return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
+
+class HotelShortWithPriceSerializer(HotelShortSerializer):
+
+    min_price = DecimalField(max_digits=11, decimal_places=2)
+
+    class Meta(HotelShortSerializer.Meta):
+        model = Hotel
+        fields = HotelShortSerializer.Meta.fields + ("min_price",)
+
+    # def get_min_price(self, obj: Hotel) -> int:
+    #     return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
 
 
 class HotelWhatAboutFullSerializer(ModelSerializer):
