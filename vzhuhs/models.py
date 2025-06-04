@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
+from hotels.models import HotelPhoto
 
 
 class Vzhuh(models.Model):
@@ -29,6 +30,16 @@ class Vzhuh(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Фото
+    main_photo = models.ForeignKey(
+        HotelPhoto,
+        verbose_name="Главное фото для Вжуха",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vzhuhs",
+    )
 
     class Meta:
         verbose_name = "Вжух"

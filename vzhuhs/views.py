@@ -1,9 +1,12 @@
 import logging
 
+from dal import autocomplete
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
+from hotels.models import Hotel
+from tours.models import Tour
 from vzhuhs.models import Vzhuh
 from vzhuhs.serializers import VzhuhSerializer
 
@@ -16,7 +19,41 @@ logger = logging.getLogger(__name__)
     retrieve=extend_schema(exclude=True),
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
-    """Только список опубликованных Вжухов."""
-
     queryset = Vzhuh.objects.filter(is_published=True)
     serializer_class = VzhuhSerializer
+
+
+class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Hotel.objects.all()
+
+        arrival_city = self.forwarded.get("arrival_city")
+        if arrival_city:
+            qs = qs.filter(city__icontains=arrival_city)
+
+        selected = self.forwarded.get("selected_hotels")
+        if selected:
+            selected_ids = selected.split(",")
+            qs = qs.exclude(pk__in=selected_ids)
+
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+        return qs
+
+
+class VzhuhAutocompleteTour(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Tour.objects.all()
+
+        arrival_city = self.forwarded.get("arrival_city")
+        if arrival_city:
+            qs = qs.filter(arrival_city__icontains=arrival_city)
+
+        selected = self.forwarded.get("selected_tours")
+        if selected:
+            selected_ids = selected.split(",")
+            qs = qs.exclude(pk__in=selected_ids)
+
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+        return qs
