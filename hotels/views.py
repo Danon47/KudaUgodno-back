@@ -224,7 +224,6 @@ class HotelFiltersView(viewsets.ModelViewSet):
         tags=[hotel_settings["name"]],
         responses={
             200: HotelShortWithPriceSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка валидации"),
         },
     )
 )

@@ -34,7 +34,7 @@ class TourSearchFilter(FilterSet):
             guests = int(value)
             return queryset.filter(
                 Exists(
-                    Room.objects.filter(hotel=OuterRef("hotel"), category=OuterRef("room"), number_of_adults__gte=1)
+                    Room.objects.filter(hotel=OuterRef("hotel"), tours=OuterRef("pk"), number_of_adults__gte=1)
                     .annotate(total_guests=F("number_of_adults") + F("number_of_children"))
                     .filter(total_guests__gte=guests)
                 )

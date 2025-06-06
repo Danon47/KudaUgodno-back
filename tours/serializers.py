@@ -1,4 +1,3 @@
-from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -100,36 +99,23 @@ class TourShortSerializer(ModelSerializer):
     """
 
     hotel = HotelShortSerializer()
+    guests = SerializerMethodField()
 
     class Meta:
         model = Tour
-        fields = ("hotel", "price")
+        fields = ("hotel", "price", "start_date", "end_date", "guests")
+
+    def get_guests(self, obj):
+        return {
+            "number_of_adults": obj.number_of_adults,
+            "number_of_children": obj.number_of_children,
+        }
 
 
 class TourStockSerializer(ModelSerializer):
     class Meta:
         model = TourStock
         fields = ("id", "active_stock", "end_date", "discount_amount")
-
-
-class TourSearchResponseSerializer(TourListSerializer):
-    """Сериализатор только для формирования ответа поиска."""
-
-    nights = SerializerMethodField()
-    guests = SerializerMethodField()
-
-    class Meta(TourListSerializer.Meta):
-        fields = TourListSerializer.Meta.fields + ("nights", "guests")
-
-    @extend_schema_field(int)
-    def get_nights(self, obj) -> int:
-        """Расчет количества ночей."""
-        return (obj.end_date - obj.start_date).days
-
-    @extend_schema_field(int)
-    def get_guests(self, obj) -> int:
-        """Получение количества гостей из контекста."""
-        return int(self.context.get("guests", 1))
 
 
 class TourSearchRequestSerializer(Serializer):

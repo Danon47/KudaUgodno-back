@@ -1,5 +1,5 @@
 from dal import autocomplete
-from django.db.models import F, Min, Window
+from django.db.models import F, OuterRef, Subquery, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
@@ -36,7 +36,7 @@ from all_fixture.fixture_views import (
 )
 from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel, TypeOfMeal
-from rooms.models import Room
+from rooms.models import Room, RoomCategory
 from tours.filters import TourExtendedFilter, TourSearchFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
@@ -44,7 +44,6 @@ from tours.serializers import (
     TourListSerializer,
     TourPatchSerializer,
     TourSearchRequestSerializer,
-    TourSearchResponseSerializer,
     TourSerializer,
     TourShortSerializer,
     TourStockSerializer,
@@ -198,7 +197,7 @@ class TourStockViewSet(viewsets.ModelViewSet):
         parameters=[tour_departure_city, tour_arrival_city, tour_start_date, tour_nights, tour_guests, limit, offset],
         tags=[tour_settings["name"]],
         responses={
-            200: TourSearchResponseSerializer(many=True),
+            200: TourShortSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     )
@@ -206,17 +205,35 @@ class TourStockViewSet(viewsets.ModelViewSet):
 class TourSearchView(viewsets.ModelViewSet):
     """Поиск туров с учетом фильтров город вылета/прилёта, даты вылета, кол-ва ночей/гостей."""
 
-    queryset = Tour.objects.filter(is_active=True)
-    serializer_class = TourSearchResponseSerializer
+    queryset = Tour.objects.none
+    serializer_class = TourShortSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TourSearchFilter
     pagination_class = CustomLOPagination
     http_method_names = ["get"]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["guests"] = self.request.query_params.get("guests", 1)
-        return context
+    def get_queryset(self):
+        """Получение доступного тура с максимальным количеством гостей в комнате."""
+        guests_subquery = (
+            RoomCategory.objects.filter(
+                room__tours=OuterRef("pk"),
+                room_date__available_for_booking=True,
+            )
+            .annotate(total_guests=F("room__number_of_adults") + F("room__number_of_children"))
+            .order_by("-total_guests")
+            .values("room__number_of_adults", "room__number_of_children")[:1]
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True)
+            .annotate(
+                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+            )
+            .order_by("arrival_country")
+        )
+
+        return queryset
 
     @action(detail=False, methods=["get"])
     def search(self, request):
@@ -250,7 +267,7 @@ class TourSearchView(viewsets.ModelViewSet):
         ],
         tags=[tour_settings["name"]],
         responses={
-            200: TourSearchResponseSerializer(many=True),
+            200: TourShortSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     ),
@@ -258,17 +275,35 @@ class TourSearchView(viewsets.ModelViewSet):
 class TourFiltersView(viewsets.ModelViewSet):
     """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
 
-    queryset = Tour.objects.filter(is_active=True)
-    serializer_class = TourSearchResponseSerializer
+    queryset = Tour.objects.none
+    serializer_class = TourShortSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TourExtendedFilter
     pagination_class = CustomLOPagination
     http_method_names = ["get"]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["guests"] = self.request.query_params.get("guests", 1)
-        return context
+    def get_queryset(self):
+        """Получение доступного тура с максимальным количеством гостей в комнате."""
+        guests_subquery = (
+            RoomCategory.objects.filter(
+                room__tours=OuterRef("pk"),
+                room_date__available_for_booking=True,
+            )
+            .annotate(total_guests=F("room__number_of_adults") + F("room__number_of_children"))
+            .order_by("-total_guests")
+            .values("room__number_of_adults", "room__number_of_children")[:1]
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True)
+            .annotate(
+                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+            )
+            .order_by("arrival_country")
+        )
+
+        return queryset
 
     @action(detail=False, methods=["get"])
     def filters(self, request):
@@ -286,7 +321,6 @@ class TourFiltersView(viewsets.ModelViewSet):
         tags=[tour_settings["name"]],
         responses={
             200: TourShortSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка валидации"),
         },
     )
 )
@@ -298,16 +332,25 @@ class TourHotView(viewsets.ModelViewSet):
     http_method_names = ["get"]
 
     def get_queryset(self):
-        """Получение тура по одной из каждой страны с минимальной ценой."""
+        """Получение тура по одному из каждой страны с минимальной ценой."""
+        guests_subquery = (
+            RoomCategory.objects.filter(
+                room_date__stock=True, room_date__available_for_booking=True, room__tours=OuterRef("pk")
+            )
+            .order_by("price")
+            .values("room__number_of_adults", "room__number_of_children")[:1]
+        )
+
         queryset = (
             Tour.objects.filter(is_active=True, stock__active_stock=True)
             .annotate(
-                min_price_in_country=Min("price"),
-                grouped_countries=Window(
+                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+                country_rank=Window(
                     expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
                 ),
             )
-            .filter(grouped_countries=1)
+            .filter(country_rank=1)
             .order_by("arrival_country")
         )
 

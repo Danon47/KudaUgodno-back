@@ -149,27 +149,62 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     #     return obj.created_by.email if obj.created_by else None
 
 
-class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
+class HotelShortSerializer(ModelSerializer):
+    photo = SerializerMethodField()
+
+    class Meta:
+        model = Hotel
+        fields = (
+            "id",
+            "photo",
+            "country",
+            "city",
+            "star_category",
+            "name",
+            "user_rating",
+        )
+
+    def get_photo(self, obj: Hotel) -> str:
+        request = self.context.get("request")
+        first_photo = obj.hotel_photos.first()
+        if first_photo:
+            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
+        return None
+
+
+class HotelShortWithPriceSerializer(HotelShortSerializer):
+
+    min_price = SerializerMethodField()
+
+    class Meta(HotelShortSerializer.Meta):
+        model = Hotel
+        fields = HotelShortSerializer.Meta.fields + ("min_price", "distance_to_the_center")
+
+    @extend_schema_field(DecimalField(max_digits=10, decimal_places=2))
+    def get_min_price(self, obj):
+        return getattr(obj, "min_price", None)
+
+
+class HotelWhatAboutFullSerializer(ModelSerializer):
+    hotel = HotelShortSerializer(many=True, read_only=True)
+    name_set = CharField(read_only=True)
+
+    class Meta:
+        model = HotelWhatAbout
+        fields = ("name_set", "hotel")
+
+
+class HotelSearchResponseSerializer(HotelShortWithPriceSerializer):
     """
-    Cериализатор отеля для получения ответа из поиска.
+    Сериализатор отеля для получения ответа из поиска.
     """
 
     nights = SerializerMethodField()
     guests = SerializerMethodField()
-    rooms = SerializerMethodField()
 
-    class Meta(HotelListRoomAndPhotoSerializer.Meta):
-        fields = HotelListRoomAndPhotoSerializer.Meta.fields + ("nights", "guests")
-
-    @extend_schema_field(field=RoomDetailSerializer(many=True))
-    def get_rooms(self, obj):
-        """
-        Возвращаем только отфильтрованные комнаты по количеству гостей и другим параметрам.
-        """
-        rooms = getattr(obj, "filtered_rooms", None)
-        if rooms is None:
-            return []  # если не было префетча
-        return RoomDetailSerializer(rooms, many=True).data
+    class Meta(HotelShortWithPriceSerializer.Meta):
+        model = Hotel
+        fields = HotelShortWithPriceSerializer.Meta.fields + ("nights", "guests")
 
     @extend_schema_field(int)
     def get_nights(self, obj) -> int:
@@ -244,48 +279,3 @@ class HotelFiltersRequestSerializer(Serializer):
     user_rating = FloatField(min_value=0, max_value=10, required=False)
     star_category = IntegerField(min_value=0, required=False)
     validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
-
-
-class HotelShortSerializer(ModelSerializer):
-    photo = SerializerMethodField()
-
-    class Meta:
-        model = Hotel
-        fields = (
-            "id",
-            "photo",
-            "country",
-            "city",
-            "star_category",
-            "name",
-            "distance_to_the_center",
-            "user_rating",
-        )
-
-    def get_photo(self, obj: Hotel) -> str:
-        request = self.context.get("request")
-        first_photo = obj.hotel_photos.first()
-        if first_photo:
-            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
-        return None
-
-
-class HotelShortWithPriceSerializer(HotelShortSerializer):
-
-    min_price = DecimalField(max_digits=11, decimal_places=2)
-
-    class Meta(HotelShortSerializer.Meta):
-        model = Hotel
-        fields = HotelShortSerializer.Meta.fields + ("min_price",)
-
-    # def get_min_price(self, obj: Hotel) -> int:
-    #     return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
-
-
-class HotelWhatAboutFullSerializer(ModelSerializer):
-    hotel = HotelShortSerializer(many=True, read_only=True)
-    name_set = CharField(read_only=True)
-
-    class Meta:
-        model = HotelWhatAbout
-        fields = ("name_set", "hotel")
