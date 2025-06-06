@@ -1,5 +1,6 @@
-from rest_framework.serializers import BooleanField, EmailField, ModelSerializer
+from rest_framework.serializers import BooleanField, CharField, EmailField, ModelSerializer, Serializer
 
+from all_fixture.fixture_views import MAILING_ID_ERROR
 from mailings.models import Mailing
 
 
@@ -25,3 +26,7 @@ class MailingSerializer(ModelSerializer):
         elif self.context.get("view").action == "update":
             fields["mailing"].required = True
         return fields
+
+
+class MailingErrorIdSerializer(Serializer):
+    detail = CharField(default=MAILING_ID_ERROR)

@@ -154,7 +154,7 @@ class TourFiltersRequestSerializer(Serializer):
     price_gte = IntegerField(min_value=0, required=False)
     price_lte = IntegerField(min_value=0, required=False)
     user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, required=False)
+    star_category = IntegerField(min_value=0, max_value=5, required=False)
     distance_to_the_airport = IntegerField(min_value=0, required=False)
     tour_operator = CharField(required=False)
     validators = [StartDateValidator()]

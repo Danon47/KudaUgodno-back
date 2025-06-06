@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from all_fixture.fixture_views import MAILING_ID, MAILING_SETTINGS, limit, offset
 from config.settings import EMAIL_HOST_USER
 from mailings.models import Mailing
-from mailings.serializers import MailingSerializer
+from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
 
 
 @extend_schema(tags=[MAILING_SETTINGS["name"]])
@@ -33,7 +33,7 @@ from mailings.serializers import MailingSerializer
         parameters=[MAILING_ID],
         responses={
             200: MailingSerializer,
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
         },
     ),
     update=extend_schema(
@@ -44,7 +44,7 @@ from mailings.serializers import MailingSerializer
         responses={
             200: MailingSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
         },
     ),
     partial_update=extend_schema(
@@ -55,7 +55,7 @@ from mailings.serializers import MailingSerializer
         responses={
             200: MailingSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
         },
     ),
     destroy=extend_schema(
@@ -64,7 +64,7 @@ from mailings.serializers import MailingSerializer
         parameters=[MAILING_ID],
         responses={
             204: OpenApiResponse(description="Рассылка отключена"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
         },
     ),
 )

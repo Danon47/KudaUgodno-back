@@ -277,5 +277,5 @@ class HotelFiltersRequestSerializer(Serializer):
     price_gte = IntegerField(min_value=1, required=False)
     price_lte = IntegerField(min_value=0, required=False)
     user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, required=False)
+    star_category = IntegerField(min_value=0, max_value=5, required=False)
     validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
