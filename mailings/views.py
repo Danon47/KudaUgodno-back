@@ -43,7 +43,7 @@ from mailings.serializers import MailingSerializer
         },
     ),
     update=extend_schema(
-        summary="Полное обновление парамет рассылки на главной странице",
+        summary="Полное обновление параметр рассылки на главной странице",
         description="Обновление всех полей рассылки на главной странице",
         request={"multipart/form-data": MailingSerializer},
         parameters=[MAILING_ID],
