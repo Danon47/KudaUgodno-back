@@ -26,16 +26,13 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
 class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = Hotel.objects.all()
-
         arrival_city = self.forwarded.get("arrival_city")
+        selected_ids = self.forwarded.get("hotels", [])
+
         if arrival_city:
             qs = qs.filter(city__icontains=arrival_city)
-
-        selected = self.forwarded.get("selected_hotels")
-        if selected:
-            selected_ids = selected.split(",")
-            qs = qs.exclude(pk__in=selected_ids)
-
+        if selected_ids:
+            qs = qs.exclude(id__in=selected_ids)
         if self.q:
             qs = qs.filter(name__icontains=self.q)
         return qs
@@ -44,16 +41,13 @@ class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
 class VzhuhAutocompleteTour(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = Tour.objects.all()
-
         arrival_city = self.forwarded.get("arrival_city")
+        selected_ids = self.forwarded.get("tours", [])
+
         if arrival_city:
             qs = qs.filter(arrival_city__icontains=arrival_city)
-
-        selected = self.forwarded.get("selected_tours")
-        if selected:
-            selected_ids = selected.split(",")
-            qs = qs.exclude(pk__in=selected_ids)
-
+        if selected_ids:
+            qs = qs.exclude(id__in=selected_ids)
         if self.q:
             qs = qs.filter(name__icontains=self.q)
         return qs
