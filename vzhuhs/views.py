@@ -19,11 +19,26 @@ logger = logging.getLogger(__name__)
     retrieve=extend_schema(exclude=True),
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
+    """
+    Представление только для чтения (ReadOnly) опубликованных объектов модели Vzhuh.
+
+    - Использует сериализатор `VzhuhSerializer`
+    - Возвращает только записи с `is_published=True`
+    - Эндпоинт отображается в Swagger как "Список Вжухов"
+    """
+
     queryset = Vzhuh.objects.filter(is_published=True)
     serializer_class = VzhuhSerializer
 
 
 class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
+    """
+    Autocomplete-представление для выбора отелей, отфильтрованных по городу прибытия
+    и исключающих уже выбранные отели.
+
+    Используется в админке при создании/редактировании объекта Vzhuh.
+    """
+
     def get_queryset(self):
         qs = Hotel.objects.all()
         arrival_city = self.forwarded.get("arrival_city")
@@ -39,6 +54,13 @@ class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
 
 
 class VzhuhAutocompleteTour(autocomplete.Select2QuerySetView):
+    """
+    Autocomplete-представление для выбора туров, отфильтрованных по городу прибытия
+    и исключающих уже выбранные туры.
+
+    Используется в админке при создании/редактировании объекта Vzhuh.
+    """
+
     def get_queryset(self):
         qs = Tour.objects.all()
         arrival_city = self.forwarded.get("arrival_city")

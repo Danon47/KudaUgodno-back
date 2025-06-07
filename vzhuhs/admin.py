@@ -7,6 +7,11 @@ from vzhuhs.models import Vzhuh
 
 
 class ArrivalCityFilter(admin.SimpleListFilter):
+    """
+    Кастомный фильтр по городу прибытия для списка объектов Vzhuh в админке.
+    Показывает только уникальные значения поля arrival_city.
+    """
+
     title = "Город прибытия"
     parameter_name = "arrival_city"
 
@@ -21,6 +26,11 @@ class ArrivalCityFilter(admin.SimpleListFilter):
 
 
 class HasPhotoFilter(admin.SimpleListFilter):
+    """
+    Кастомный фильтр по наличию главного фото (main_photo).
+    Показывает записи с/ или без установленного фото.
+    """
+
     title = "Есть фото"
     parameter_name = "has_photo"
 
@@ -37,6 +47,15 @@ class HasPhotoFilter(admin.SimpleListFilter):
 
 @admin.register(Vzhuh)
 class VzhuhAdmin(admin.ModelAdmin):
+    """
+    Админка для модели Vzhuh с кастомной формой, фильтрами, действиями и отображением.
+
+    Особенности:
+    - Кастомные фильтры по городу и фото
+    - Автозаполнение главного фото при сохранении (если не задано)
+    - Отображение главного фото и статуса публикации в list_display
+    """
+
     form = VzhuhForm
 
     list_display = (
@@ -88,6 +107,9 @@ class VzhuhAdmin(admin.ModelAdmin):
     actions = ["publish_vzhuhs", "unpublish_vzhuhs", "export_vzhuhs"]
 
     def main_photo_preview(self, obj):
+        """
+        Отображает превью главного фото в админке.
+        """
         if obj.main_photo and obj.main_photo.photo:
             return format_html('<img src="{}" width="100" height="auto" />', obj.main_photo.photo.url)
         return "—"
@@ -95,17 +117,19 @@ class VzhuhAdmin(admin.ModelAdmin):
     main_photo_preview.short_description = "Фото"
 
     def colored_published(self, obj):
+        """
+        Показывает цветной индикатор статуса публикации.
+        """
         color = "green" if obj.is_published else "red"
         label = "Да" if obj.is_published else "Нет"
         return format_html('<span style="color: {};">{}</span>', color, label)
 
     colored_published.short_description = "Опубликован"
 
-    def save_model(self, request, obj, form, change):
-        # Сохраняем объект, чтобы появился obj.pk
-        super().save_model(request, obj, form, change)
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
 
-        # Если нет главного фото — берём первое из отелей
+        obj = form.instance
         if not obj.main_photo:
             first_hotel = obj.hotels.first()
             if first_hotel:
@@ -116,8 +140,14 @@ class VzhuhAdmin(admin.ModelAdmin):
 
     @admin.action(description="Опубликовать выбранные Вжухи")
     def publish_vzhuhs(self, request, queryset):
+        """
+        Действие для массовой публикации выбранных объектов.
+        """
         queryset.update(is_published=True)
 
     @admin.action(description="Снять с публикации выбранные Вжухи")
     def unpublish_vzhuhs(self, request, queryset):
+        """
+        Действие для массового снятия объектов с публикации.
+        """
         queryset.update(is_published=False)

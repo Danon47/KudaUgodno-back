@@ -6,7 +6,9 @@ from tours.models import Tour
 from vzhuhs.models import Vzhuh
 
 
+# Cериализатор Отелей
 class HotelShortSerializer(serializers.ModelSerializer):
+
     photo = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
 
@@ -26,16 +28,24 @@ class HotelShortSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.URLField(allow_null=True))
     def get_photo(self, obj):
+        """
+        Возвращает URL первого фото отеля, если оно доступно.
+        """
         first_photo = obj.hotel_photos.first()
         return first_photo.photo.url if first_photo and first_photo.photo else None
 
     @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
     def get_price(self, obj):
+        """
+        Вычисляет минимальную цену по связанным турам отеля, если они есть.
+        """
         tours = obj.tours.filter(price__isnull=False)
         return min(t.price for t in tours) if tours.exists() else None
 
 
+# Cериализатор Туров
 class TourShortSerializer(serializers.ModelSerializer):
+
     photo = serializers.SerializerMethodField()
     country = serializers.CharField(source="hotel.country")
     city = serializers.CharField(source="hotel.city")
@@ -64,6 +74,9 @@ class TourShortSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.URLField(allow_null=True))
     def get_photo(self, obj):
+        """
+        Возвращает URL первого фото отеля, связанного с туром.
+        """
         hotel = obj.hotel
         if not hotel:
             return None
@@ -72,18 +85,26 @@ class TourShortSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
     def get_sale(self, obj):
+        """
+        Возвращает размер скидки, если у тура есть активная акция.
+        """
         if obj.stock and obj.stock.active_stock:
             return obj.stock.discount_amount
         return None
 
     @extend_schema_field(serializers.IntegerField(allow_null=True))
     def get_number_of_days(self, obj):
+        """
+        Вычисляет количество дней между началом и окончанием тура.
+        """
         if obj.start_date and obj.end_date:
             return (obj.end_date - obj.start_date).days
         return None
 
 
+# Cериализатор объекта Vzhuh
 class VzhuhSerializer(serializers.ModelSerializer):
+
     route = serializers.SerializerMethodField()
     tours = TourShortSerializer(many=True)
     hotels = HotelShortSerializer(many=True)
@@ -110,10 +131,16 @@ class VzhuhSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.CharField())
     def get_route(self, obj):
+        """
+        Возвращает строковое описание маршрута (computed-свойство).
+        """
         return obj.route
 
     @extend_schema_field(serializers.URLField(allow_null=True))
     def get_main_photo_url(self, obj):
+        """
+        Возвращает URL главного фото, если оно задано.
+        """
         if obj.main_photo and obj.main_photo.photo:
             return obj.main_photo.photo.url
         return None
