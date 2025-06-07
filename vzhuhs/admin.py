@@ -43,7 +43,6 @@ class VzhuhAdmin(admin.ModelAdmin):
         "display_route",
         "arrival_city",
         "colored_published",
-        "main_photo_preview",
         "created_at",
     )
     search_fields = ("description",)
@@ -72,15 +71,12 @@ class VzhuhAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Туры", {"fields": ("tours",), "classes": ["collapse"]}),
-        ("Отели", {"fields": ("hotels", "description_hotel"), "classes": ["collapse"]}),
-        ("Блог", {"fields": ("description_blog",), "classes": ["collapse"]}),
+        ("Туры", {"fields": ("tours",)}),
+        ("Отели", {"fields": ("hotels", "description_hotel")}),
+        ("Блог", {"fields": ("description_blog",)}),
         (
             "Системные",
-            {
-                "fields": ("is_published", "main_photo", "main_photo_preview", "created_at", "updated_at"),
-                "classes": ["collapse"],
-            },
+            {"fields": ("is_published", "main_photo", "main_photo_preview", "created_at", "updated_at")},
         ),
     )
 

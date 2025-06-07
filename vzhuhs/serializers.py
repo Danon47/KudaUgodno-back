@@ -87,6 +87,7 @@ class VzhuhSerializer(serializers.ModelSerializer):
     route = serializers.SerializerMethodField()
     tours = TourShortSerializer(many=True)
     hotels = HotelShortSerializer(many=True)
+    main_photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Vzhuh
@@ -102,6 +103,7 @@ class VzhuhSerializer(serializers.ModelSerializer):
             "description_blog",
             "tours",
             "hotels",
+            "main_photo_url",
             "created_at",
             "is_published",
         )
@@ -109,3 +111,9 @@ class VzhuhSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.CharField())
     def get_route(self, obj):
         return obj.route
+
+    @extend_schema_field(serializers.URLField(allow_null=True))
+    def get_main_photo_url(self, obj):
+        if obj.main_photo and obj.main_photo.photo:
+            return obj.main_photo.photo.url
+        return None
