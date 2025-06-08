@@ -1,16 +1,12 @@
 from django.contrib import admin
-from django.db import models
 from django.utils.html import format_html
 
 from vzhuhs.forms import VzhuhForm
-from vzhuhs.models import Vzhuh
+from vzhuhs.models import Vzhuh, VzhuhPhoto
 
 
 class ArrivalCityFilter(admin.SimpleListFilter):
-    """
-    Кастомный фильтр по городу прибытия для списка объектов Vzhuh в админке.
-    Показывает только уникальные значения поля arrival_city.
-    """
+    """Кастомный фильтр по городу прибытия для списка объектов Vzhuh в админке."""
 
     title = "Город прибытия"
     parameter_name = "arrival_city"
@@ -25,38 +21,24 @@ class ArrivalCityFilter(admin.SimpleListFilter):
         return queryset
 
 
-class HasPhotoFilter(admin.SimpleListFilter):
+class VzhuhPhotoInline(admin.TabularInline):
     """
-    Кастомный фильтр по наличию главного фото (main_photo).
-    Показывает записи с/ или без установленного фото.
+    Инлайн-фотографии, иллюстрирующие направление Вжуха (город).
     """
 
-    title = "Есть фото"
-    parameter_name = "has_photo"
-
-    def lookups(self, request, model_admin):
-        return (("yes", "Да"), ("no", "Нет"))
-
-    def queryset(self, request, queryset):
-        if self.value() == "yes":
-            return queryset.exclude(main_photo__isnull=True)
-        elif self.value() == "no":
-            return queryset.filter(main_photo__isnull=True)
-        return queryset
+    model = VzhuhPhoto
+    extra = 1
+    fields = ("photo", "caption")
 
 
 @admin.register(Vzhuh)
 class VzhuhAdmin(admin.ModelAdmin):
     """
-    Админка для модели Vzhuh с кастомной формой, фильтрами, действиями и отображением.
-
-    Особенности:
-    - Кастомные фильтры по городу и фото
-    - Автозаполнение главного фото при сохранении (если не задано)
-    - Отображение главного фото и статуса публикации в list_display
+    Админка для модели Vzhuh.
     """
 
     form = VzhuhForm
+    inlines = [VzhuhPhotoInline]
 
     list_display = (
         "display_route",
@@ -65,14 +47,13 @@ class VzhuhAdmin(admin.ModelAdmin):
         "created_at",
     )
     search_fields = ("description",)
-    list_filter = (
+    list_filter = ("created_at", "updated_at", ArrivalCityFilter)
+    readonly_fields = (
         "created_at",
         "updated_at",
-        ArrivalCityFilter,
-        HasPhotoFilter,
+        "blog_photo_preview",
+        "hotel_photos_preview",
     )
-    readonly_fields = ("created_at", "updated_at", "main_photo_preview")
-
     filter_horizontal = ("tours", "hotels")
     list_per_page = 30
     list_max_show_all = 300
@@ -91,63 +72,65 @@ class VzhuhAdmin(admin.ModelAdmin):
             },
         ),
         ("Туры", {"fields": ("tours",)}),
-        ("Отели", {"fields": ("hotels", "description_hotel")}),
-        ("Блог", {"fields": ("description_blog",)}),
+        ("Отели", {"fields": ("hotels", "description_hotel", "hotel_photos_preview")}),
+        ("Блог", {"fields": ("description_blog", "blog_photo", "blog_photo_preview")}),
         (
             "Системные",
-            {"fields": ("is_published", "main_photo", "main_photo_preview", "created_at", "updated_at")},
+            {
+                "fields": (
+                    "is_published",
+                    "created_at",
+                    "updated_at",
+                )
+            },
         ),
     )
 
-    formfield_overrides = {
-        models.TextField: {"widget": admin.widgets.AdminTextareaWidget(attrs={"style": "width: 95%; height: 8em;"})},
-        models.CharField: {"widget": admin.widgets.AdminTextInputWidget(attrs={"style": "width: 60%;"})},
-    }
-
-    actions = ["publish_vzhuhs", "unpublish_vzhuhs", "export_vzhuhs"]
-
-    def main_photo_preview(self, obj):
-        """
-        Отображает превью главного фото в админке.
-        """
-        if obj.main_photo and obj.main_photo.photo:
-            return format_html('<img src="{}" width="100" height="auto" />', obj.main_photo.photo.url)
+    def blog_photo_preview(self, obj):
+        if obj.blog_photo and obj.blog_photo.photo:
+            return format_html('<img src="{}" width="100" height="auto" />', obj.blog_photo.photo.url)
         return "—"
 
-    main_photo_preview.short_description = "Фото"
+    blog_photo_preview.short_description = "Фото блога"
+
+    def hotel_photos_preview(self, obj):
+        """
+        Показывает по одному фото для каждого отеля:
+        - сначала первое;
+        - если нет — второе;
+        - если и его нет — '—'.
+        """
+        html = ""
+        for hotel in obj.hotels.all():
+            photo_qs = hotel.hotel_photos.all()
+            chosen_photo = photo_qs[0] if photo_qs else None
+            if not chosen_photo and len(photo_qs) > 1:
+                chosen_photo = photo_qs[1]
+            if chosen_photo and chosen_photo.photo:
+                html += f"""
+                    <div style="margin-bottom: 10px;">
+                        <strong>{hotel.name}</strong><br/>
+                        <img src="{chosen_photo.photo.url}" width="100" style="margin-top: 3px;" />
+                    </div>
+                """
+        return format_html(html or "—")
+
+    hotel_photos_preview.short_description = "Фото отелей"
 
     def colored_published(self, obj):
-        """
-        Показывает цветной индикатор статуса публикации.
-        """
+        """Показывает цветной индикатор публикации."""
         color = "green" if obj.is_published else "red"
         label = "Да" if obj.is_published else "Нет"
         return format_html('<span style="color: {};">{}</span>', color, label)
 
     colored_published.short_description = "Опубликован"
 
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
-
-        obj = form.instance
-        if not obj.main_photo:
-            first_hotel = obj.hotels.first()
-            if first_hotel:
-                first_photo = first_hotel.hotel_photos.first()
-                if first_photo:
-                    obj.main_photo = first_photo
-                    obj.save()
-
     @admin.action(description="Опубликовать выбранные Вжухи")
     def publish_vzhuhs(self, request, queryset):
-        """
-        Действие для массовой публикации выбранных объектов.
-        """
+        """Массовая публикация Вжухов."""
         queryset.update(is_published=True)
 
     @admin.action(description="Снять с публикации выбранные Вжухи")
     def unpublish_vzhuhs(self, request, queryset):
-        """
-        Действие для массового снятия объектов с публикации.
-        """
+        """Массовое снятие Вжухов с публикации."""
         queryset.update(is_published=False)

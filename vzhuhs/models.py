@@ -24,22 +24,19 @@ class Vzhuh(models.Model):
 
     # Блог
     description_blog = models.TextField(verbose_name="Описание к блогу", **NULLABLE)
+    blog_photo = models.ForeignKey(
+        HotelPhoto,  # пока используем отельные фото, при необходимости заменим на BlogPhoto
+        verbose_name="Фото для блога",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vzhuh_blog_photos",
+    )
 
-    # Флаг публикации
     is_published = models.BooleanField(default=True, verbose_name="Опубликован")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # Фото
-    main_photo = models.ForeignKey(
-        HotelPhoto,
-        verbose_name="Главное фото для Вжуха",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="vzhuhs",
-    )
 
     class Meta:
         verbose_name = "Вжух"
@@ -56,3 +53,22 @@ class Vzhuh(models.Model):
     @admin.display(description="Маршрут")
     def display_route(self):
         return self.route
+
+
+class VzhuhPhoto(models.Model):
+    """
+    Фотография, иллюстрирующая общее направление Вжуха (город).
+    Не относится к отелям.
+    """
+
+    vzhuh = models.ForeignKey("Vzhuh", on_delete=models.CASCADE, related_name="photos")
+    photo = models.ImageField(upload_to="vzhuh_photos/")
+    caption = models.CharField("Подпись", max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = "Фото Вжуха"
+        verbose_name_plural = "Фотографии Вжуха"
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"Фото Вжуха: {self.vzhuh} — {self.caption or 'Без подписи'}"

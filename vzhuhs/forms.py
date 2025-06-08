@@ -6,15 +6,6 @@ from vzhuhs.models import Vzhuh
 
 
 class VzhuhForm(forms.ModelForm):
-    """
-    Форма для модели Vzhuh, с автодополнением для туров и отелей, а также
-    динамической фильтрацией главного фото по выбранным отелям.
-
-    Особенности:
-    - Поля 'tours' и 'hotels' используют виджеты с автокомплитом от django-autocomplete-light.
-    - Поле 'main_photo' фильтруется по отелям, связанным с текущим экземпляром Vzhuh.
-    """
-
     class Meta:
         model = Vzhuh
         fields = "__all__"
@@ -34,7 +25,8 @@ class VzhuhForm(forms.ModelForm):
 
         instance = kwargs.get("instance")
         if instance:
+            # Ограничу список фото только теми, что относятся к выбранным отелям
             hotel_ids = instance.hotels.values_list("id", flat=True)
-            self.fields["main_photo"].queryset = HotelPhoto.objects.filter(hotel_id__in=hotel_ids)
+            self.fields["blog_photo"].queryset = HotelPhoto.objects.filter(hotel_id__in=hotel_ids)
         else:
-            self.fields["main_photo"].queryset = HotelPhoto.objects.none()
+            self.fields["blog_photo"].queryset = HotelPhoto.objects.none()
