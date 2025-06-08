@@ -84,7 +84,7 @@ tour_arrival_city = OpenApiParameter(
 tour_start_date = OpenApiParameter(
     name="start_date",
     type=str,
-    description="Дата начала тура",
+    description="Дата начала тура (YYYY-MM-DD)",
     required=True,
 )
 # Количество ночей в туре(Обязательный)
@@ -117,7 +117,7 @@ tour_arrival_city_optional = OpenApiParameter(
 )
 # Дата вылета(Необязательный)
 tour_start_date_optional = OpenApiParameter(
-    name="start_date", description="Дата начала тура", required=False, type=str
+    name="start_date", description="Дата начала тура (YYYY-MM-DD)", required=False, type=str
 )
 # Количество нрочей в туре(Необязательный)
 tour_nights_optional = OpenApiParameter(name="nights", type=int, description="Количество ночей", required=False)
@@ -316,7 +316,8 @@ MAILING_ID = OpenApiParameter(
     description="ID Рассылки",
     required=True,
 )
-
+# Для вывода ошибка при неверном ID
+MAILING_ID_ERROR = "Рассылка не найдена, введён неверный ID рассылки."
 # Для пагинации
 limit = OpenApiParameter(
     name="limit",
@@ -487,3 +488,5 @@ WARM_CITY = [
     "Апиа",  # Самоа
     "Нукуалофа",  # Тонга
 ]
+# Максимально количество дней в дате выезда из отеля check_out_date
+MAX_DAYS_CHECK_OUT = 365

@@ -235,7 +235,7 @@ class HotelsHotView(viewsets.ModelViewSet):
     http_method_names = ["get"]
 
     def get_queryset(self):
-        """Получение отеля по одному из каждой страны с минимальной ценой."""
+        """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
         min_price_subquery = (
             RoomCategory.objects.filter(
                 room_date__stock=True, room_date__available_for_booking=True, room__hotel=OuterRef("pk")

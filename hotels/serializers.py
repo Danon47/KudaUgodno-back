@@ -174,15 +174,11 @@ class HotelShortSerializer(ModelSerializer):
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
 
-    min_price = SerializerMethodField()
+    min_price = DecimalField(max_digits=10, decimal_places=2)
 
     class Meta(HotelShortSerializer.Meta):
         model = Hotel
         fields = HotelShortSerializer.Meta.fields + ("min_price", "distance_to_the_center")
-
-    @extend_schema_field(DecimalField(max_digits=10, decimal_places=2))
-    def get_min_price(self, obj):
-        return getattr(obj, "min_price", None)
 
 
 class HotelWhatAboutFullSerializer(ModelSerializer):
