@@ -43,7 +43,7 @@ class Hotel(models.Model):
         **NULLABLE,
     )
     city = models.CharField(
-        max_length=50,
+        max_length=100,
         verbose_name="Город",
         help_text="Город",
         **NULLABLE,

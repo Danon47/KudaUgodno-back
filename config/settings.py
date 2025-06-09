@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "applications",
     "guests",
     "insurances",
+    "vzhuhs",
     "mailings",
     # Поддержка CORS
     "corsheaders",
