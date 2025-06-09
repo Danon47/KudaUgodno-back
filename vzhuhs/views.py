@@ -8,6 +8,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from all_fixture.fixture_views import vzhuh_settings
 from hotels.models import Hotel
 from tours.models import Tour
+from vzhuhs.filters import VzhuhFilter
 from vzhuhs.models import Vzhuh
 from vzhuhs.serializers import VzhuhSerializer
 
@@ -52,7 +53,8 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         "photos",
     )
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ("departure_city",)
+    # filterset_fields = ("departure_city",)
+    filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
 
 

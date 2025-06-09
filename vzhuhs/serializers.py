@@ -137,6 +137,7 @@ class VzhuhSerializer(serializers.ModelSerializer):
     tours = VzhuhTourShortSerializer(many=True)
     hotels = VzhuhHotelShortSerializer(many=True)
     photos = VzhuhPhotoSerializer(many=True)
+    departure_city = serializers.CharField(error_messages={"invalid": "УУУУПС!"})
 
     class Meta:
         model = Vzhuh
