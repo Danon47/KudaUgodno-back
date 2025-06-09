@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     "insurances",
     "vzhuhs",
     "mailings",
-    "mailings",
     # Поддержка CORS
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
