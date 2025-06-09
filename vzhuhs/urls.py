@@ -11,7 +11,7 @@ router = DefaultRouter()
 router.register("vzhuhs", VzhuhViewSet, basename="vzhuh")
 
 urlpatterns = [
-    path("autocomplete/hotels/", VzhuhAutocompleteHotel.as_view(), name="vzhuh_autocomplete_hotels"),
-    path("autocomplete/tours/", VzhuhAutocompleteTour.as_view(), name="vzhuh_autocomplete_tours"),
+    path("vzhuhs/autocomplete/hotels/", VzhuhAutocompleteHotel.as_view(), name="vzhuh_autocomplete_hotels"),
+    path("vzhuhs/autocomplete/tours/", VzhuhAutocompleteTour.as_view(), name="vzhuh_autocomplete_tours"),
     path("", include(router.urls)),
 ]

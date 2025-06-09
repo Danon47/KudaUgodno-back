@@ -1,7 +1,8 @@
 import logging
 
 from dal import autocomplete
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
@@ -15,7 +16,19 @@ logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(
-    list=extend_schema(summary="Список Вжухов", tags=[vzhuh_settings["name"]], operation_id="vzhuh_list"),
+    list=extend_schema(
+        summary="Список Вжухов",
+        tags=[vzhuh_settings["name"]],
+        parameters=[
+            OpenApiParameter(
+                name="departure_city",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Фильтр по городу вылета",
+                required=False,
+            ),
+        ],
+    ),
     retrieve=extend_schema(exclude=True),
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
@@ -23,11 +36,23 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     Представление только для чтения (ReadOnly) опубликованных объектов модели Vzhuh.
 
     - Использует сериализатор `VzhuhSerializer`
+
     - Возвращает только записи с `is_published=True`
+
     - Эндпоинт отображается в Swagger как "Список Вжухов"
+
+    - Добавлена фильтрация по `departure_city` - городу отправления
     """
 
-    queryset = Vzhuh.objects.filter(is_published=True)
+    queryset = Vzhuh.objects.prefetch_related(
+        "tours__hotel__hotel_photos",
+        "tours__stock",
+        "hotels__tours",
+        "hotels__hotel_photos",
+        "photos",
+    )
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ("departure_city",)
     serializer_class = VzhuhSerializer
 
 

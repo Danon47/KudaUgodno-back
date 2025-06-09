@@ -5,56 +5,39 @@ from vzhuhs.forms import VzhuhForm
 from vzhuhs.models import Vzhuh, VzhuhPhoto
 
 
-class ArrivalCityFilter(admin.SimpleListFilter):
-    """Кастомный фильтр по городу прибытия для списка объектов Vzhuh в админке."""
+@admin.register(VzhuhPhoto)
+class VzhuhPhotoAdmin(admin.ModelAdmin):
+    list_display = ("id", "photo_preview", "get_vzhuhs")
+    list_display_links = ("id", "photo_preview")
+    readonly_fields = ("get_vzhuhs",)
 
-    title = "Город прибытия"
-    parameter_name = "arrival_city"
+    def photo_preview(self, obj):
+        if obj.photos:
+            return format_html('<img src="{}" style="max-height: 100px;" />', obj.photos.url)
+        return "Нет фото"
 
-    def lookups(self, request, model_admin):
-        cities = Vzhuh.objects.values_list("arrival_city", flat=True).distinct()
-        return [(city, city) for city in cities if city]
+    photo_preview.short_description = "Превью фото"
 
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(arrival_city=self.value())
-        return queryset
+    def get_vzhuhs(self, obj):
+        return ", ".join([str(vzhuh) for vzhuh in obj.vzhuhs.all()])
 
-
-class VzhuhPhotoInline(admin.TabularInline):
-    """
-    Инлайн-фотографии, иллюстрирующие направление Вжуха (город).
-    """
-
-    model = VzhuhPhoto
-    extra = 1
-    fields = ("photo", "caption")
+    get_vzhuhs.short_description = "Связанные Вжухи"
 
 
 @admin.register(Vzhuh)
 class VzhuhAdmin(admin.ModelAdmin):
-    """
-    Админка для модели Vzhuh.
-    """
-
     form = VzhuhForm
-    inlines = [VzhuhPhotoInline]
-
     list_display = (
         "display_route",
+        "departure_city",
         "arrival_city",
-        "colored_published",
-        "created_at",
-    )
-    search_fields = ("description",)
-    list_filter = ("created_at", "updated_at", ArrivalCityFilter)
-    readonly_fields = (
+        "is_published",
         "created_at",
         "updated_at",
-        "blog_photo_preview",
-        "hotel_photos_preview",
     )
-    filter_horizontal = ("tours", "hotels")
+    list_filter = ("is_published", "departure_city", "arrival_city")
+    search_fields = ("departure_city", "arrival_city", "description")
+    readonly_fields = ("created_at", "updated_at")
     list_per_page = 30
     list_max_show_all = 300
     ordering = ("-created_at",)
@@ -64,16 +47,18 @@ class VzhuhAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": (
+                    "departure_city",
                     "arrival_city",
                     "description",
                     "best_time_to_travel",
                     "suitable_for_whom",
+                    "photos",
                 )
             },
         ),
         ("Туры", {"fields": ("tours",)}),
-        ("Отели", {"fields": ("hotels", "description_hotel", "hotel_photos_preview")}),
-        ("Блог", {"fields": ("description_blog", "blog_photo", "blog_photo_preview")}),
+        ("Отели", {"fields": ("hotels", "description_hotel")}),
+        ("Блог", {"fields": ("description_blog",)}),
         (
             "Системные",
             {
@@ -85,45 +70,18 @@ class VzhuhAdmin(admin.ModelAdmin):
             },
         ),
     )
+    actions = (
+        "publish_vzhuhs",
+        "unpublish_vzhuhs",
+    )
 
-    def blog_photo_preview(self, obj):
-        if obj.blog_photo and obj.blog_photo.photo:
-            return format_html('<img src="{}" width="100" height="auto" />', obj.blog_photo.photo.url)
-        return "—"
-
-    blog_photo_preview.short_description = "Фото блога"
-
-    def hotel_photos_preview(self, obj):
+    def display_route(self, obj):
         """
-        Показывает по одному фото для каждого отеля:
-        - сначала первое;
-        - если нет — второе;
-        - если и его нет — '—'.
+        Отображает маршрут в списке.
         """
-        html = ""
-        for hotel in obj.hotels.all():
-            photo_qs = hotel.hotel_photos.all()
-            chosen_photo = photo_qs[0] if photo_qs else None
-            if not chosen_photo and len(photo_qs) > 1:
-                chosen_photo = photo_qs[1]
-            if chosen_photo and chosen_photo.photo:
-                html += f"""
-                    <div style="margin-bottom: 10px;">
-                        <strong>{hotel.name}</strong><br/>
-                        <img src="{chosen_photo.photo.url}" width="100" style="margin-top: 3px;" />
-                    </div>
-                """
-        return format_html(html or "—")
+        return obj.route
 
-    hotel_photos_preview.short_description = "Фото отелей"
-
-    def colored_published(self, obj):
-        """Показывает цветной индикатор публикации."""
-        color = "green" if obj.is_published else "red"
-        label = "Да" if obj.is_published else "Нет"
-        return format_html('<span style="color: {};">{}</span>', color, label)
-
-    colored_published.short_description = "Опубликован"
+    display_route.short_description = "Маршрут"
 
     @admin.action(description="Опубликовать выбранные Вжухи")
     def publish_vzhuhs(self, request, queryset):

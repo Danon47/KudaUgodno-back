@@ -1,13 +1,41 @@
+from django.db.models import Min
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from hotels.models import Hotel
+from hotels.serializers import HotelPhotoSerializer
 from tours.models import Tour
-from vzhuhs.models import Vzhuh
+from vzhuhs.models import Vzhuh, VzhuhPhoto
 
 
-# Cериализатор Отелей
-class HotelShortSerializer(serializers.ModelSerializer):
+def get_first_photo(self, obj, related_field="hotel_photos"):
+    """
+    Вспомогательная функция для получения первой фотографии
+    """
+    request = getattr(self, "context", {}).get("request")
+    related_objects = getattr(obj, related_field, None)
+    first_photo = related_objects.first() if related_objects else None
+    if first_photo:
+        serializer = HotelPhotoSerializer(first_photo, context={"request": request})
+        photo_url = serializer.data["photo"]
+        return request.build_absolute_uri(photo_url) if request else photo_url
+    return None
+
+
+class VzhuhPhotoSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для фотографий Вжуха.
+    """
+
+    class Meta:
+        model = VzhuhPhoto
+        fields = ("photos",)
+
+
+class VzhuhHotelShortSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вывода инфы по отелю во Вжухе.
+    """
 
     photo = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
@@ -26,25 +54,26 @@ class HotelShortSerializer(serializers.ModelSerializer):
             "price",
         )
 
-    @extend_schema_field(serializers.URLField(allow_null=True))
-    def get_photo(self, obj):
+    @extend_schema_field(serializers.ImageField(allow_null=True))
+    def get_photo(self, obj: Hotel):
         """
-        Возвращает URL первого фото отеля, если оно доступно.
+        Возвращает первую фотографию отеля, если она доступна.
         """
-        first_photo = obj.hotel_photos.first()
-        return first_photo.photo.url if first_photo and first_photo.photo else None
+        return get_first_photo(self, obj, "hotel_photos")
 
     @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
-    def get_price(self, obj):
+    def get_price(self, obj: Hotel):
         """
         Вычисляет минимальную цену по связанным турам отеля, если они есть.
         """
-        tours = obj.tours.filter(price__isnull=False)
-        return min(t.price for t in tours) if tours.exists() else None
+        min_price = obj.tours.filter(price__isnull=False).aggregate(Min("price"))["price__min"]
+        return min_price
 
 
-# Cериализатор Туров
-class TourShortSerializer(serializers.ModelSerializer):
+class VzhuhTourShortSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вывода инфы по туру во Вжухе.
+    """
 
     photo = serializers.SerializerMethodField()
     country = serializers.CharField(source="hotel.country")
@@ -72,16 +101,14 @@ class TourShortSerializer(serializers.ModelSerializer):
             "number_of_days",
         )
 
-    @extend_schema_field(serializers.URLField(allow_null=True))
-    def get_photo(self, obj):
+    @extend_schema_field(serializers.ImageField(allow_null=True))
+    def get_photo(self, obj: Tour):
         """
-        Возвращает URL первого фото отеля, связанного с туром.
+        Возвращает первую фотографию отеля, связанного с туром, если она доступна.
         """
-        hotel = obj.hotel
-        if not hotel:
-            return None
-        photo_obj = hotel.hotel_photos.first()
-        return photo_obj.photo.url if photo_obj and photo_obj.photo else None
+        if obj.hotel:
+            return get_first_photo(self, obj.hotel, "hotel_photos")
+        return None
 
     @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
     def get_sale(self, obj):
@@ -102,13 +129,14 @@ class TourShortSerializer(serializers.ModelSerializer):
         return None
 
 
-# Cериализатор объекта Vzhuh
 class VzhuhSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор Вжуха.
+    """
 
-    route = serializers.SerializerMethodField()
-    tours = TourShortSerializer(many=True)
-    hotels = HotelShortSerializer(many=True)
-    main_photo_url = serializers.SerializerMethodField()
+    tours = VzhuhTourShortSerializer(many=True)
+    hotels = VzhuhHotelShortSerializer(many=True)
+    photos = VzhuhPhotoSerializer(many=True)
 
     class Meta:
         model = Vzhuh
@@ -116,7 +144,7 @@ class VzhuhSerializer(serializers.ModelSerializer):
             "id",
             "departure_city",
             "arrival_city",
-            "route",
+            "photos",
             "description",
             "best_time_to_travel",
             "suitable_for_whom",
@@ -124,23 +152,5 @@ class VzhuhSerializer(serializers.ModelSerializer):
             "description_blog",
             "tours",
             "hotels",
-            "main_photo_url",
-            "created_at",
             "is_published",
         )
-
-    @extend_schema_field(serializers.CharField())
-    def get_route(self, obj):
-        """
-        Возвращает строковое описание маршрута (computed-свойство).
-        """
-        return obj.route
-
-    @extend_schema_field(serializers.URLField(allow_null=True))
-    def get_main_photo_url(self, obj):
-        """
-        Возвращает URL главного фото, если оно задано.
-        """
-        if obj.main_photo and obj.main_photo.photo:
-            return obj.main_photo.photo.url
-        return None
