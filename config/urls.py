@@ -26,9 +26,6 @@ urlpatterns = [
     path("api/v1/insurances/", include("insurances.urls")),
     path("api/v1/", include("vzhuhs.urls")),
     path("api/v1/", include("mailings.urls")),
-    path("api/v1/", include("vzhuh.urls")),
-    path("api/v1/", include("vzhuhs.urls")),
-    path("api/v1/", include("mailings.urls")),
 ]
 
 if settings.DEBUG:
