@@ -11,7 +11,7 @@ class VzhuhForm(forms.ModelForm):
         widgets = {
             "tours": autocomplete.ModelSelect2Multiple(
                 url="vzhuhs:vzhuh_autocomplete_tours",
-                forward=["arrival_city", "tours"],
+                forward=["departure_city", "arrival_city", "tours"],
                 attrs={
                     "style": "width: 60%",
                 },

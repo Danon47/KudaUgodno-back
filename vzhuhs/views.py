@@ -1,6 +1,7 @@
 import logging
 
 from dal import autocomplete
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -68,7 +69,7 @@ class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
         qs = Hotel.objects.all()
-        arrival_city = self.forwarded.get("arrival_city")
+        arrival_city = self.forwarded.get("arrival_city", None)
         selected_ids = self.forwarded.get("hotels", [])
 
         if arrival_city:
@@ -90,11 +91,12 @@ class VzhuhAutocompleteTour(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
         qs = Tour.objects.all()
-        arrival_city = self.forwarded.get("arrival_city")
+        departure_city = self.forwarded.get("departure_city", None)
+        arrival_city = self.forwarded.get("arrival_city", None)
         selected_ids = self.forwarded.get("tours", [])
 
-        if arrival_city:
-            qs = qs.filter(arrival_city__icontains=arrival_city)
+        if departure_city and arrival_city:
+            qs = qs.filter(Q(arrival_city__icontains=arrival_city) & Q(departure_city__icontains=departure_city))
         if selected_ids:
             qs = qs.exclude(id__in=selected_ids)
         if self.q:
