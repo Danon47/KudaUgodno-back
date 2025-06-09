@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -6,31 +7,46 @@ from all_fixture.fixture_views import NULLABLE
 class Category(models.Model):
     """Модель категории для статей блога"""
 
-    name = models.CharField(max_length=50, verbose_name="Название категории", help_text="Название категории")
+    name_category = models.CharField(max_length=50, verbose_name="Название категории", help_text="Название категории")
     slug = models.SlugField(max_length=50, unique=True, verbose_name="Slug категории", help_text="Slug категории")
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-        ordering = ["name"]
+        ordering = ["name_category"]
 
     def __str__(self):
-        return self.name
+        return self.name_category
 
 
 class Tag(models.Model):
     """Модель тега для статей блога"""
 
-    name = models.CharField(max_length=50, verbose_name="Название тега", help_text="Название тега")
+    name_tag = models.CharField(max_length=50, verbose_name="Название тега", help_text="Название тега")
     slug = models.SlugField(max_length=50, unique=True, verbose_name="Slug тега", help_text="Slug тега")
 
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
-        ordering = ["name"]
+        ordering = ["name_tag"]
 
     def __str__(self):
-        return self.name
+        return self.name_tag
+
+
+class Country(models.Model):
+    """Модель страна"""
+
+    name_country = models.CharField(max_length=100, unique=True, verbose_name="Название страны")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug страны")
+
+    class Meta:
+        verbose_name = "Страна"
+        verbose_name_plural = "Страны"
+        ordering = ["name_country"]
+
+    def __str__(self):
+        return self.name_country
 
 
 class Article(models.Model):
@@ -38,9 +54,6 @@ class Article(models.Model):
 
     title = models.CharField(
         max_length=100, verbose_name="Заголовок статьи", help_text="Заголовок статьи (максимум 100 символов)"
-    )
-    autor = models.CharField(
-        max_length=100, verbose_name="Автор статьи", help_text="Автор стать (максимум 100 символов)"
     )
     content = models.TextField(verbose_name="Текст статьи", help_text="Текст статьи")
     pub_date = models.DateField(
@@ -65,11 +78,14 @@ class Article(models.Model):
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, **NULLABLE, verbose_name="категория")
     tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
+    countries = models.ManyToManyField(Country, blank=True, verbose_name="Страны")
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="Автор статьи", **NULLABLE)
 
     class Meta:
         verbose_name = "Статья"
         verbose_name_plural = "Статьи"
         ordering = ["-pub_date", "-created_at"]
+        # permissions = ["can_edit_article", "Может редактировать статью"]
 
     def __str__(self):
         return self.title
