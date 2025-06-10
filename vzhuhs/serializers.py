@@ -149,9 +149,9 @@ class VzhuhSerializer(serializers.ModelSerializer):
             "description",
             "best_time_to_travel",
             "suitable_for_whom",
-            "description_hotel",
-            "description_blog",
             "tours",
             "hotels",
+            "description_hotel",
+            "description_blog",
             "is_published",
         )
