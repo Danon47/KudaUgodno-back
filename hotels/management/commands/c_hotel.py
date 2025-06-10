@@ -23,6 +23,7 @@ from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
 from rooms.models import Room, RoomCategory, RoomDate, RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
+from vzhuhs.models import Vzhuh, VzhuhPhoto
 
 
 class Command(BaseCommand):
@@ -54,6 +55,7 @@ class Command(BaseCommand):
             what_abouts = self.create_what_about(hotels)
             # Создание заявок на туры и отели
             applications = self.create_applications(tours, hotels, rooms, tourists, all_guests)
+            self.create_vzhuhs()
             self.print_success_message(
                 len(tour_operators),
                 len(hotels),
@@ -67,36 +69,7 @@ class Command(BaseCommand):
                 len(applications),
             )
 
-    def print_success_message(
-        self,
-        tour_operators_count,
-        hotels_count,
-        type_of_meals_count,
-        rooms_count,
-        flights_count,
-        tours_count,
-        tourists_count,
-        total_guests,
-        what_abouts_count,
-        applications_count,
-    ):
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Успешно создано:\n"
-                f"- {tour_operators_count} туроператоров\n"
-                f"- {hotels_count} отелей c 4 фото в каждом\n"
-                f"- {type_of_meals_count} кол-во типов питания\n"
-                f"- {rooms_count} номеров с 6 фото каждом\n"
-                f"- {flights_count} рейсов\n"
-                f"- {tours_count} туров\n"
-                f"- {tourists_count} туристов\n"
-                f"- {total_guests} гостей\n"
-                f"- {what_abouts_count} подборок Что насчёт...\n"
-                f"- {applications_count} заявок"
-            )
-        )
-
-    def add_photos(self, instances, dir_path, photo_model, fk_name, count):
+    def add_photos_fk(self, instances, dir_path, photo_model, fk_name, count):
         files = os.listdir(dir_path)
         for obj in instances:
             for _ in range(count):
@@ -308,7 +281,7 @@ class Command(BaseCommand):
                     name=rule_name,
                     description=rule_description,
                 )
-        self.add_photos(hotels, hotel_photos_dir, HotelPhoto, "hotel", 5)
+        self.add_photos_fk(hotels, hotel_photos_dir, HotelPhoto, "hotel", 5)
         return hotels
 
     def create_type_of_meals(self, hotels):
@@ -428,7 +401,7 @@ class Command(BaseCommand):
 
                 rooms.append(room)
 
-        self.add_photos(rooms, room_photos_dir, RoomPhoto, "room", 6)
+        self.add_photos_fk(rooms, room_photos_dir, RoomPhoto, "room", 6)
 
         return rooms
 
@@ -753,3 +726,119 @@ class Command(BaseCommand):
                     application.quantity_guests.add(guest)
             applications.append(application)
         return applications
+
+    def create_vzhuhs(self):
+        """Создает записи Вжухов на основе существующих отелей и туров."""
+
+        # Получаем все города, для которых есть и отели, и туры
+        hotel_cities = set(Hotel.objects.values_list("city", flat=True).distinct())
+        tour_cities = set(Tour.objects.values_list("arrival_city", flat=True).distinct())
+        common_cities = hotel_cities.intersection(tour_cities)
+
+        # Базовые города вылета
+        departure_cities = ["Москва", "Санкт-Петербург", "Екатеринбург", "Новосибирск", "Казань"]
+
+        # Путь к фотографиям
+        photo_dir = os.path.join("static", "test_vzhuh")
+
+        try:
+            # Получаем список файлов фотографий
+            photo_files = [f for f in os.listdir(photo_dir) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        except FileNotFoundError:
+            self.stdout.write(self.style.ERROR(f"Директория {photo_dir} не найдена"))
+            return
+
+        if not photo_files:
+            self.stdout.write(self.style.ERROR("В директории нет фотографий"))
+            return
+
+        created_count = 0
+
+        for arrival_city in common_cities:
+            # Пропускаем города с пустыми названиями
+            if not arrival_city:
+                continue
+
+            # Выбираем случайный город вылета
+            departure_city = random.choice(departure_cities)
+
+            # Проверяем, существует ли уже такой Вжух
+            if Vzhuh.objects.filter(departure_city=departure_city, arrival_city=arrival_city).exists():
+                continue
+
+            hotels_count = Hotel.objects.filter(city=arrival_city).count()
+            tours_count = Tour.objects.filter(arrival_city=arrival_city).count()
+
+            if hotels_count < 3 or tours_count < 3 or len(photo_files) < 3:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Пропуск города {arrival_city}: недостаточно данных "
+                        f"(отели: {hotels_count}, туры: {tours_count}, фото: {len(photo_files)})"
+                    )
+                )
+                continue
+
+            # Создаем Вжух
+            vzhuh = Vzhuh.objects.create(
+                departure_city=departure_city,
+                arrival_city=arrival_city,
+                description=f"Отличное предложение в {arrival_city}",
+                best_time_to_travel="Круглый год",
+                suitable_for_whom="Для всех категорий туристов",
+                description_hotel=f"Лучшие отели в {arrival_city}",
+                description_blog=f"Интересные места в {arrival_city}",
+                is_published=True,
+            )
+
+            # Добавляем 3 случайные фотографии
+            selected_photos = random.sample(photo_files, 3)
+            for photo_name in selected_photos:
+                photo_path = os.path.join(photo_dir, photo_name)
+                with open(photo_path, "rb") as f:
+                    django_file = File(f, name=os.path.basename(photo_path))
+                    photo = VzhuhPhoto(photos=django_file)
+                    photo.save()
+                    vzhuh.photos.add(photo)
+
+            # Добавляем 3 случайных отеля
+            hotels = list(Hotel.objects.filter(city=arrival_city))
+            selected_hotels = random.sample(hotels, 3)
+            vzhuh.hotels.add(*selected_hotels)
+
+            # Добавляем 3 случайных тура
+            tours = list(Tour.objects.filter(arrival_city=arrival_city))
+            selected_tours = random.sample(tours, 3)
+            vzhuh.tours.add(*selected_tours)
+
+            created_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f"Создано {created_count} записей Вжухов"))
+
+    def print_success_message(
+        self,
+        tour_operators_count,
+        hotels_count,
+        type_of_meals_count,
+        rooms_count,
+        flights_count,
+        tours_count,
+        tourists_count,
+        total_guests,
+        what_abouts_count,
+        applications_count,
+    ):
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Успешно создано:\n"
+                f"- {tour_operators_count} туроператоров\n"
+                f"- {hotels_count} отелей c 4 фото в каждом\n"
+                f"- {type_of_meals_count} кол-во типов питания\n"
+                f"- {rooms_count} номеров с 6 фото каждом\n"
+                f"- {flights_count} рейсов\n"
+                f"- {tours_count} туров\n"
+                f"- {tourists_count} туристов\n"
+                f"- {total_guests} гостей\n"
+                f"- {what_abouts_count} подборок Что насчёт...\n"
+                f"- {applications_count} заявок"
+            )
+        )
