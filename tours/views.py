@@ -245,8 +245,8 @@ class TourSearchView(viewsets.ModelViewSet):
 
 @extend_schema_view(
     filters=extend_schema(
-        summary="Расширенный поиск туров",
-        description="Расширенный поиск туров по фильтрам.",
+        summary="Фильтрация туров",
+        description="Расширенная Фильтрация туров",
         parameters=[
             tour_departure_city_optional,
             tour_arrival_city_optional,

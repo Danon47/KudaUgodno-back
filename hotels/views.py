@@ -160,8 +160,8 @@ class HotelSearchView(viewsets.ModelViewSet):
 
 @extend_schema_view(
     filters=extend_schema(
-        summary="Расширенный поиск туров",
-        description="Расширенный поиск туров по фильтрам",
+        summary="Фильтрация отелей",
+        description="Расширенная фильтрация отелей",
         parameters=[
             limit,
             offset,
