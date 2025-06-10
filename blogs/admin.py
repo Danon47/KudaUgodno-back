@@ -1,14 +1,14 @@
 from django.contrib import admin
 
-from blogs.models import Article, ArticleImage, Category, Country, Tag
+from blogs.models import Article, ArticleImage, Category, Country, Tag, Theme
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Админ панель для модели Category"""
 
-    list_display = ("name_category", "slug")
-    list_filter = ("name_category", "slug")
+    list_display = ("name_category", "slug_category")
+    list_filter = ("name_category", "slug_category")
     search_fields = ("name_category",)
 
 
@@ -16,8 +16,8 @@ class CategoryAdmin(admin.ModelAdmin):
 class TagsAdmin(admin.ModelAdmin):
     """Админ панель для модели Tag"""
 
-    list_display = ("name_tag", "slug")
-    list_filter = ("name_tag", "slug")
+    list_display = ("name_tag", "slug_tag")
+    list_filter = ("name_tag", "slug_tag")
     search_fields = ("name_tag",)
 
 
@@ -25,9 +25,18 @@ class TagsAdmin(admin.ModelAdmin):
 class ModelCountryAdmin(admin.ModelAdmin):
     """Админ панель для модели Country"""
 
-    list_display = ("name_country", "slug")
-    list_filter = ("name_country", "slug")
+    list_display = ("name_country", "slug_country")
+    list_filter = ("name_country", "slug_country")
     search_fields = ("name_country",)
+
+
+@admin.register(Theme)
+class ModelThemeAdmin(admin.ModelAdmin):
+    """Админ панель для модели Theme"""
+
+    list_display = ("name_theme", "slug_theme")
+    list_filter = ("name_theme", "slug_theme")
+    search_fields = ("name_theme",)
 
 
 @admin.register(Article)

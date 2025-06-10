@@ -8,7 +8,9 @@ class Category(models.Model):
     """Модель категории для статей блога"""
 
     name_category = models.CharField(max_length=50, verbose_name="Название категории", help_text="Название категории")
-    slug = models.SlugField(max_length=50, unique=True, verbose_name="Slug категории", help_text="Slug категории")
+    slug_category = models.SlugField(
+        max_length=50, unique=True, verbose_name="Slug категории", help_text="Slug категории"
+    )
 
     class Meta:
         verbose_name = "Категория"
@@ -23,7 +25,7 @@ class Tag(models.Model):
     """Модель тега для статей блога"""
 
     name_tag = models.CharField(max_length=50, verbose_name="Название тега", help_text="Название тега")
-    slug = models.SlugField(max_length=50, unique=True, verbose_name="Slug тега", help_text="Slug тега")
+    slug_tag = models.SlugField(max_length=50, unique=True, verbose_name="Slug тега", help_text="Slug тега")
 
     class Meta:
         verbose_name = "Тег"
@@ -37,8 +39,12 @@ class Tag(models.Model):
 class Country(models.Model):
     """Модель страна"""
 
-    name_country = models.CharField(max_length=100, unique=True, verbose_name="Название страны")
-    slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug страны")
+    name_country = models.CharField(
+        max_length=100, unique=True, verbose_name="Название страны", help_text="Название страны"
+    )
+    slug_country = models.SlugField(
+        max_length=100, unique=True, verbose_name="Slug страны", help_text="Название страны", default=""
+    )
 
     class Meta:
         verbose_name = "Страна"
@@ -47,6 +53,21 @@ class Country(models.Model):
 
     def __str__(self):
         return self.name_country
+
+
+class Theme(models.Model):
+    """Модель тема статьи."""
+
+    name_theme = models.CharField(max_length=100, unique=True, verbose_name="Название темы", help_text="Название темы")
+    slug_theme = models.SlugField(max_length=100, unique=True, verbose_name="Название темы", help_text="Название темы")
+
+    class Meta:
+        verbose_name = "Тема"
+        verbose_name_plural = "Темы"
+        ordering = ["name_theme"]
+
+    def __str__(self):
+        return self.name_theme
 
 
 class Article(models.Model):
@@ -80,6 +101,7 @@ class Article(models.Model):
     tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
     countries = models.ManyToManyField(Country, blank=True, verbose_name="Страны")
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="Автор статьи", **NULLABLE)
+    theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, **NULLABLE, verbose_name="Тема статьи")
 
     class Meta:
         verbose_name = "Статья"

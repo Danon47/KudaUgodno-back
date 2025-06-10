@@ -1,124 +1,104 @@
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import APIException, PermissionDenied
 
-from blogs.models import Article, ArticleImage, Category, Tag
-from blogs.serializers import ArticleImageSerializer, CategorySerializer, TagSerializer
+from blogs.models import Article, ArticleImage, Category, Tag, Theme
+from blogs.serializers import (
+    ArticleImageSerializer,
+    ArticleSerializer,
+    CategorySerializer,
+    TagSerializer,
+)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint для работы с категориями статей.
-    Поддерживаемые методы HTTP:GET, POST, PUT, PATCH, DELETE.
-    """
+    """CRUD-endpoint для категорий статей."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint для работы с тегами статей.
-    Поддерживаемые методы HTTP:GET, POST, PUT, PATCH, DELETE.
-    """
+    """CRUD-endpoint для тегов статей."""
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint для работы со статьями.
-    Поддерживаемые методы HTTP:GET, POST, PUT, PATCH, DELETE.
-    """
+    """CRUD-endpoint для статей."""
 
-    queryset = Article.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-
-    from rest_framework.exceptions import APIException
+    serializer_class = ArticleSerializer
 
     def get_queryset(self):
-        """Переопределяет queryset для фильтрации по параметру is_published."""
+        """Фильтрация по публикации, популярности, стране и теме."""
         queryset = Article.objects.all()
 
-        # Фильтрация по публикации
-        is_published = self.request.query_params.get("is_published")
-        if is_published is not None:
+        # 1️⃣ публикация
+        is_published_param = self.request.query_params.get("is_published")
+        if is_published_param is not None:
             try:
-                is_published = is_published.lower() == "true"
+                is_published = is_published_param.lower() == "true"
                 queryset = queryset.filter(is_published=is_published)
-            except ValueError as err:  # <-- дали имя исходной ошибке
-                raise APIException(
-                    "Неверный формат параметра is_published. Используйте true или false."
-                ) from err  # <-- добавили  «from err»
+            except ValueError as err:
+                raise APIException("Неверный формат параметра is_published. Используйте true или false.") from err
 
-        # Фильтрация по возрастанию и убыванию (по количеству просмотров)
-        popularity = self.request.query_params.get("popularity", None)
-        if popularity:
-            if popularity not in ["asc", "desc"]:
+        # 2️⃣ популярность
+        popularity_param = self.request.query_params.get("popularity")
+        if popularity_param:
+            if popularity_param not in {"asc", "desc"}:
                 raise APIException("Неверный формат параметра popularity. Используйте 'asc' или 'desc'.")
-            queryset = queryset.order_by("-views_count" if popularity == "desc" else "views_count")
+            queryset = queryset.order_by("-views_count" if popularity_param == "desc" else "views_count")
 
-        # Фильтрация по стране
-        country = self.request.query_params.get("country", None)
-        if country:
+        # 3️⃣ страна
+        country_param = self.request.query_params.get("country")
+        if country_param:
             try:
-                countries = [c.strip() for c in country.split(",")]
+                countries = [c.strip() for c in country_param.split(",")]
                 queryset = queryset.filter(countries__name__in=countries)
-            except Exception as err:  # можно сузить до ValueError
-                raise APIException(f"Ошибка фильтрации по стране: {err}") from err  # <-- ключевое добавление
+            except ValueError as err:
+                raise APIException(f"Ошибка фильтрации по стране: {err}") from err
 
+        # 4️⃣ тема
+        theme_id_param = self.request.query_params.get("theme_id")
+        if theme_id_param:
+            try:
+                theme_id = int(theme_id_param)
+                queryset = queryset.filter(theme_id=theme_id)
+            except ValueError as err:
+                raise APIException("Неверный формат параметра theme_id. Используйте числовой ID темы.") from err
+            except Theme.DoesNotExist:
+                raise APIException("Тема с указанным ID не найдена.") from None
+
+        # -- права доступа
         user = self.request.user
-        if user.is_superuser:  # Если суперпользователь, разрешаем доступ ко всему
-            return queryset
+        return queryset if user.is_superuser else queryset.filter(author=user)
 
-        return queryset.filter(author=user)  # Только статьи текущего пользователя
+    # ────────────────────────── пермишены на запись ──────────────────────────
 
     def perform_create(self, serializer):
-        """
-        Автоматически устанавливает автора статьи в момент создания.
-        """
+        """При создании автоматически проставляем автора."""
+        serializer.save(author=self.request.user)
 
-        serializer.save(author=self.request.user)  # Автор статьи - текущий пользователь
+    def _check_owner(self, instance, user):
+        if instance.author != user and not user.is_superuser:
+            raise PermissionDenied("Нет прав изменять/удалять эту статью.")
 
     def update(self, request, *args, **kwargs):
-        """
-        Полностью обновляет существующую статью.  Заменяет все данные статьи данными из запроса.
-        Доступно только автору статьи или суперпользователю.
-        """
-
-        instance = self.get_object()
-        if instance.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("Вы не можете редактировать эту статью.")
+        self._check_owner(self.get_object(), request.user)
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
-        """
-        Частично обновляет существующую статью. Обновляет только указанные в запросе поля.
-        Доступно только автору статьи или суперпользователю.
-        """
-
-        instance = self.get_object()
-        if instance.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("Вы не можете редактировать эту статью.")
+        self._check_owner(self.get_object(), request.user)
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """
-        Удаляет существующую статью.
-        Доступно только автору статьи или суперпользователю.
-        """
-
-        instance = self.get_object()
-        if instance.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("Вы не можете удалить эту статью.")
+        self._check_owner(self.get_object(), request.user)
         return super().destroy(request, *args, **kwargs)
 
 
 class ArticleImageViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint для работы с изображениями статей
-    Поддерживаемые методы HTTP:GET, POST, PUT, PATCH, DELETE.
-    """
+    """CRUD-endpoint для изображений статей."""
 
     queryset = ArticleImage.objects.all()
     serializer_class = ArticleImageSerializer
