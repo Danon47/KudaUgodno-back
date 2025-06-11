@@ -1,13 +1,14 @@
 from django.core.mail import EmailMessage
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from all_fixture.fixture_views import MAILING_ID, MAILING_SETTINGS, limit, offset
+from all_fixture.fixture_views import MAILING_ID, MAILING_ID_ERROR, MAILING_SETTINGS, limit, offset
 from config.settings import EMAIL_HOST_USER
 from mailings.models import Mailing
-from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
+from mailings.serializers import MailingErrorSerializer, MailingSerializer
 
 
 @extend_schema(tags=[MAILING_SETTINGS["name"]])
@@ -24,7 +25,17 @@ from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
         request={"multipart/form-data": MailingSerializer},
         responses={
             201: MailingSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            400: OpenApiResponse(
+                response=MailingErrorSerializer,
+                description="Ошибка валидации",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка: Email уже есть в БД",
+                        value={"email": ["Этот email уже зарегистрирован."]},
+                        response_only=True,
+                    )
+                ],
+            ),
         },
     ),
     retrieve=extend_schema(
@@ -33,7 +44,17 @@ from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
         parameters=[MAILING_ID],
         responses={
             200: MailingSerializer,
-            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
+            404: OpenApiResponse(
+                response=MailingErrorSerializer,
+                description="Рассылка не найдена",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка: Рассылка не найдена",
+                        value={"detail": MAILING_ID_ERROR},
+                        response_only=True,
+                    )
+                ],
+            ),
         },
     ),
     update=extend_schema(
@@ -44,7 +65,9 @@ from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
         responses={
             200: MailingSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
+            404: OpenApiResponse(
+                response=MailingErrorSerializer(default=MAILING_ID_ERROR), description="Рассылка не найдена"
+            ),
         },
     ),
     partial_update=extend_schema(
@@ -55,7 +78,7 @@ from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
         responses={
             200: MailingSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorSerializer, description="Рассылка не найдена"),
         },
     ),
     destroy=extend_schema(
@@ -64,7 +87,7 @@ from mailings.serializers import MailingErrorIdSerializer, MailingSerializer
         parameters=[MAILING_ID],
         responses={
             204: OpenApiResponse(description="Рассылка отключена"),
-            404: OpenApiResponse(response=MailingErrorIdSerializer, description="Рассылка не найдена"),
+            404: OpenApiResponse(response=MailingErrorSerializer, description="Рассылка не найдена"),
         },
     ),
 )
@@ -112,3 +135,9 @@ class MailingViewSet(viewsets.ModelViewSet):
         instance.mailing = False
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_object(self):
+        try:
+            return Mailing.objects.get(pk=self.kwargs["pk"])
+        except Mailing.DoesNotExist:
+            raise NotFound(MAILING_ID_ERROR) from None
