@@ -1,17 +1,33 @@
-from rest_framework.serializers import BooleanField, EmailField, ModelSerializer
+from django.core.exceptions import ValidationError
+from rest_framework.fields import CharField
+from rest_framework.serializers import BooleanField, EmailField, ModelSerializer, Serializer
 
 from mailings.models import Mailing
+
+
+class MailingErrorSerializer(Serializer):
+    detail = CharField()
 
 
 class MailingSerializer(ModelSerializer):
     """Сериализатор для модели Mailing."""
 
-    email = EmailField(help_text="Email туриста, на который будет отправляться рассылка.", required=True)
+    email = EmailField(
+        help_text="Email туриста, на который будет отправляться рассылка.",
+        required=True,
+        error_messages={"unique": "Этот email уже зарегистрирован."},
+    )
     mailing = BooleanField(required=False)
 
     class Meta:
         model = Mailing
         fields = ("id", "email", "mailing")
+
+    def validate_email(self, value):
+        """Проверка, что email еще не зарегистрирован."""
+        if self.instance is None and Mailing.objects.filter(email=value).exists():
+            raise ValidationError(self.fields["email"].error_messages["unique"])
+        return value
 
     def create(self, validated_data):
         validated_data.setdefault("mailing", True)

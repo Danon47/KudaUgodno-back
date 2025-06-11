@@ -1,5 +1,5 @@
 from django.core.mail import EmailMessage
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from all_fixture.fixture_views import MAILING_ID, MAILING_SETTINGS, limit, offset
 from config.settings import EMAIL_HOST_USER
 from mailings.models import Mailing
-from mailings.serializers import MailingSerializer
+from mailings.serializers import MailingErrorSerializer, MailingSerializer
 
 
 @extend_schema(tags=[MAILING_SETTINGS["name"]])
@@ -24,7 +24,17 @@ from mailings.serializers import MailingSerializer
         request={"multipart/form-data": MailingSerializer},
         responses={
             201: MailingSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            400: OpenApiResponse(
+                response=MailingErrorSerializer,
+                description="Ошибка валидации",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка: Email уже есть в БД",
+                        value={"email": ["Этот email уже зарегистрирован."]},
+                        response_only=True,
+                    )
+                ],
+            ),
         },
     ),
     retrieve=extend_schema(
