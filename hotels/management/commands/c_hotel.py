@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 total_guests += len(guests)
                 all_guests.extend(guests)
             # Создание отелей, типов питания, номеров, стоимости номеров по датам, рейсов, туров
-            hotels = self.create_test_hotels(20)
+            hotels = self.create_test_hotels(50)
             type_of_meals = self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
             self.create_room_prices(hotels)
@@ -579,7 +579,7 @@ class Command(BaseCommand):
 
         return created_flights
 
-    def create_test_tours(self, flights, hotels, rooms, count=20):
+    def create_test_tours(self, flights, hotels, rooms, count=50):
         """
         Генерация тестовых туров.
         :param flights: список всех созданных Flight
