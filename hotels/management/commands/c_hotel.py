@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 total_guests += len(guests)
                 all_guests.extend(guests)
             # Создание отелей, типов питания, номеров, стоимости номеров по датам, рейсов, туров
-            hotels = self.create_test_hotels(10)
+            hotels = self.create_test_hotels(20)
             type_of_meals = self.create_type_of_meals(hotels)
             rooms = self.create_test_rooms(hotels)
             self.create_room_prices(hotels)
@@ -655,7 +655,7 @@ class Command(BaseCommand):
     def create_what_about(self, hotels):
         what_abouts = []
         for name, _ in WhatAboutChoices.choices:
-            for _ in range(3):
+            for _ in range(5):
                 selected_hotels = random.sample(hotels, k=min(3, len(hotels)))
                 what_about = HotelWhatAbout.objects.create(
                     name_set=name,
