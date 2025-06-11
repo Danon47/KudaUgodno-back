@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, DecimalField, ImageField, IntegerField
 from rest_framework.serializers import ModelSerializer, Serializer
 
-from hotels.models import Hotel
+# from hotels.models import Hotel
 from promocodes.models import Promocode, PromocodePhoto
 from tours.models import Tour
 
@@ -75,11 +75,9 @@ class PromoCodeCheckSerializer(Serializer):
         elif hotel_id:
             if not promo.hotels.filter(id=hotel_id).exists():
                 raise ValidationError("Промокод не действует на данный отель.")
-            hotel = get_object_or_404(Hotel, id=hotel_id)
+            # hotel = get_object_or_404(Hotel, id=hotel_id)
             return {
-                "hotel_price": hotel.price,
                 "discount_amount": promo.discount_amount,
-                # "total_price": promo.apply_discount(tour.price),
             }
 
         else:
