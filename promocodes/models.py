@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -22,9 +23,21 @@ class Promocode(models.Model):
         validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("99999.99"))],
     )
     description = models.TextField()
-    tours = models.ManyToManyField(Tour, verbose_name="Туры", help_text="Туры")
-    hotels = models.ManyToManyField(Hotel, verbose_name="Отели", help_text="Отели")
+    tours = models.ManyToManyField(Tour, verbose_name="Туры", help_text="Туры", blank=True)
+    hotels = models.ManyToManyField(Hotel, verbose_name="Отели", help_text="Отели", blank=True)
     is_active = models.BooleanField(default=True)
+
+    def is_valid(self):
+        now = date.today()
+        return self.is_active and self.start_date <= now <= self.end_date
+
+    def apply_discount(self, original_price):
+        discount_amount = self.discount_amount
+        if discount_amount < 1:
+            discounted = original_price * (1 - Decimal(discount_amount))
+        else:
+            discounted = original_price - discount_amount
+        return round(discounted, 2)
 
 
 class PromocodePhoto(models.Model):

@@ -139,7 +139,7 @@ class Room(models.Model):
         **NULLABLE,
     )
     rules = models.ManyToManyField(
-        "RoomRules",
+        RoomRules,
         related_name="rooms",
         verbose_name="Название правила",
         help_text="Введите название правила, а потом выберите его возможность использования Да/Нет",
@@ -164,6 +164,7 @@ class RoomCategory(models.Model):
 
     room = models.ForeignKey(
         Room,
+        related_name="room_categories",
         on_delete=models.CASCADE,
         verbose_name="Категория номера",
         help_text="Выберите категорию номера",

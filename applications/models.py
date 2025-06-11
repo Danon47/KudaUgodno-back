@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -26,6 +29,14 @@ class Application(models.Model):
         choices=StatusChoices.choices,
         default=StatusChoices.AWAIT_CONFIRM,
         verbose_name="Статус заявки",
+    )
+    price = models.DecimalField(
+        verbose_name="Итоговая стоимость",
+        help_text="Итоговая стоимость",
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("9999999.99"))],
+        **NULLABLE,
     )
 
     class Meta:
