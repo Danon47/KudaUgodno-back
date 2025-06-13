@@ -446,11 +446,20 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
     def logout(self, request):
-        """Выход из системы: аннулирование refresh-токена."""
-        serializer = LogoutSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        """
+        Выход из системы: аннулирование refresh-токена и удаление cookies.
+        """
 
-        refresh_token = serializer.validated_data["refresh"]
+        # Пробуем взять refresh из тела запроса
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=False)
+
+        refresh_token = (
+            serializer.validated_data.get("refresh") if serializer.is_valid() else request.COOKIES.get("refresh_token")
+        )
+
+        if not refresh_token:
+            return Response({"error": "Refresh-токен не передан"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             token = RefreshToken(refresh_token)
@@ -461,7 +470,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             response.delete_cookie("refresh_token")
             return response
 
-        except Exception as e:
+        except TokenError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
