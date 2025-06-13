@@ -18,6 +18,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from all_fixture.choices import RoleChoices
@@ -43,6 +44,17 @@ from users.serializers import (
 
 
 logger = logging.getLogger(__name__)
+
+
+# Функция-хелпер
+def blacklist_user_tokens(user):
+    """Аннулирует все токены пользователя перед удалением."""
+    try:
+        tokens = OutstandingToken.objects.filter(user=user)
+        for token in tokens:
+            BlacklistedToken.objects.get_or_create(token=token)
+    except Exception as e:
+        logger.warning(f"[User DELETE] Ошибка при аннулировании токенов: {e}")
 
 
 @extend_schema_view(
@@ -153,19 +165,20 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         user = request.user
 
-        # Только USER может удалять себя, иначе — только админ
         if not user.is_superuser:
             if user != instance or instance.role != RoleChoices.USER:
                 return Response({"error": "Удаление запрещено"}, status=status.HTTP_403_FORBIDDEN)
 
-        # Аннулируем токен (мягко)
         refresh_token = request.data.get("refresh")
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception as e:
-                logger.warning(f"[User DELETE] Не удалось аннулировать токен {instance.email}: {e}")
+                logger.warning(f"[User DELETE] Не удалось аннулировать refresh токен: {e}")
+
+        # Аннулируем все оставшиеся токены пользователя
+        blacklist_user_tokens(instance)
 
         self.perform_destroy(instance)
         return Response({"message": "Пользователь удалён"}, status=status.HTTP_204_NO_CONTENT)
