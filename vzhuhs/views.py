@@ -78,7 +78,6 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-
         qs = self.filter_queryset(self.get_queryset())
         all_ids = set(qs.values_list("id", flat=True))
         if not all_ids:
