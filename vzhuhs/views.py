@@ -1,13 +1,14 @@
 import logging
+import random
 
 from dal import autocomplete
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
-from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel
 from tours.models import Tour
 from vzhuhs.filters import VzhuhFilter
@@ -58,7 +59,6 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
-    pagination_class = CustomLOPagination
 
     def get_queryset(self):
         queryset = Vzhuh.objects.prefetch_related(
@@ -68,7 +68,53 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             "hotels__hotel_photos",
             "photos",
         ).filter(is_published=True)
-        return queryset.order_by("?")
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        SESSION_KEY = "vzhuh_history"
+        MAX_HISTORY = 500  # Максимальная длина истории
+
+        qs = self.filter_queryset(self.get_queryset())
+
+        # Оптимизированная загрузка объектов
+        objects_map = {obj.id: obj for obj in qs}
+        all_ids = set(objects_map.keys())
+
+        if not all_ids:
+            return Response({"eroor": "Вжух не найден."}, status=404)
+
+        # Получаем историю показов
+        seen = request.session.get(SESSION_KEY, [])
+
+        # Ограничиваем размер истории
+        if len(seen) > MAX_HISTORY:
+            seen = seen[-MAX_HISTORY:]
+
+        # Вычисляем доступные ID
+        remaining = all_ids - set(seen)
+
+        if not remaining:
+            # При сбросе цикла исключаем последний показанный
+            last_seen = seen[-1] if seen else None
+            pool = list(all_ids - {last_seen}) if last_seen else list(all_ids)
+
+            if not pool:  # На случай, если всего 1 объект
+                pool = list(all_ids)
+
+            chosen_id = random.choice(pool)
+            seen = [chosen_id]  # Начинаем новую историю
+        else:
+            chosen_id = random.choice(list(remaining))
+            seen.append(chosen_id)
+
+        # Обновляем сессию
+        request.session[SESSION_KEY] = seen
+        request.session.modified = True
+
+        # Получаем объект из кэша
+        instance = objects_map[chosen_id]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
