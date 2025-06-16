@@ -5,6 +5,7 @@ from dal import autocomplete
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
@@ -60,43 +61,45 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
 
+    SESSION_KEY = "vzhuh_history"
+    MAX_HISTORY = 500  # Максимальная длина истории
+
     def get_queryset(self):
-        queryset = Vzhuh.objects.prefetch_related(
-            "tours__hotel__hotel_photos",
-            "tours__stock",
-            "hotels__tours",
-            "hotels__hotel_photos",
-            "photos",
-        ).filter(is_published=True)
-        return queryset
+        return (
+            Vzhuh.objects.prefetch_related(
+                "tours__hotel__hotel_photos",
+                "tours__stock",
+                "hotels__tours",
+                "hotels__hotel_photos",
+                "photos",
+            )
+            .filter(is_published=True)
+            .order_by("?")
+        )
 
     def list(self, request, *args, **kwargs):
-        SESSION_KEY = "vzhuh_history"
-        MAX_HISTORY = 500  # Максимальная длина истории
 
         qs = self.filter_queryset(self.get_queryset())
-
-        # Оптимизированная загрузка объектов
-        objects_map = {obj.id: obj for obj in qs}
-        all_ids = set(objects_map.keys())
+        all_ids = set(qs.values_list("id", flat=True))
 
         if not all_ids:
-            return Response({"eroor": "Вжух не найден."}, status=404)
+            return Response({"error": "Вжух не найден."}, status=status.HTTP_404_NOT_FOUND)
 
         # Получаем историю показов
-        seen = request.session.get(SESSION_KEY, [])
+        seen = request.session.get(self.SESSION_KEY, [])
 
         # Ограничиваем размер истории
-        if len(seen) > MAX_HISTORY:
-            seen = seen[-MAX_HISTORY:]
+        if len(seen) > self.MAX_HISTORY:
 
-        # Вычисляем доступные ID
-        remaining = all_ids - set(seen)
+            seen = seen[-self.MAX_HISTORY:]
+
+        # Создаем список доступных ID
+        remaining = [id for id in all_ids if id not in seen]
 
         if not remaining:
             # При сбросе цикла исключаем последний показанный
             last_seen = seen[-1] if seen else None
-            pool = list(all_ids - {last_seen}) if last_seen else list(all_ids)
+            pool = [id for id in all_ids if id != last_seen]
 
             if not pool:  # На случай, если всего 1 объект
                 pool = list(all_ids)
@@ -104,15 +107,24 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             chosen_id = random.choice(pool)
             seen = [chosen_id]  # Начинаем новую историю
         else:
-            chosen_id = random.choice(list(remaining))
+            # Более эффективный выбор случайного элемента
+            chosen_id = remaining[random.randint(0, len(remaining) - 1)]
             seen.append(chosen_id)
 
         # Обновляем сессию
-        request.session[SESSION_KEY] = seen
+        request.session[self.SESSION_KEY] = seen
         request.session.modified = True
 
-        # Получаем объект из кэша
-        instance = objects_map[chosen_id]
+        # Безопасное получение объекта
+        try:
+            instance = qs.get(id=chosen_id)
+        except Vzhuh.DoesNotExist:
+            # Удаляем несуществующий ID из истории
+            seen.remove(chosen_id)
+            request.session[self.SESSION_KEY] = seen
+            request.session.modified = True
+            return Response({"error": "Объект больше не доступен"}, status=410)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
