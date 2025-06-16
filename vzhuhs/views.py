@@ -7,6 +7,7 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
+from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel
 from tours.models import Tour
 from vzhuhs.filters import VzhuhFilter
@@ -29,6 +30,13 @@ logger = logging.getLogger(__name__)
                 description="Фильтр по городу вылета",
                 required=False,
             ),
+            OpenApiParameter(
+                name="id",
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description="Фильтр по ID Вжуха",
+                required=False,
+            ),
         ],
     ),
     retrieve=extend_schema(exclude=True),
@@ -46,17 +54,21 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     - Добавлена фильтрация по `departure_city` - городу отправления
     """
 
-    queryset = Vzhuh.objects.prefetch_related(
-        "tours__hotel__hotel_photos",
-        "tours__stock",
-        "hotels__tours",
-        "hotels__hotel_photos",
-        "photos",
-    )
+    queryset = Vzhuh.objects.none()
     filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ("departure_city",)
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
+    pagination_class = CustomLOPagination
+
+    def get_queryset(self):
+        queryset = Vzhuh.objects.prefetch_related(
+            "tours__hotel__hotel_photos",
+            "tours__stock",
+            "hotels__tours",
+            "hotels__hotel_photos",
+            "photos",
+        ).filter(is_published=True)
+        return queryset.order_by("?")
 
 
 class VzhuhAutocompleteHotel(autocomplete.Select2QuerySetView):
