@@ -60,6 +60,7 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
+
     SESSION_KEY = "vzhuh_history"
     MAX_HISTORY = 500  # Максимальная длина истории
 
@@ -77,6 +78,7 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
+
         qs = self.filter_queryset(self.get_queryset())
         all_ids = set(qs.values_list("id", flat=True))
         if not all_ids:
@@ -118,19 +120,11 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
                 seen.append(chosen_id)
 
         # Обновляем сессию
-        request.session[self.SESSION_KEY] = seen
+        request.session[SESSION_KEY] = seen
         request.session.modified = True
 
-        # Безопасное получение объекта
-        try:
-            instance = qs.get(id=chosen_id)
-        except Vzhuh.DoesNotExist:
-            # Удаляем несуществующий ID из истории
-            seen.remove(chosen_id)
-            request.session[self.SESSION_KEY] = seen
-            request.session.modified = True
-            return Response({"error": "Объект больше не доступен"}, status=410)
-
+        # Получаем объект из кэша
+        instance = objects_map[chosen_id]
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
