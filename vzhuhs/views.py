@@ -82,15 +82,16 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         all_ids = set(qs.values_list("id", flat=True))
         if not all_ids:
             return Response({"error": "Вжух не найден."}, status=status.HTTP_404_NOT_FOUND)
+
         # Получаем историю показов
         seen = request.session.get(self.SESSION_KEY, [])
         # Ограничиваем размер истории
         if len(seen) > self.MAX_HISTORY:
-            # fmt: off
-            seen = seen[-self.MAX_HISTORY:]
-            # fmt: on
+            seen = seen[-self.MAX_HISTORY :]
+
         # Создаем список доступных ID
         remaining = [id for id in all_ids if id not in seen]
+
         if not remaining:
             # При сбросе цикла исключаем последний показанный
             last_seen = seen[-1] if seen else None
@@ -100,12 +101,25 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             chosen_id = random.choice(pool)
             seen = [chosen_id]  # Начинаем новую историю
         else:
-            # Более эффективный выбор случайного элемента
-            chosen_id = remaining[random.randint(0, len(remaining) - 1)]
-            seen.append(chosen_id)
+            # Если сущностей всего 2, чередуем их
+            if len(all_ids) == 2 and len(seen) > 1:
+                if seen[-1] == seen[-2]:
+                    # Если последняя сущность такая же, как предыдущая, выбираем другую
+                    seen.pop()
+                    chosen_id = next(id for id in all_ids if id != seen[-1])
+                    seen.append(chosen_id)
+                else:
+                    chosen_id = remaining[random.randint(0, len(remaining) - 1)]
+                    seen.append(chosen_id)
+            else:
+                # Более эффективный выбор случайного элемента
+                chosen_id = remaining[random.randint(0, len(remaining) - 1)]
+                seen.append(chosen_id)
+
         # Обновляем сессию
         request.session[self.SESSION_KEY] = seen
         request.session.modified = True
+
         # Безопасное получение объекта
         try:
             instance = qs.get(id=chosen_id)
@@ -115,6 +129,7 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             request.session[self.SESSION_KEY] = seen
             request.session.modified = True
             return Response({"error": "Объект больше не доступен"}, status=410)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
