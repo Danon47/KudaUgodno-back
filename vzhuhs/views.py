@@ -61,16 +61,6 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
 
-    def get_queryset(self):
-        queryset = Vzhuh.objects.prefetch_related(
-            "tours__hotel__hotel_photos",
-            "tours__stock",
-            "hotels__tours",
-            "hotels__hotel_photos",
-            "photos",
-        ).filter(is_published=True)
-        return queryset.order_by("?")
-
     SESSION_KEY = "vzhuh_history"
     MAX_HISTORY = 500  # Максимальная длина истории
 
@@ -88,13 +78,16 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
+
         qs = self.filter_queryset(self.get_queryset())
         all_ids = set(qs.values_list("id", flat=True))
+
         if not all_ids:
-            return Response({"error": "Вжух не найден."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"eroor": "Вжух не найден."}, status=404)
 
         # Получаем историю показов
-        seen = request.session.get(self.SESSION_KEY, [])
+        seen = request.session.get(SESSION_KEY, [])
+
         # Ограничиваем размер истории
         if len(seen) > self.MAX_HISTORY:
             # fmt: off
@@ -108,32 +101,31 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             # При сбросе цикла исключаем последний показанный
             last_seen = seen[-1] if seen else None
             pool = [id for id in all_ids if id != last_seen]
+
             if not pool:  # На случай, если всего 1 объект
                 pool = list(all_ids)
+
             chosen_id = random.choice(pool)
             seen = [chosen_id]  # Начинаем новую историю
         else:
-            # Если сущностей всего 2, чередуем их
-            if len(all_ids) == 2 and len(seen) > 1:
-                if seen[-1] == seen[-2]:
-                    # Если последняя сущность такая же, как предыдущая, выбираем другую
-                    seen.pop()
-                    chosen_id = next(id for id in all_ids if id != seen[-1])
-                    seen.append(chosen_id)
-                else:
-                    chosen_id = remaining[random.randint(0, len(remaining) - 1)]
-                    seen.append(chosen_id)
-            else:
-                # Более эффективный выбор случайного элемента
-                chosen_id = remaining[random.randint(0, len(remaining) - 1)]
-                seen.append(chosen_id)
+            # Более эффективный выбор случайного элемента
+            chosen_id = remaining[random.randint(0, len(remaining) - 1)]
+            seen.append(chosen_id)
 
         # Обновляем сессию
-        request.session[SESSION_KEY] = seen
+        request.session[self.SESSION_KEY] = seen
         request.session.modified = True
 
-        # Получаем объект из кэша
-        instance = objects_map[chosen_id]
+        # Безопасное получение объекта
+        try:
+            instance = qs.get(id=chosen_id)
+        except Vzhuh.DoesNotExist:
+            # Удаляем несуществующий ID из истории
+            seen.remove(chosen_id)
+            request.session[self.SESSION_KEY] = seen
+            request.session.modified = True
+            return Response({"error": "Объект больше не доступен"}, status=410)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
