@@ -87,7 +87,7 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         seen = request.session.get(self.SESSION_KEY, [])
         # Ограничиваем размер истории
         if len(seen) > self.MAX_HISTORY:
-            seen = seen[-self.MAX_HISTORY :]
+            seen = seen[-self.MAX_HISTORY:]
 
         # Создаем список доступных ID
         remaining = [id for id in all_ids if id not in seen]
