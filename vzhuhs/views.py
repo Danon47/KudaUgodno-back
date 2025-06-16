@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from all_fixture.fixture_views import vzhuh_settings
-from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel
 from tours.models import Tour
 from vzhuhs.filters import VzhuhFilter
@@ -61,7 +60,6 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = VzhuhFilter
     serializer_class = VzhuhSerializer
-    pagination_class = CustomLOPagination
 
     def get_queryset(self):
         queryset = Vzhuh.objects.prefetch_related(
