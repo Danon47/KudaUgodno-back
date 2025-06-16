@@ -103,9 +103,20 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             chosen_id = random.choice(pool)
             seen = [chosen_id]  # Начинаем новую историю
         else:
-            # Более эффективный выбор случайного элемента
-            chosen_id = remaining[random.randint(0, len(remaining) - 1)]
-            seen.append(chosen_id)
+            # Если сущностей всего 2, чередуем их
+            if len(all_ids) == 2 and len(seen) > 1:
+                if seen[-1] == seen[-2]:
+                    # Если последняя сущность такая же, как предыдущая, выбираем другую
+                    seen.pop()
+                    chosen_id = next(id for id in all_ids if id != seen[-1])
+                    seen.append(chosen_id)
+                else:
+                    chosen_id = remaining[random.randint(0, len(remaining) - 1)]
+                    seen.append(chosen_id)
+            else:
+                # Более эффективный выбор случайного элемента
+                chosen_id = remaining[random.randint(0, len(remaining) - 1)]
+                seen.append(chosen_id)
 
         # Обновляем сессию
         request.session[self.SESSION_KEY] = seen
