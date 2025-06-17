@@ -316,8 +316,6 @@ MAILING_ID = OpenApiParameter(
     description="ID Рассылки",
     required=True,
 )
-# Для вывода ошибка при неверном ID
-MAILING_ID_ERROR = "Рассылка не найдена, введён неверный ID рассылки."
 # Для пагинации
 limit = OpenApiParameter(
     name="limit",

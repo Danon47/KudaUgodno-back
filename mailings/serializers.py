@@ -1,5 +1,5 @@
 from rest_framework.exceptions import ValidationError
-from rest_framework.serializers import BooleanField, CharField, EmailField, ModelSerializer, Serializer
+from rest_framework.serializers import BooleanField, EmailField, ModelSerializer
 
 from mailings.models import Mailing
 
@@ -36,7 +36,3 @@ class MailingSerializer(ModelSerializer):
         elif self.context.get("view").action == "update":
             fields["mailing"].required = True
         return fields
-
-
-class MailingErrorSerializer(Serializer):
-    detail = CharField()

@@ -17,9 +17,7 @@ class PromocodePhotoSerializer(ModelSerializer):
 
 
 class PromocodeSerializer(ModelSerializer):
-    discount_amount = DecimalField(
-        max_digits=10, decimal_places=2, coerce_to_string=False, min_value=0.01, max_value=99999.99
-    )
+    discount_amount = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = Promocode
