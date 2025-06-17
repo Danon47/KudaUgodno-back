@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import APIException, PermissionDenied
 
@@ -30,18 +32,36 @@ class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
 
+    # ───────────────────────────── фильтрация списка ─────────────────────────────
+
     def get_queryset(self):
-        """Фильтрация по публикации, популярности, стране и теме."""
+        """
+        Фильтрация статей по:
+        • интервалу публикации (date_from, date_to);
+        • популярности (asc/desc);
+        • странам (country);
+        • теме (theme_id);
+        • автору (если пользователь не суперпользователь).
+        """
         queryset = Article.objects.all()
 
-        # 1️⃣ публикация
-        is_published_param = self.request.query_params.get("is_published")
-        if is_published_param is not None:
+        # 1️⃣ дата публикации
+        date_from_param = self.request.query_params.get("date_from")
+        date_to_param = self.request.query_params.get("date_to")
+
+        if date_from_param:
             try:
-                is_published = is_published_param.lower() == "true"
-                queryset = queryset.filter(is_published=is_published)
+                date_from = datetime.strptime(date_from_param, "%Y-%m-%d").date()
+                queryset = queryset.filter(pub_date__gte=date_from)
             except ValueError as err:
-                raise APIException("Неверный формат параметра is_published. Используйте true или false.") from err
+                raise APIException("Неверный формат параметра date_from. Используйте YYYY-MM-DD.") from err
+
+        if date_to_param:
+            try:
+                date_to = datetime.strptime(date_to_param, "%Y-%m-%d").date()
+                queryset = queryset.filter(pub_date__lte=date_to)
+            except ValueError as err:
+                raise APIException("Неверный формат параметра date_to. Используйте YYYY-MM-DD.") from err
 
         # 2️⃣ популярность
         popularity_param = self.request.query_params.get("popularity")
@@ -70,30 +90,30 @@ class ArticleViewSet(viewsets.ModelViewSet):
             except Theme.DoesNotExist:
                 raise APIException("Тема с указанным ID не найдена.") from None
 
-        # -- права доступа
+        # 5️⃣ права доступа
         user = self.request.user
         return queryset if user.is_superuser else queryset.filter(author=user)
 
-    # ────────────────────────── пермишены на запись ──────────────────────────
+    # ───────────────────────────── CRUD-overrides ──────────────────────────────
 
     def perform_create(self, serializer):
         """При создании автоматически проставляем автора."""
         serializer.save(author=self.request.user)
 
-    def _check_owner(self, instance, user):
-        if instance.author != user and not user.is_superuser:
+    def _check_owner(self, instance):
+        if instance.author != self.request.user and not self.request.user.is_superuser:
             raise PermissionDenied("Нет прав изменять/удалять эту статью.")
 
     def update(self, request, *args, **kwargs):
-        self._check_owner(self.get_object(), request.user)
+        self._check_owner(self.get_object())
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
-        self._check_owner(self.get_object(), request.user)
+        self._check_owner(self.get_object())
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        self._check_owner(self.get_object(), request.user)
+        self._check_owner(self.get_object())
         return super().destroy(request, *args, **kwargs)
 
 
