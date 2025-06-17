@@ -1,7 +1,10 @@
 from datetime import datetime
 
 from rest_framework import permissions, viewsets
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.exceptions import (
+    APIException,
+    PermissionDenied,
+)
 
 from blogs.models import Article, ArticleImage, Category, Tag, Theme
 from blogs.serializers import (
@@ -10,6 +13,19 @@ from blogs.serializers import (
     CategorySerializer,
     TagSerializer,
 )
+
+# ──────────────────────────── вспомогательные функции ───────────────────────────
+
+
+def _check_permissions(request, instance) -> None:
+    """
+    Проверяет, имеет ли пользователь право редактировать или удалять статью.
+    """
+    if instance.author != request.user and not request.user.is_superuser:
+        raise PermissionDenied("Вы не можете редактировать или удалять эту статью.")
+
+
+# ─────────────────────────────── view-сеты блога ────────────────────────────────
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -32,12 +48,12 @@ class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
 
-    # ───────────────────────────── фильтрация списка ─────────────────────────────
+    # ─────────────────────────── фильтрация списка статей ───────────────────────────
 
     def get_queryset(self):
         """
         Фильтрация статей по:
-        • интервалу публикации (date_from, date_to);
+        • дате публикации (date_from, date_to);
         • популярности (asc/desc);
         • странам (country);
         • теме (theme_id);
@@ -46,22 +62,18 @@ class ArticleViewSet(viewsets.ModelViewSet):
         queryset = Article.objects.all()
 
         # 1️⃣ дата публикации
+        date_filters = {}
         date_from_param = self.request.query_params.get("date_from")
         date_to_param = self.request.query_params.get("date_to")
-
-        if date_from_param:
-            try:
-                date_from = datetime.strptime(date_from_param, "%Y-%m-%d").date()
-                queryset = queryset.filter(pub_date__gte=date_from)
-            except ValueError as err:
-                raise APIException("Неверный формат параметра date_from. Используйте YYYY-MM-DD.") from err
-
-        if date_to_param:
-            try:
-                date_to = datetime.strptime(date_to_param, "%Y-%m-%d").date()
-                queryset = queryset.filter(pub_date__lte=date_to)
-            except ValueError as err:
-                raise APIException("Неверный формат параметра date_to. Используйте YYYY-MM-DD.") from err
+        try:
+            if date_from_param:
+                date_filters["pub_date__gte"] = datetime.strptime(date_from_param, "%Y-%m-%d").date()
+            if date_to_param:
+                date_filters["pub_date__lte"] = datetime.strptime(date_to_param, "%Y-%m-%d").date()
+            if date_filters:
+                queryset = queryset.filter(**date_filters)
+        except ValueError as err:
+            raise APIException("Неверный формат параметра даты. Используйте YYYY-MM-DD.") from err
 
         # 2️⃣ популярность
         popularity_param = self.request.query_params.get("popularity")
@@ -84,36 +96,42 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if theme_id_param:
             try:
                 theme_id = int(theme_id_param)
-                queryset = queryset.filter(theme_id=theme_id)
             except ValueError as err:
                 raise APIException("Неверный формат параметра theme_id. Используйте числовой ID темы.") from err
-            except Theme.DoesNotExist:
+
+            if not Theme.objects.filter(id=theme_id).exists():
                 raise APIException("Тема с указанным ID не найдена.") from None
+
+            queryset = queryset.filter(theme_id=theme_id)
 
         # 5️⃣ права доступа
         user = self.request.user
         return queryset if user.is_superuser else queryset.filter(author=user)
 
-    # ───────────────────────────── CRUD-overrides ──────────────────────────────
+    # ──────────────────────────────── CRUD-overrides ──────────────────────────────
 
     def perform_create(self, serializer):
-        """При создании автоматически проставляем автора."""
-        serializer.save(author=self.request.user)
+        """
+        Автоматически проставляет автора и помечает статью
+        как неопубликованную и немодерированную.
+        """
+        serializer.save(
+            author=self.request.user,
+            is_published=False,
+            is_moderated=False,
+        )
 
-    def _check_owner(self, instance):
-        if instance.author != self.request.user and not self.request.user.is_superuser:
-            raise PermissionDenied("Нет прав изменять/удалять эту статью.")
-
+    # проверки прав перед изменением/удалением
     def update(self, request, *args, **kwargs):
-        self._check_owner(self.get_object())
+        _check_permissions(request, self.get_object())
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
-        self._check_owner(self.get_object())
+        _check_permissions(request, self.get_object())
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        self._check_owner(self.get_object())
+        _check_permissions(request, self.get_object())
         return super().destroy(request, *args, **kwargs)
 
 

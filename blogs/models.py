@@ -96,6 +96,7 @@ class Article(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name="Дата последнего изменения", help_text="Дата последнего изменения"
     )
+    is_moderated = models.BooleanField(default=False, verbose_name="Прошла модерацию", help_text="Прошла модерацию")
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, **NULLABLE, verbose_name="категория")
     tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")

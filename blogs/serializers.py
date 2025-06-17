@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from all_fixture.validators.validators import ForbiddenWordValidator
 from blogs.models import Article, ArticleImage, Category, Country, Tag, Theme
 
 
@@ -52,6 +53,11 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     theme = serializers.PrimaryKeyRelatedField(queryset=Theme.objects.all(), default=None)
     country = CountrySerializer(many=True, read_only=True)
+
+    def __init__(self, args, kwargs):
+        super().__init__(args, kwargs)
+        self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
+        self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
 
     class Meta:
         model = Article
