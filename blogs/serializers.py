@@ -53,6 +53,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     theme = serializers.PrimaryKeyRelatedField(queryset=Theme.objects.all(), default=None)
     country = CountrySerializer(many=True, read_only=True)
+    is_published = serializers.BooleanField(read_only=True)
+    is_moderated = serializers.BooleanField(read_only=True)
 
     def __init__(self, args, kwargs):
         super().__init__(args, kwargs)

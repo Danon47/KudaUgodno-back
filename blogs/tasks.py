@@ -14,15 +14,12 @@ def send_moderation_notification(article_id):
     """Отправляет уведомление администратору о новой статье, ожидающей модерации."""
     try:
         article = Article.objects.get(pk=article_id)
-        message = (
-            f"Новая статья '{article.title}' ожидает модерации.  "
-            f"Ссылка: {settings.SITE_URL}/admin/blogs/article/{article.id}/change/"
-        )
+        message = f"Новая статья '{article.title}' ожидает модерации.  Ссылка: {settings.SITE_URL}/admin/your_app/article/{article.id}/change/"  # Замените your_app и SITE_URL
         send_mail(
             subject="Новая статья для модерации",
             message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,  # настройки почтового сервера
-            recipient_list=[settings.ADMIN_EMAIL],  # настройки почтового сервера
+            from_email=settings.DEFAULT_FROM_EMAIL,  # настройки вашего почтового сервера
+            recipient_list=[settings.ADMIN_EMAIL],  # настройки вашего почтового сервера
         )
         logger.info(f"Уведомление о модерации отправлено для статьи {article_id}")
     except Article.DoesNotExist:
