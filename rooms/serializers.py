@@ -59,7 +59,7 @@ class RoomDateBaseSerializer(ModelSerializer):
 
     class Meta:
         model = RoomDate
-        fields = ("id", "start_date", "end_date", "available_for_booking", "stock", "share_size")
+        fields = ("id", "start_date", "end_date", "available_for_booking", "discount", "discount_amount")
 
 
 class RoomDateDetailSerializer(RoomDateBaseSerializer):

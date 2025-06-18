@@ -5,7 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from all_fixture.choices import RoomCategoryChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.fixture_views import DISCOUNT, NULLABLE
 from hotels.models import Hotel, TypeOfMeal
 from users.models import User
 
@@ -203,12 +203,12 @@ class RoomDate(models.Model):
         help_text="Доступна Да/Нет?",
         default=True,
     )
-    stock = models.BooleanField(
+    discount = models.BooleanField(
         verbose_name="Акция",
         help_text="Акция Да/Нет?",
         default=False,
     )
-    share_size = models.DecimalField(
+    discount_amount = models.DecimalField(
         verbose_name="Размер скидки",
         help_text="Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - "
         "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
@@ -256,3 +256,72 @@ class RoomPhoto(models.Model):
     class Meta:
         verbose_name = "Фотография номера"
         verbose_name_plural = "Фотографии номера"
+
+
+class PriceCalendar(models.Model):
+    hotel = models.ForeignKey(
+        Hotel,
+        on_delete=models.CASCADE,
+        related_name="price_calendars",
+        verbose_name="Отель",
+        help_text="Связанный отель",
+    )
+    start_date = models.DateField(
+        verbose_name="Начало периода стоимости категорий номеров", help_text="Введите дату в формате YYYY-MM-DD"
+    )
+    end_date = models.DateField(
+        verbose_name="Конец периода стоимости категорий номеров", help_text="Введите дату в формате YYYY-MM-DD"
+    )
+    available_for_booking = models.BooleanField(
+        verbose_name="Доступна для бронирования",
+        help_text="Доступность категории для бронирования в этот период",
+        default=True,
+    )
+    discount = models.BooleanField(verbose_name="Акция", help_text="Применяется ли скидка на период", default=False)
+    discount_amount = models.DecimalField(
+        verbose_name="Размер скидки", help_text=DISCOUNT, max_digits=8, decimal_places=2, **NULLABLE, default=None
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=models.Q(end_date__gte=models.F("start_date")), name="check_period_dates"),
+            models.UniqueConstraint(fields=["hotel", "start_date", "end_date"], name="unique_period_for_hotel"),
+        ]
+        verbose_name = "Период стоимости номера"
+        verbose_name_plural = "Периоды стоимости номеров"
+
+    def __str__(self):
+        return f"{self.start_date} - {self.end_date}"
+
+
+class CategoryPriceCalendar(models.Model):
+    price_calendar = models.ForeignKey(
+        PriceCalendar,
+        on_delete=models.CASCADE,
+        related_name="category_prices",
+        verbose_name="Период стоимости номера",
+        help_text="Период стоимости номера",
+    )
+    room_category = models.CharField(
+        choices=RoomCategoryChoices.choices,
+        max_length=100,
+        verbose_name="Категория номера",
+        help_text="Категория номера для которой применяется цена",
+    )
+    price = models.DecimalField(
+        verbose_name="Стоимость в сутки",
+        help_text="Стоимость в сутки",
+        max_digits=10,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("9999999.99")),
+        ],
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["price_calendar", "room_category"], name="unique_category_in_period")
+        ]
+        verbose_name = "Стоимость номера"
+        verbose_name_plural = "Стоимости номеров"

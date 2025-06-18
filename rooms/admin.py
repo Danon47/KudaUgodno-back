@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from rooms.models import Room, RoomCategory, RoomDate, RoomPhoto, RoomRules
+from rooms.models import CategoryPriceCalendar, PriceCalendar, Room, RoomCategory, RoomDate, RoomPhoto, RoomRules
 
 
 @admin.register(Room)
@@ -27,7 +27,7 @@ class RoomRulesAdmin(admin.ModelAdmin):
 
 @admin.register(RoomDate)
 class RoomDateAdmin(admin.ModelAdmin):
-    list_display = ("id", "start_date", "end_date", "get_categories", "stock", "share_size")
+    list_display = ("id", "start_date", "end_date", "get_categories", "discount", "discount_amount")
 
     def get_categories(self, obj):
         return ", ".join([str(category) for category in obj.categories.all()])
@@ -38,3 +38,13 @@ class RoomDateAdmin(admin.ModelAdmin):
 @admin.register(RoomCategory)
 class RoomCategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "room", "price")
+
+
+@admin.register(CategoryPriceCalendar)
+class CategoryPriceCalendarAdmin(admin.ModelAdmin):
+    list_display = ("id", "price_calendar", "room_category", "price")
+
+
+@admin.register(PriceCalendar)
+class PriceCalendarAdmin(admin.ModelAdmin):
+    list_display = ("id", "start_date", "end_date")

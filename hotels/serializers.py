@@ -174,7 +174,7 @@ class HotelShortSerializer(ModelSerializer):
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
 
-    min_price = DecimalField(max_digits=10, decimal_places=2)
+    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta(HotelShortSerializer.Meta):
         model = Hotel

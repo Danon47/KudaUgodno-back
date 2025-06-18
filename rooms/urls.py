@@ -2,6 +2,7 @@ from django.urls import path
 
 from rooms.apps import RoomsConfig
 from rooms.views import RoomDateViewSet, RoomPhotoViewSet, RoomViewSet
+from rooms.views_price_calendar import PriceCalendarViewSet
 
 
 app_name = RoomsConfig.name
@@ -49,5 +50,21 @@ urlpatterns = [
             }
         ),
         name="rooms-dates-detail",
+    ),
+    path(
+        "<int:hotel_id>/price_calendars/",
+        PriceCalendarViewSet.as_view({"get": "list", "post": "create"}),
+        name="rooms-dates-list_1",
+    ),
+    path(
+        "<int:hotel_id>/price_calendars/<int:pk>/",
+        PriceCalendarViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "delete": "destroy",
+            }
+        ),
+        name="rooms-dates-detail_1",
     ),
 ]

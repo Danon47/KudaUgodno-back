@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
@@ -84,6 +85,8 @@ from rooms.serializers import (
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.none()
     pagination_class = CustomLOPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = None
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

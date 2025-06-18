@@ -414,25 +414,25 @@ class Command(BaseCommand):
                 num_dates = random.randint(1, 5)
                 current_start_date = date(2025, random.randint(6, 12), random.randint(1, 28))
                 for _ in range(num_dates):
-                    stock = random.choice([True, False])
+                    discount = random.choice([True, False])
                     end_date = current_start_date + timedelta(days=random.randint(10, 14))
                     price = round(random.uniform(2000, 50000), 2)
                     category = RoomCategory.objects.create(room=room, price=price)
 
-                    # Генерация share_size: либо 0.01-0.99, либо 100-2000
-                    if stock:
+                    # Генерация discount_amount: либо 0.01-0.99, либо 100-2000
+                    if discount:
                         if random.choice([True, False]):  # 50% вероятность для каждого диапазона
-                            share_size = round(random.uniform(0.01, 0.99), 2)
+                            discount_amount = round(random.uniform(0.01, 0.99), 2)
                         else:
-                            share_size = random.randint(100, 2000)
+                            discount_amount = random.randint(100, 2000)
                     else:
-                        share_size = None
+                        discount_amount = None
                     room_date = RoomDate.objects.create(
                         start_date=current_start_date,
                         end_date=end_date,
                         available_for_booking=True,
-                        stock=stock,
-                        share_size=share_size,
+                        discount=discount,
+                        discount_amount=discount_amount,
                     )
                     room_date.categories.set([category])
                     current_start_date = end_date + timedelta(days=1)
