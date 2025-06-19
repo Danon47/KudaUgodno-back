@@ -6,7 +6,7 @@ from django_filters import CharFilter, DateFilter, FilterSet, NumberFilter
 
 from all_fixture.fixture_views import MAX_DAYS_CHECK_OUT
 from hotels.models import Hotel
-from rooms.models import Room, RoomCategory
+from rooms.models import CalendarPrice, Room
 
 
 class BaseHotelFilter(FilterSet):
@@ -62,7 +62,7 @@ class BaseHotelFilter(FilterSet):
                 date_filter = Q(
                     room_date__available_for_booking=True, room_date__start_date__gte=check_in_obj, room=OuterRef("pk")
                 )
-            return Q(Exists(RoomCategory.objects.filter(date_filter)))
+            return Q(Exists(CalendarPrice.objects.filter(date_filter)))
         except ValueError:
             return Q()
 
@@ -109,7 +109,7 @@ class HotelSearchFilter(BaseHotelFilter):
             check_in_obj = datetime.strptime(check_in, "%Y-%m-%d").date()
             check_out_obj = datetime.strptime(check_out, "%Y-%m-%d").date()
             min_price_subquery = (
-                RoomCategory.objects.filter(
+                CalendarPrice.objects.filter(
                     room_date__available_for_booking=True,
                     room_date__start_date__lte=check_out_obj,
                     room_date__end_date__gte=check_in_obj,
@@ -156,7 +156,7 @@ class HotelExtendedFilter(HotelSearchFilter):
         if hasattr(self, "price_lte_value"):
             price_filters &= Q(price__lte=self.price_lte_value)
         if price_filters:
-            room_query = room_query.filter(Exists(RoomCategory.objects.filter(price_filters, room=OuterRef("pk"))))
+            room_query = room_query.filter(Exists(CalendarPrice.objects.filter(price_filters, room=OuterRef("pk"))))
         return room_query
 
     def filter_queryset(self, queryset):
@@ -184,7 +184,7 @@ class HotelExtendedFilter(HotelSearchFilter):
             if price_lte is not None:
                 price_filters &= Q(price__lte=price_lte)
             min_price_subquery = (
-                RoomCategory.objects.filter(price_filters, room_id__in=self.room_ids, room__hotel=OuterRef("pk"))
+                CalendarPrice.objects.filter(price_filters, room_id__in=self.room_ids, room__hotel=OuterRef("pk"))
                 .order_by("price")
                 .values("price")[:1]
             )

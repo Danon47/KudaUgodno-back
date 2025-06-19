@@ -50,7 +50,7 @@ from hotels.serializers import (
     HotelWhatAboutFullSerializer,
 )
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
-from rooms.models import RoomCategory
+from rooms.models import CalendarPrice
 
 
 @extend_schema_view(
@@ -237,7 +237,7 @@ class HotelsHotView(viewsets.ModelViewSet):
     def get_queryset(self):
         """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
         min_price_subquery = (
-            RoomCategory.objects.filter(
+            CalendarPrice.objects.filter(
                 room_date__stock=True, room_date__available_for_booking=True, room__hotel=OuterRef("pk")
             )
             .order_by("price")

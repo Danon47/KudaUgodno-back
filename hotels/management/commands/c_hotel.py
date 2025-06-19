@@ -20,7 +20,7 @@ from applications.models import ApplicationHotel, ApplicationTour
 from flights.models import Flight
 from guests.models import Guest
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
-from rooms.models import Room, RoomCategory, RoomDate, RoomPhoto
+from rooms.models import CalendarPrice, Room, RoomDate, RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
 from vzhuhs.models import Vzhuh, VzhuhPhoto
@@ -417,7 +417,7 @@ class Command(BaseCommand):
                     discount = random.choice([True, False])
                     end_date = current_start_date + timedelta(days=random.randint(10, 14))
                     price = round(random.uniform(2000, 50000), 2)
-                    category = RoomCategory.objects.create(room=room, price=price)
+                    category = CalendarPrice.objects.create(room=room, price=price)
 
                     # Генерация discount_amount: либо 0.01-0.99, либо 100-2000
                     if discount:

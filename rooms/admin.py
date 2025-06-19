@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from rooms.models import CategoryPriceCalendar, PriceCalendar, Room, RoomCategory, RoomDate, RoomPhoto, RoomRules
+from rooms.models import CalendarDate, CalendarPrice, Room, RoomPhoto, RoomRules
 
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ("id", "category", "hotel")
-    list_display_links = ("id", "category")
+    list_display = ("id", "hotel")
+    list_display_links = ("id",)
 
 
 @admin.register(RoomPhoto)
@@ -25,26 +25,27 @@ class RoomRulesAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(RoomDate)
-class RoomDateAdmin(admin.ModelAdmin):
-    list_display = ("id", "start_date", "end_date", "get_categories", "discount", "discount_amount")
+#
+# @admin.register(RoomDate)
+# class RoomDateAdmin(admin.ModelAdmin):
+#     list_display = ("id", "start_date", "end_date", "get_categories", "discount", "discount_amount")
+#
+#     def get_categories(self, obj):
+#         return ", ".join([str(category) for category in obj.categories.all()])
+#
+#     get_categories.short_description = "Категории номеров"
 
-    def get_categories(self, obj):
-        return ", ".join([str(category) for category in obj.categories.all()])
 
-    get_categories.short_description = "Категории номеров"
-
-
-@admin.register(RoomCategory)
+@admin.register(CalendarPrice)
 class RoomCategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "room", "price")
+    list_display = ("id", "price")
 
 
-@admin.register(CategoryPriceCalendar)
-class CategoryPriceCalendarAdmin(admin.ModelAdmin):
-    list_display = ("id", "price_calendar", "room_category", "price")
+# @admin.register(CategoryPriceCalendar)
+# class CategoryPriceCalendarAdmin(admin.ModelAdmin):
+#     list_display = ("id", "price_calendar", "room_category", "price")
 
 
-@admin.register(PriceCalendar)
-class PriceCalendarAdmin(admin.ModelAdmin):
+@admin.register(CalendarDate)
+class CalendarAdmin(admin.ModelAdmin):
     list_display = ("id", "start_date", "end_date")

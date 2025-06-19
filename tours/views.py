@@ -36,7 +36,7 @@ from all_fixture.fixture_views import (
 )
 from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel, TypeOfMeal
-from rooms.models import Room, RoomCategory
+from rooms.models import CalendarPrice, Room
 from tours.filters import TourExtendedFilter, TourSearchFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
@@ -215,7 +215,7 @@ class TourSearchView(viewsets.ModelViewSet):
     def get_queryset(self):
         """Получение доступного тура с максимальным количеством гостей в комнате."""
         guests_subquery = (
-            RoomCategory.objects.filter(
+            CalendarPrice.objects.filter(
                 room__tours=OuterRef("pk"),
                 room_date__available_for_booking=True,
             )
@@ -285,7 +285,7 @@ class TourFiltersView(viewsets.ModelViewSet):
     def get_queryset(self):
         """Получение доступного тура с максимальным количеством гостей в комнате."""
         guests_subquery = (
-            RoomCategory.objects.filter(
+            CalendarPrice.objects.filter(
                 room__tours=OuterRef("pk"),
                 room_date__available_for_booking=True,
             )
@@ -334,7 +334,7 @@ class TourHotView(viewsets.ModelViewSet):
     def get_queryset(self):
         """Получение тура по одному из каждой страны с минимальной ценой."""
         guests_subquery = (
-            RoomCategory.objects.filter(
+            CalendarPrice.objects.filter(
                 room_date__stock=True, room_date__available_for_booking=True, room__tours=OuterRef("pk")
             )
             .order_by("price")
