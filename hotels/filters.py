@@ -5,8 +5,9 @@ from django.utils import timezone
 from django_filters import CharFilter, DateFilter, FilterSet, NumberFilter
 
 from all_fixture.fixture_views import MAX_DAYS_CHECK_OUT
+from calendars.models import CalendarPrice
 from hotels.models import Hotel
-from rooms.models import CalendarPrice, Room
+from rooms.models import Room
 
 
 class BaseHotelFilter(FilterSet):

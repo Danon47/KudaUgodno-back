@@ -36,6 +36,7 @@ from all_fixture.fixture_views import (
     what_about_settings,
 )
 from all_fixture.pagination import CustomLOPagination
+from calendars.models import CalendarPrice
 from hotels.filters import HotelExtendedFilter, HotelSearchFilter
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
 from hotels.serializers import (
@@ -50,7 +51,6 @@ from hotels.serializers import (
     HotelWhatAboutFullSerializer,
 )
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
-from rooms.models import CalendarPrice
 
 
 @extend_schema_view(

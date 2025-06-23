@@ -15,6 +15,7 @@ from all_fixture.fixture_views import (  # room_date_id,; room_date_settings,
 )
 from all_fixture.pagination import CustomLOPagination
 from hotels.models import Hotel
+from rooms.filters import RoomFilter
 from rooms.models import Room, RoomPhoto, RoomRules
 from rooms.serializers import (
     RoomBaseSerializer,
@@ -83,7 +84,7 @@ class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.none()
     pagination_class = CustomLOPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_class = None
+    filterset_class = RoomFilter
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

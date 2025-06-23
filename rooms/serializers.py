@@ -1,8 +1,9 @@
+from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ImageField, ModelSerializer
 
+from calendars.models import CalendarDate, CalendarPrice
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
-from rooms.models import CalendarPrice, Room, RoomPhoto, RoomRules
-from rooms.serializer_price_calendar import PriceCalendarSerializer
+from rooms.models import Room, RoomPhoto, RoomRules
 
 
 class RoomPhotoSerializer(ModelSerializer):
@@ -53,39 +54,31 @@ class RoomBaseSerializer(ModelSerializer):
         )
 
 
-# class RoomDateBaseSerializer(ModelSerializer):
-#     """
-#     Сериализатор дат для номеров.
-#     """
-#
-#     class Meta:
-#         model = RoomDate
-#         fields = ("id", "start_date", "end_date", "available_for_booking", "discount", "discount_amount")
+class RoomCalendarDateSerializer(ModelSerializer):
+    price = SerializerMethodField()
 
+    class Meta:
+        model = CalendarDate
+        fields = (
+            "id",
+            "start_date",
+            "end_date",
+            "available_for_booking",
+            "discount",
+            "discount_amount",
+            "price",
+        )
 
-# class RoomDateDetailSerializer(RoomDateBaseSerializer):
-#     """
-#     Детальный сериализатор RoomDate с выводом стоимости конкретного номера.
-#     Требует передачи номера через context['room'].
-#     """
-#
-#     price = SerializerMethodField()
-#
-#     class Meta(RoomDateBaseSerializer.Meta):
-#         fields = RoomDateBaseSerializer.Meta.fields + ("price",)
-#
-#     def get_price(self, room_date: Room) -> int | None:
-#         """
-#         Возвращает стоимость номера на дату.
-#         Если номер не задан (например, если мы не передаем `room` в контекст сериализатора), то возвращает None.
-#         """
-#         room = self.context.get(
-#             "room",
-#         )
-#         try:
-#             return room_date.categories.get(room=room).price
-#         except RoomCategory.DoesNotExist:
-#             return None
+    def get_price(self, obj: CalendarDate):
+        room = self.context.get("room")
+        if not room:
+            return None
+
+        try:
+            calendar_price = obj.calendar_prices.get(room=room)
+            return calendar_price.price
+        except CalendarPrice.DoesNotExist:
+            return None
 
 
 class RoomDetailSerializer(RoomBaseSerializer):
@@ -93,22 +86,63 @@ class RoomDetailSerializer(RoomBaseSerializer):
     Сериалиазатор для вывода детальной информации о номере.
     """
 
-    booking_dates = PriceCalendarSerializer(many=True)
+    calendar_dates = SerializerMethodField(
+        read_only=True,
+    )
     photo = RoomPhotoSerializer(
         source="room_photos",
         many=True,
         read_only=True,
     )
-    # dates = SerializerMethodField()
-    type_of_meals = TypeOfMealSerializer(many=True)
-    rules = RoomRulesSerializer(many=True)
+    type_of_meals = TypeOfMealSerializer(many=True, read_only=True)
+    rules = RoomRulesSerializer(many=True, read_only=True)
 
     class Meta(RoomBaseSerializer.Meta):
         model = Room
         fields = RoomBaseSerializer.Meta.fields + (
             "photo",
-            "booking_dates",
+            "calendar_dates",
         )
+
+    def get_calendar_dates(self, obj: Room):
+        calendar_dates = obj.calendar_dates.all().order_by("start_date").distinct()
+        context = self.context.copy()
+        context["room"] = obj
+        serializer = RoomCalendarDateSerializer(calendar_dates, many=True, context=context)
+        return serializer.data
+
+    # class RoomDateBaseSerializer(ModelSerializer):
+    #     """
+    #     Сериализатор дат для номеров.
+    #     """
+    #
+    #     class Meta:
+    #         model = RoomDate
+    #         fields = ("id", "start_date", "end_date", "available_for_booking", "discount", "discount_amount")
+
+    # class RoomDateDetailSerializer(RoomDateBaseSerializer):
+    #     """
+    #     Детальный сериализатор RoomDate с выводом стоимости конкретного номера.
+    #     Требует передачи номера через context['room'].
+    #     """
+    #
+    #     price = SerializerMethodField()
+    #
+    #     class Meta(RoomDateBaseSerializer.Meta):
+    #         fields = RoomDateBaseSerializer.Meta.fields + ("price",)
+    #
+    #     def get_price(self, room_date: Room) -> int | None:
+    #         """
+    #         Возвращает стоимость номера на дату.
+    #         Если номер не задан (например, если мы не передаем `room` в контекст сериализатора), то возвращает None.
+    #         """
+    #         room = self.context.get(
+    #             "room",
+    #         )
+    #         try:
+    #             return room_date.categories.get(room=room).price
+    #         except RoomCategory.DoesNotExist:
+    #             return None
 
     # def get_dates(self, obj: RoomDate) -> list:
     #     """
@@ -130,14 +164,14 @@ class RoomDetailSerializer(RoomBaseSerializer):
     #     return RoomDateDetailSerializer(room_dates, many=True, context={"room": obj}).data
 
 
-class RoomCategorySerializer(ModelSerializer):
-    """
-    Сериализатор категорий номеров в отеле и их стоимость.
-    """
-
-    class Meta:
-        model = CalendarPrice
-        fields = ("room", "price")
+# class CalendarPriceSerializer(ModelSerializer):
+#     """
+#     Сериализатор категорий номеров в отеле и их стоимость.
+#     """
+#
+#     class Meta:
+#         model = CalendarPrice
+#         fields = ("room", "price")
 
 
 # class RoomDateListSerializer(RoomDateBaseSerializer):

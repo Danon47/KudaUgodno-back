@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/v1/", include("vzhuhs.urls")),
     path("api/v1/", include("mailings.urls")),
     path("api/v1/", include("promocodes.urls")),
+    path("api/v1/", include("calendars.urls")),
 ]
 
 if settings.DEBUG:

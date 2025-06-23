@@ -35,8 +35,9 @@ from all_fixture.fixture_views import (
     tour_stock_settings,
 )
 from all_fixture.pagination import CustomLOPagination
+from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
-from rooms.models import CalendarPrice, Room
+from rooms.models import Room
 from tours.filters import TourExtendedFilter, TourSearchFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
