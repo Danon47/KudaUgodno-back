@@ -10,12 +10,7 @@ class CookieJWTAuthentication(JWTAuthentication):
     """
 
     def authenticate(self, request):
-        """
-        Пытается извлечь и верифицировать JWT-токен из заголовка Authorization
-        или, если он отсутствует, из cookie `access_token`.
-
-        Возвращает пару (пользователь, токен) или None, если токен не найден.
-        """
+        print("🚨 CookieJWTAuthentication активен")
         header = self.get_header(request)
         if header is None:
             raw_token = request.COOKIES.get("access_token")
@@ -23,7 +18,13 @@ class CookieJWTAuthentication(JWTAuthentication):
             raw_token = self.get_raw_token(header)
 
         if raw_token is None:
+            print("🚫 Нет токена в куке")
             return None
 
-        validated_token = self.get_validated_token(raw_token)
-        return self.get_user(validated_token), validated_token
+        try:
+            validated_token = self.get_validated_token(raw_token)
+            print("✅ Токен валиден")
+            return self.get_user(validated_token), validated_token
+        except Exception as e:
+            print(f"❌ Ошибка в токене: {e}")
+            return None
