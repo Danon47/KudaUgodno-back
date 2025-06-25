@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from blogs.models import Article, ArticleImage, Category, Country, Tag, Theme
+from blogs.models import Article, ArticleImage, Category, Comment, CommentLike, Country, Tag, Theme
 
 
 @admin.register(Category)
@@ -68,6 +68,28 @@ class ArticleAdmin(admin.ModelAdmin):
         "updated_at",
     )
     search_fields = ("title",)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    """Админ панель для модели комментарии"""
+
+    list_display = ("article", "author", "created_at", "is_active")
+    list_filter = ("is_active", "article")
+    search_fields = ("text", "author__username")
+    actions = ["approve_comments"]
+
+    def approve_comments(self, request, queryset):
+        queryset.update(is_active=True)
+
+    approve_comments.short_description = "Одобрить выбранные комментарии"
+
+
+@admin.register(CommentLike)
+class CommentLikeAdmin(admin.ModelAdmin):
+    list_display = ("comment", "user", "is_like", "created_at")
+    list_filter = ("is_like",)
+    search_fields = ("user__username", "comment__text")
 
 
 @admin.register(ArticleImage)
