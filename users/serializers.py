@@ -69,12 +69,22 @@ class CompanyUserSerializer(BaseUserSerializer):
 
     def update(self, instance, validated_data):
         """Полное обновление объекта (PUT)."""
+        # Обработка загрузки документов
         if "documents" in validated_data:
             new_document = validated_data.pop("documents")
             if new_document:
                 instance.documents = new_document
+
+        # Обработка загрузки аватара
+        if "avatar" in validated_data:
+            new_avatar = validated_data.pop("avatar")
+            if new_avatar:
+                instance.avatar = new_avatar
+
+        # Обновление остальных полей
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
         return instance
 
