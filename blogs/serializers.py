@@ -1,11 +1,22 @@
 from rest_framework import serializers
 
 from all_fixture.validators.validators import ForbiddenWordValidator
-from blogs.models import Article, ArticleImage, Category, Country, Tag, Theme
+from blogs.models import (
+    Article,
+    ArticleImage,
+    Category,
+    Comment,
+    CommentLike,
+    Country,
+    Tag,
+    Theme,
+)
+
+# ───────────────────────────── базовые сериализаторы ─────────────────────────────
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Категории"""
+    """Категория статьи."""
 
     class Meta:
         model = Category
@@ -13,7 +24,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Тег"""
+    """Тег статьи."""
 
     class Meta:
         model = Tag
@@ -21,7 +32,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class CountrySerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Country"""
+    """Страна статьи."""
 
     class Meta:
         model = Country
@@ -29,7 +40,7 @@ class CountrySerializer(serializers.ModelSerializer):
 
 
 class ThemeSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Theme"""
+    """Тема статьи."""
 
     class Meta:
         model = Theme
@@ -37,27 +48,71 @@ class ThemeSerializer(serializers.ModelSerializer):
 
 
 class ArticleImageSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели фотографии к статье"""
+    """Фото статьи."""
 
     class Meta:
         model = ArticleImage
         fields = "__all__"
 
 
+# ───────────────────────────── комментарии и лайки ──────────────────────────────
+
+
+class CommentLikeSerializer(serializers.ModelSerializer):
+    """Лайк или дизлайк к комментарию."""
+
+    class Meta:
+        model = CommentLike
+        fields = "__all__"
+        read_only_fields = ("user", "created_at")
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Комментарий к статье, рекурсивно выводит ответы и лайки."""
+
+    author = serializers.StringRelatedField(read_only=True)
+    replies = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+    # ───────── helpers ─────────
+
+    def get_replies(self, obj):
+        """Вложенные ответы."""
+        replies = Comment.objects.filter(parent=obj)
+        return CommentSerializer(replies, many=True).data
+
+    def get_likes_count(self, obj):
+        return obj.likes.filter(is_like=True).count()
+
+    def get_dislikes_count(self, obj):
+        return obj.likes.filter(is_like=False).count()
+
+
+# ───────────────────────────── основной сериализатор ────────────────────────────
+
+
 class ArticleSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели статья"""
+    """Статья."""
 
     images = ArticleImageSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    theme = serializers.PrimaryKeyRelatedField(queryset=Theme.objects.all(), default=None)
     country = CountrySerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+
+    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    theme = serializers.PrimaryKeyRelatedField(queryset=Theme.objects.all(), allow_null=True)
     is_published = serializers.BooleanField(read_only=True)
     is_moderated = serializers.BooleanField(read_only=True)
 
-    def __init__(self, args, kwargs):
-        super().__init__(args, kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # запрещённые слова
         self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
         self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
 

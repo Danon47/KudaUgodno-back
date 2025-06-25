@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
+from users.models import User
 
 
 class Category(models.Model):
@@ -112,6 +113,54 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Comment(models.Model):
+    """Модель комментария к статье"""
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="comments", verbose_name="Статья")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        **NULLABLE,
+        related_name="replies",
+        verbose_name="Родительский комментарий",
+        help_text="Родительский комментарий",
+    )
+    text = models.TextField(verbose_name="Текст комментария", help_text="Текст комментария")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания", help_text="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления", help_text="Дата обновления")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")  # для модерации (можно скрывать комментарии)
+
+    class Meta:
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+        ordering = ["-created_at"]  # от новой к старой
+
+    def __str__(self):
+        return f"Комментарий от {self.author} к статье '{self.article.title}'"
+
+
+class CommentLike(models.Model):
+    """Лайки/дизлайки к комментариям"""
+
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    is_like = models.BooleanField(
+        default=True, verbose_name="Лайк (True) / дизлайк (False)", help_text="Лайк (True) / дизлайк (False)"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата и время создания", help_text="Дата и время создания"
+    )
+
+    class Meta:
+        unique_together = ("comment", "user")  # Один пользователь — одна реакция на комментарий
+        verbose_name = "Лайк комментария"
+        verbose_name_plural = "Лайки комментариев"
+
+    def __str__(self):
+        return f"{'Лайк' if self.is_like else 'Дизлайк'} от {self.user} к комментарию #{self.comment.id}"
 
 
 class ArticleImage(models.Model):

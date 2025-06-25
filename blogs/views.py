@@ -5,16 +5,26 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.response import Response
 
-from blogs.models import Article, ArticleImage, Category, Tag, Theme
+from blogs.models import (
+    Article,
+    ArticleImage,
+    Category,
+    Comment,
+    CommentLike,
+    Tag,
+    Theme,
+)
 from blogs.serializers import (
     ArticleImageSerializer,
     ArticleSerializer,
     CategorySerializer,
+    CommentLikeSerializer,
+    CommentSerializer,
     TagSerializer,
 )
 from blogs.tasks import send_moderation_notification
 
-# ─────────────────────────── вспом. функции / permissions ──────────────────────────
+# ─────────────────────────── вспомогательная функция ────────────────────────────
 
 
 def _check_permissions(request, instance) -> None:
@@ -23,7 +33,7 @@ def _check_permissions(request, instance) -> None:
         raise PermissionDenied("Вы не можете редактировать или удалять эту статью.")
 
 
-# ────────────────────────────────── ViewSets ──────────────────────────────────────
+# ─────────────────────────────────── ViewSets ────────────────────────────────────
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -46,18 +56,18 @@ class ArticleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
 
-    # ───────────────────────── фильтрация списка статей ───────────────────────────
+    # ───────────────────────── фильтрация списка статей ──────────────────────────
 
-    def get_queryset(self):  # noqa: C901
+    def get_queryset(self):  # noqa: C901  — сложность > 12
         """
         Поддерживаемые query-параметры:
         • date_from / date_to  – диапазон публикации (YYYY-MM-DD);
         • popularity=asc|desc  – сортировка по просмотрам;
         • country              – список стран через запятую;
-        • theme_id             – ID темы;
-        • обычному пользователю показываем только опубликованные и проверенные статьи.
+        • theme_id             – ID темы.
+        Обычному пользователю показываем только опубликованные и проверенные статьи.
         """
-        queryset = Article.objects.all()
+        qs = Article.objects.all()
 
         # 1️⃣ дата публикации
         date_filters: dict[str, datetime] = {}
@@ -69,23 +79,23 @@ class ArticleViewSet(viewsets.ModelViewSet):
             if date_to:
                 date_filters["pub_date__lte"] = datetime.strptime(date_to, "%Y-%m-%d").date()
             if date_filters:
-                queryset = queryset.filter(**date_filters)
+                qs = qs.filter(**date_filters)
         except ValueError as err:
-            raise APIException("Неверный формат параметра даты. Используйте YYYY-MM-DD.") from err
+            raise APIException("Неверный формат даты. Используйте YYYY-MM-DD.") from err
 
         # 2️⃣ популярность
         popularity = self.request.query_params.get("popularity")
         if popularity:
             if popularity not in {"asc", "desc"}:
-                raise APIException("Неверный формат popularity. Используйте 'asc' или 'desc'.")
-            queryset = queryset.order_by("-views_count" if popularity == "desc" else "views_count")
+                raise APIException("popularity должен быть 'asc' или 'desc'.")
+            qs = qs.order_by("-views_count" if popularity == "desc" else "views_count")
 
         # 3️⃣ страна
         country = self.request.query_params.get("country")
         if country:
             try:
                 countries = [c.strip() for c in country.split(",")]
-                queryset = queryset.filter(countries__name__in=countries)
+                qs = qs.filter(countries__name__in=countries)
             except ValueError as err:
                 raise APIException(f"Ошибка фильтрации по стране: {err}") from err
 
@@ -95,26 +105,22 @@ class ArticleViewSet(viewsets.ModelViewSet):
             try:
                 theme_id = int(theme_id_param)
             except ValueError as err:
-                raise APIException("Неверный формат theme_id. Используйте целое число.") from err
-
+                raise APIException("theme_id должен быть числом.") from err
             if not Theme.objects.filter(id=theme_id).exists():
                 raise APIException("Тема с указанным ID не найдена.") from None
+            qs = qs.filter(theme_id=theme_id)
 
-            queryset = queryset.filter(theme_id=theme_id)
-
-        # 5️⃣ права доступа к списку
+        # 5️⃣ права доступа
         user = self.request.user
-        if user.is_superuser:
-            return queryset
-        return queryset.filter(is_published=True, is_moderated=True)
+        return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
 
-    # ───────────────────────────── CRUD-overrides ─────────────────────────────
+    # ───────────────────────────── CRUD-overrides ────────────────────────────────
 
     def perform_create(self, serializer):
         """
-        • Автор — текущий пользователь.
-        • Статья создаётся как неопубликованная и немодерированная.
-        • Отправляем задачу на уведомление модераторов.
+        • Автор — текущий пользователь;
+        • статья создаётся как неопубликованная и немодерированная;
+        • отправляем задачу уведомления модератору.
         """
         article = serializer.save(author=self.request.user, is_published=False, is_moderated=False)
         send_moderation_notification.delay(article.id)
@@ -131,7 +137,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         _check_permissions(request, self.get_object())
         return super().destroy(request, *args, **kwargs)
 
-    # ───────────────────────────── actions ────────────────────────────────
+    # ───────────────────────────── дополнительные действия ──────────────────────
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAdminUser])
     def moderate(self, request, pk=None):
@@ -141,6 +147,28 @@ class ArticleViewSet(viewsets.ModelViewSet):
         article.is_published = True
         article.save(update_fields=["is_moderated", "is_published"])
         return Response({"message": "Статья успешно проверена"}, status=status.HTTP_200_OK)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """CRUD-endpoint комментариев."""
+
+    queryset = Comment.objects.filter(is_active=True)
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class CommentLikeViewSet(viewsets.ModelViewSet):
+    """CRUD-endpoint лайков/дизлайков комментариев."""
+
+    queryset = CommentLike.objects.all()
+    serializer_class = CommentLikeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ArticleImageViewSet(viewsets.ModelViewSet):
