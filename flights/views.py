@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
@@ -77,3 +78,12 @@ class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
     pagination_class = CustomLOPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = (
+        "departure_country",
+        "departure_city",
+        "departure_date",
+        "arrival_country",
+        "arrival_city",
+        "arrival_date",
+    )
