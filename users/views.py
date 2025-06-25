@@ -119,6 +119,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.none()
     serializer_class = UserSerializer
     pagination_class = CustomLOPagination
+    parser_classes = (MultiPartParser, FormParser)
     # Админ видит всех, юзер — только себя
 
     # Исключаем 'patch'
