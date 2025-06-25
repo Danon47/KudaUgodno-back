@@ -2,7 +2,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import flight_id, flight_settings, limit, offset
+from all_fixture.fixture_views import (
+    flight_arrival_city,
+    flight_arrival_country,
+    flight_arrival_date,
+    flight_departure_city,
+    flight_departure_country,
+    flight_departure_date,
+    flight_id,
+    flight_settings,
+    limit,
+    offset,
+)
 from all_fixture.pagination import CustomLOPagination
 from flights.models import Flight
 from flights.serializers import FlightSerializer
@@ -13,7 +24,16 @@ from flights.serializers import FlightSerializer
         summary="Список рейсов",
         description="Получение списка всех рейсов",
         tags=[flight_settings["name"]],
-        parameters=[limit, offset],
+        parameters=[
+            limit,
+            offset,
+            flight_departure_country,
+            flight_departure_city,
+            flight_departure_date,
+            flight_arrival_country,
+            flight_arrival_city,
+            flight_arrival_date,
+        ],
         responses={
             200: FlightSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
