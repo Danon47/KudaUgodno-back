@@ -161,6 +161,16 @@ class Application(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Общая стоимость",
+        help_text="Общая стоимость",
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("9999999.99")),
+        ],
+    )
 
     class Meta:
         abstract = True
