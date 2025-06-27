@@ -16,7 +16,13 @@ from all_fixture.choices import (
     TypeOfMealChoices,
     WhatAboutChoices,
 )
-from applications.models import ApplicationHotel, ApplicationTour
+from applications.models import (
+    ApplicationCancellationInsurance,
+    ApplicationHotel,
+    ApplicationMedicalInsurance,
+    ApplicationTour,
+    ApplicationVisa,
+)
 from flights.models import Flight
 from guests.models import Guest
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
@@ -683,14 +689,33 @@ class Command(BaseCommand):
             tourist = random.choice(tourists)
             email = f"application.{i+1}{random.randint(1, 9999)}@mail.ru"
             phone_number = f"+7915{random.randint(1000000, 9999999)}"
-            visa = random.choice([True, False])
-            med_insurance = random.choice([True, False])
-            cancellation_insurance = random.choice([True, False])
             wishes = random.choice(wishes_samples)
             status = StatusChoices.AWAIT_CONFIRM
 
             user_guests = [g for g in guests if g.user_owner == tourist]
             selected_guests = random.sample(user_guests, k=min(random.randint(2, 4), len(user_guests)))
+
+            visa = None
+            if random.choice([True, False]):
+                visa_price = round(random.uniform(2000, 7000), 2)
+                visa = ApplicationVisa.objects.create(
+                    count=len(selected_guests), price=visa_price, total_price=visa_price * len(selected_guests)
+                )
+
+            med_insurance = None
+            if random.choice([True, False]):
+                med_insurance_price = round(random.uniform(4000, 8000), 2)
+                med_insurance = ApplicationMedicalInsurance.objects.create(
+                    count=len(selected_guests),
+                    price=med_insurance_price,
+                    total_price=med_insurance_price * len(selected_guests),
+                )
+
+            cancellation_insurance = None
+            if random.choice([True, False]):
+                cancellation_insurance = ApplicationCancellationInsurance.objects.create(
+                    total_price=round(random.uniform(5000, 20000), 2)
+                )
 
             if i < 5:
                 hotel = random.choice(hotels)
