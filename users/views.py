@@ -154,12 +154,23 @@ class UserViewSet(viewsets.ModelViewSet):
         return None
 
     def update(self, request, *args, **kwargs):
-        """Полное обновление информации о пользователе (туристе)."""
+        """Полное обновление информации о пользователе по ID."""
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
+        data = request.data.copy()
+
+        # Обработка загрузки файлов
+        if request.FILES:
+            if "avatar" in request.FILES:
+                data["avatar"] = request.FILES["avatar"]
+
+        serializer = self.get_serializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return super().update(request, *args, **kwargs)
+
+        if hasattr(instance, "_prefetched_objects_cache"):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -274,10 +285,23 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """Полное обновление информации о компании по ID."""
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
+        data = request.data.copy()
+
+        # Обработка загрузки файлов
+        if request.FILES:
+            if "avatar" in request.FILES:
+                data["avatar"] = request.FILES["avatar"]
+            if "documents" in request.FILES:
+                data["documents"] = request.FILES["documents"]
+
+        serializer = self.get_serializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return super().update(request, *args, **kwargs)
+
+        if hasattr(instance, "_prefetched_objects_cache"):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
