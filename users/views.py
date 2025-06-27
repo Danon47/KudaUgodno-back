@@ -503,10 +503,18 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             ),
         },
     )
-    @action(detail=False, methods=["get"], url_path="check-token", permission_classes=[IsAuthenticated])
-    def check_token(self, request):
-        """Возвращает 200 OK, если токен валиден, иначе 401."""
-        return Response({"message": "Токен активен"}, status=status.HTTP_200_OK)
+    @action(detail=False, methods=["get"], url_path="fetch_me", permission_classes=[IsAuthenticated])
+    def fetch_me(self, request):
+        """Проверяет токен и возвращает текущего пользователя."""
+        user = request.user
+        serializer = UserSerializer(user, context={"request": request})
+        return Response(
+            {
+                "message": "Токен активен",
+                "user": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         summary="Обновление токенов",
