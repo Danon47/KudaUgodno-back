@@ -3,7 +3,6 @@ name = "36-kuda-ugodno-backend-api"
 version = "0.3.0"
 description = "API сервис для веб-сайта 'Куда Угодно'"
 authors = ["Никита Шидогубов", "Анна Зылёва", "Евгений Кудряшов", "Андрей Гусельников"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
