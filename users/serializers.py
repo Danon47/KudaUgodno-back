@@ -122,12 +122,8 @@ class VerifyCodeSerializer(serializers.Serializer):
 
 
 class VerifyCodeResponseSerializer(serializers.Serializer):
-    """Сериализатор успешного ответа с JWT-токенами.
-    Возвращает access/refresh токены, роль пользователя и флаг регистрации.
-    """
+    """Сериализатор успешного ответа с минимальной информацией."""
 
-    refresh = serializers.CharField(help_text="JWT refresh-токен")
-    access = serializers.CharField(help_text="JWT access-токен")
     role = serializers.CharField(help_text="Роль пользователя, например: USER, ADMIN")
     id = serializers.IntegerField(help_text="Уникальный идентификатор пользователя в базе данных")
 
