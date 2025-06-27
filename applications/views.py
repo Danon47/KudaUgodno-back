@@ -1,7 +1,10 @@
+from django.http import Http404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.exceptions import NotFound
 
 from all_fixture.fixture_views import application_id, application_settings, limit, offset
+from all_fixture.pagination import CustomLOPagination
 from applications.models import ApplicationHotel, ApplicationTour
 from applications.serializers import (
     ApplicationHotelListSerializer,
@@ -67,6 +70,13 @@ from applications.serializers import (
 )
 class ApplicationTourViewSet(viewsets.ModelViewSet):
     queryset = ApplicationTour.objects.all()
+    pagination_class = CustomLOPagination
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Http404:
+            raise NotFound(detail="Заявка на тур не найдена")
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
@@ -133,6 +143,13 @@ class ApplicationTourViewSet(viewsets.ModelViewSet):
 )
 class ApplicationHotelViewSet(viewsets.ModelViewSet):
     queryset = ApplicationHotel.objects.all()
+    pagination_class = CustomLOPagination
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Http404:
+            raise NotFound(detail="Заявка на отель не найдена")
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
