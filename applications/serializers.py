@@ -26,7 +26,6 @@ class ApplicationVisaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationVisa
         fields = (
-            "id",
             "count",
             "price",
             "total_price",
@@ -37,7 +36,6 @@ class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationMedicalInsurance
         fields = (
-            "id",
             "count",
             "price",
             "total_price",
@@ -47,10 +45,7 @@ class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
 class ApplicationCancellationInsuranceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationCancellationInsurance
-        fields = (
-            "id",
-            "total_price",
-        )
+        fields = ("total_price",)
 
 
 class RelatedObjectsMixin:
