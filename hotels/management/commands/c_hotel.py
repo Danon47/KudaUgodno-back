@@ -16,7 +16,13 @@ from all_fixture.choices import (
     TypeOfMealChoices,
     WhatAboutChoices,
 )
-from applications.models import ApplicationHotel, ApplicationTour
+from applications.models import (
+    ApplicationCancellationInsurance,
+    ApplicationHotel,
+    ApplicationMedicalInsurance,
+    ApplicationTour,
+    ApplicationVisa,
+)
 from flights.models import Flight
 from guests.models import Guest
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
@@ -683,20 +689,50 @@ class Command(BaseCommand):
             tourist = random.choice(tourists)
             email = f"application.{i+1}{random.randint(1, 9999)}@mail.ru"
             phone_number = f"+7915{random.randint(1000000, 9999999)}"
-            visa = random.choice([True, False])
-            med_insurance = random.choice([True, False])
-            cancellation_insurance = random.choice([True, False])
             wishes = random.choice(wishes_samples)
             status = StatusChoices.AWAIT_CONFIRM
 
             user_guests = [g for g in guests if g.user_owner == tourist]
             selected_guests = random.sample(user_guests, k=min(random.randint(2, 4), len(user_guests)))
 
+            visa = None
+            visa_price = 0
+            if random.choice([True, False]):
+                visa_price = round(random.uniform(2000, 7000), 2)
+                visa = ApplicationVisa.objects.create(
+                    count=len(selected_guests),
+                    price=visa_price,
+                    total_price=visa_price * len(selected_guests),
+                )
+                visa_price = visa.total_price
+
+            med_insurance = None
+            med_insurance_price = 0
+            if random.choice([True, False]):
+                med_insurance_price = round(random.uniform(4000, 8000), 2)
+                med_insurance = ApplicationMedicalInsurance.objects.create(
+                    count=len(selected_guests),
+                    price=med_insurance_price,
+                    total_price=med_insurance_price * len(selected_guests),
+                )
+                med_insurance_price = med_insurance.total_price
+
+            cancellation_insurance = None
+            cancellation_insurance_price = 0
+            if random.choice([True, False]):
+                cancellation_insurance_price = round(random.uniform(5000, 20000), 2)
+                cancellation_insurance = ApplicationCancellationInsurance.objects.create(
+                    total_price=cancellation_insurance_price
+                )
+                cancellation_insurance_price = cancellation_insurance.total_price
+
             if i < 5:
                 hotel = random.choice(hotels)
                 # Выбираем номер, связанный с отелем
                 valid_rooms = [r for r in rooms if r.hotel == hotel]
                 room = random.choice(valid_rooms) if valid_rooms else random.choice(rooms)
+                base_price = round(random.uniform(30000, 150000), 2)
+                total_price = base_price + visa_price + med_insurance_price + cancellation_insurance_price
                 application = ApplicationHotel.objects.create(
                     email=email,
                     phone_number=phone_number,
@@ -707,11 +743,13 @@ class Command(BaseCommand):
                     status=status,
                     hotel=hotel,
                     room=room,
+                    price=total_price,
                 )
                 for guest in selected_guests:
                     application.quantity_guests.add(guest)
             else:
                 tour = random.choice(tours)
+                total_price = tour.price + visa_price + med_insurance_price + cancellation_insurance_price
                 application = ApplicationTour.objects.create(
                     email=email,
                     phone_number=phone_number,
@@ -721,6 +759,7 @@ class Command(BaseCommand):
                     wishes=wishes if wishes else None,
                     status=status,
                     tour=tour,
+                    price=total_price,
                 )
                 for guest in selected_guests:
                     application.quantity_guests.add(guest)
