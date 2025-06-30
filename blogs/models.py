@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from all_fixture.fixture_views import NULLABLE
@@ -8,9 +7,16 @@ from users.models import User
 class Category(models.Model):
     """Модель категории для статей блога"""
 
-    name_category = models.CharField(max_length=50, verbose_name="Название категории", help_text="Название категории")
+    name_category = models.CharField(
+        max_length=50,
+        verbose_name="Название категории",
+        help_text="Название категории",
+    )
     slug_category = models.SlugField(
-        max_length=50, unique=True, verbose_name="Slug категории", help_text="Slug категории"
+        max_length=50,
+        unique=True,
+        verbose_name="Slug категории",
+        help_text="Slug категории",
     )
 
     class Meta:
@@ -25,8 +31,17 @@ class Category(models.Model):
 class Tag(models.Model):
     """Модель тега для статей блога"""
 
-    name_tag = models.CharField(max_length=50, verbose_name="Название тега", help_text="Название тега")
-    slug_tag = models.SlugField(max_length=50, unique=True, verbose_name="Slug тега", help_text="Slug тега")
+    name_tag = models.CharField(
+        max_length=50,
+        verbose_name="Название тега",
+        help_text="Название тега",
+    )
+    slug_tag = models.SlugField(
+        max_length=50,
+        unique=True,
+        verbose_name="Slug тега",
+        help_text="Slug тега",
+    )
 
     class Meta:
         verbose_name = "Тег"
@@ -41,10 +56,17 @@ class Country(models.Model):
     """Модель страна"""
 
     name_country = models.CharField(
-        max_length=100, unique=True, verbose_name="Название страны", help_text="Название страны"
+        max_length=100,
+        unique=True,
+        verbose_name="Название страны",
+        help_text="Название страны",
     )
     slug_country = models.SlugField(
-        max_length=100, unique=True, verbose_name="Slug страны", help_text="Название страны", default=""
+        max_length=100,
+        unique=True,
+        verbose_name="Slug страны",
+        help_text="Название страны",
+        default="",
     )
 
     class Meta:
@@ -59,8 +81,18 @@ class Country(models.Model):
 class Theme(models.Model):
     """Модель тема статьи."""
 
-    name_theme = models.CharField(max_length=100, unique=True, verbose_name="Название темы", help_text="Название темы")
-    slug_theme = models.SlugField(max_length=100, unique=True, verbose_name="Название темы", help_text="Название темы")
+    name_theme = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="Название темы",
+        help_text="Название темы",
+    )
+    slug_theme = models.SlugField(
+        max_length=100,
+        unique=True,
+        verbose_name="Название темы",
+        help_text="Название темы",
+    )
 
     class Meta:
         verbose_name = "Тема"
@@ -75,11 +107,17 @@ class Article(models.Model):
     """Модель статья"""
 
     title = models.CharField(
-        max_length=100, verbose_name="Заголовок статьи", help_text="Заголовок статьи (максимум 100 символов)"
+        max_length=100,
+        verbose_name="Заголовок статьи",
+        help_text="Заголовок статьи (максимум 100 символов)",
     )
-    content = models.TextField(verbose_name="Текст статьи", help_text="Текст статьи")
+    content = models.TextField(
+        verbose_name="Текст статьи",
+        help_text="Текст статьи",
+    )
     pub_date = models.DateField(
-        verbose_name="Когда выложили статью", help_text="Когда выложили статью. Формат: ГГГГ-ММ-ДД"
+        verbose_name="Когда выложили статью",
+        help_text="Когда выложили статью. Формат: ГГГГ-ММ-ДД",
     )
     short_description = models.CharField(
         max_length=250,
@@ -87,29 +125,70 @@ class Article(models.Model):
         help_text="Краткое описание, для ленты новостей (максимум 250 символов)",
     )
     is_published = models.BooleanField(
-        default=False, verbose_name="Опубликована ли статья", help_text="Опубликована ли статья"
+        default=False,
+        verbose_name="Опубликована ли статья",
+        help_text="Опубликована ли статья",
     )
     views_count = models.PositiveIntegerField(
-        default=0, verbose_name="Счетчик просмотров", help_text="Счетчик просмотров"
+        default=0,
+        verbose_name="Счетчик просмотров",
+        help_text="Счетчик просмотров",
     )
-    rating = models.FloatField(default=0, verbose_name="Оценка статьи", help_text="Оценка статьи")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания", help_text="Дата создания")
+    rating = models.FloatField(
+        default=0,
+        verbose_name="Оценка статьи",
+        help_text="Оценка статьи",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+        help_text="Дата создания",
+    )
     updated_at = models.DateTimeField(
-        auto_now=True, verbose_name="Дата последнего изменения", help_text="Дата последнего изменения"
+        auto_now=True,
+        verbose_name="Дата последнего изменения",
+        help_text="Дата последнего изменения",
     )
-    is_moderated = models.BooleanField(default=False, verbose_name="Прошла модерацию", help_text="Прошла модерацию")
+    is_moderated = models.BooleanField(
+        default=False,
+        verbose_name="Прошла модерацию",
+        help_text="Прошла модерацию",
+    )
 
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, **NULLABLE, verbose_name="категория")
-    tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
-    countries = models.ManyToManyField(Country, blank=True, verbose_name="Страны")
-    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="Автор статьи", **NULLABLE)
-    theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, **NULLABLE, verbose_name="Тема статьи")
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        **NULLABLE,
+        verbose_name="категория",
+        help_text="категория",
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        verbose_name="Теги",
+        help_text="Теги",
+    )
+    countries = models.ManyToManyField(
+        Country,
+        blank=True,
+        verbose_name="Страны",
+        help_text="Страны",
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="Автор статьи", **NULLABLE, help_text="Автор статьи"
+    )
+    theme = models.ForeignKey(
+        Theme,
+        on_delete=models.SET_NULL,
+        **NULLABLE,
+        verbose_name="Тема статьи",
+        help_text="Тема статьи",
+    )
 
     class Meta:
         verbose_name = "Статья"
         verbose_name_plural = "Статьи"
         ordering = ["-pub_date", "-created_at"]
-        # permissions = ["can_edit_article", "Может редактировать статью"]
 
     def __str__(self):
         return self.title
@@ -118,8 +197,19 @@ class Article(models.Model):
 class Comment(models.Model):
     """Модель комментария к статье"""
 
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="comments", verbose_name="Статья")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name="Статья",
+        help_text="Статья",
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Автор",
+        help_text="Автор",
+    )
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -128,10 +218,25 @@ class Comment(models.Model):
         verbose_name="Родительский комментарий",
         help_text="Родительский комментарий",
     )
-    text = models.TextField(verbose_name="Текст комментария", help_text="Текст комментария")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания", help_text="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления", help_text="Дата обновления")
-    is_active = models.BooleanField(default=True, verbose_name="Активен")  # для модерации (можно скрывать комментарии)
+    text = models.TextField(
+        verbose_name="Текст комментария",
+        help_text="Текст комментария",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+        help_text="Дата создания",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления",
+        help_text="Дата обновления",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активен",
+        help_text="Активен",
+    )  # для модерации (можно скрывать комментарии)
 
     class Meta:
         verbose_name = "Комментарий"
@@ -145,13 +250,27 @@ class Comment(models.Model):
 class CommentLike(models.Model):
     """Лайки/дизлайки к комментариям"""
 
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name="likes",
+        help_text="likes",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+        help_text="Пользователь",
+    )
     is_like = models.BooleanField(
-        default=True, verbose_name="Лайк (True) / дизлайк (False)", help_text="Лайк (True) / дизлайк (False)"
+        default=True,
+        verbose_name="Лайк (True) / дизлайк (False)",
+        help_text="Лайк (True) / дизлайк (False)",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата и время создания", help_text="Дата и время создания"
+        auto_now_add=True,
+        verbose_name="Дата и время создания",
+        help_text="Дата и время создания",
     )
 
     class Meta:
@@ -166,9 +285,20 @@ class CommentLike(models.Model):
 class ArticleImage(models.Model):
     """Модель фотографии к статье"""
 
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="blog/post/")
-    order = models.PositiveIntegerField(default=0)  # Поле для указания порядка отображения изображений в статье
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name="images",
+        help_text="images",
+    )
+    image = models.ImageField(
+        upload_to="blog/post/",
+        help_text="место хранения image",
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="порядок отображения изображений",
+    )  # Поле для указания порядка отображения изображений в статье
 
     class Meta:
         verbose_name = "Изображение статьи"
