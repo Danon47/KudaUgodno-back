@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import Any, Dict, List
+
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ImageField, ModelSerializer
 
@@ -69,7 +72,7 @@ class RoomCalendarDateSerializer(ModelSerializer):
             "price",
         )
 
-    def get_price(self, obj: CalendarDate):
+    def get_price(self, obj: CalendarDate) -> Decimal | None:
         room = self.context.get("room")
         if not room:
             return None
@@ -104,7 +107,7 @@ class RoomDetailSerializer(RoomBaseSerializer):
             "calendar_dates",
         )
 
-    def get_calendar_dates(self, obj: Room):
+    def get_calendar_dates(self, obj: Room) -> List[Dict[str, Any]]:
         calendar_dates = obj.calendar_dates.all().order_by("start_date").distinct()
         context = self.context.copy()
         context["room"] = obj

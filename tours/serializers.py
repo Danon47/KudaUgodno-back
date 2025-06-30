@@ -1,3 +1,5 @@
+from typing import Dict
+
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -12,7 +14,7 @@ from rest_framework.serializers import (
 
 from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
-from hotels.serializers import HotelListWithPhotoSerializer, HotelShortPhotoSerializer, HotelShortSerializer
+from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
 from rooms.serializers import RoomDetailSerializer
 from tours.models import Tour, TourStock
@@ -99,12 +101,22 @@ class TourPopularSerializer(ModelSerializer):
     Сериализатор для списка популярных туров.
     """
 
-    hotel = HotelShortPhotoSerializer()
+    photo = SerializerMethodField()
     tours_count = IntegerField(min_value=0, required=True)
 
     class Meta:
         model = Tour
-        fields = ("arrival_country", "hotel", "price", "tours_count")
+        fields = ("arrival_country", "photo", "price", "tours_count")
+
+    def get_photo(self, obj) -> str:
+        """
+        Возвращает URL первой фотографии отеля.
+        """
+        request = self.context.get("request")
+        first_photo = obj.hotel.hotel_photos.first()
+        if first_photo:
+            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
+        return None
 
 
 class TourShortSerializer(ModelSerializer):
@@ -123,7 +135,7 @@ class TourShortSerializer(ModelSerializer):
         model = Tour
         fields = ("hotel", "price", "start_date", "end_date", "guests", "tour_operator")
 
-    def get_guests(self, obj):
+    def get_guests(self, obj) -> Dict[str, int]:
         return {
             "number_of_adults": obj.number_of_adults,
             "number_of_children": obj.number_of_children,

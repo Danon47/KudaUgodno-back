@@ -239,6 +239,8 @@ class TourFiltersView(viewsets.ModelViewSet):
                 number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
                 number_of_children=Subquery(guests_subquery.values("number_of_children")),
             )
+            .select_related("hotel")
+            .prefetch_related("hotel__hotel_photos")
             .order_by("arrival_country")
         )
 
