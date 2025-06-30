@@ -190,7 +190,7 @@ class HotelWhatAboutFullSerializer(ModelSerializer):
         fields = ("name_set", "hotel")
 
 
-class HotelSearchResponseSerializer(HotelShortWithPriceSerializer):
+class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
     """
     Сериализатор отеля для получения ответа из поиска.
     """
@@ -225,26 +225,6 @@ class HotelSearchResponseSerializer(HotelShortWithPriceSerializer):
         Получение количества гостей из контекста.
         """
         return int(self.context.get("guests", 1))
-
-
-class HotelSearchRequestSerializer(Serializer):
-    """
-    Cериализатор отеля для поиска.
-    """
-
-    city = CharField(required=False)
-    check_in_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    check_out_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    guests = IntegerField(min_value=1, required=True)
-    validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
 
 
 class HotelFiltersRequestSerializer(Serializer):

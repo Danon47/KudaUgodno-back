@@ -7,7 +7,6 @@ from tours.views import (
     RoomAutocomplete,
     TourFiltersView,
     TourHotView,
-    TourSearchView,
     TourStockViewSet,
     TourViewSet,
     TypeOfMealAutocomplete,
@@ -22,11 +21,6 @@ router.register("stocks", TourStockViewSet, basename="tours_stocks")
 
 
 urlpatterns = [
-    path(
-        "tours/searches/",
-        TourSearchView.as_view({"get": "search"}),
-        name="tour-searches",
-    ),
     path(
         "tours/filters/",
         TourFiltersView.as_view({"get": "filters"}),

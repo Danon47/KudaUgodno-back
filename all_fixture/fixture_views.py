@@ -71,63 +71,41 @@ tour_stock_id = OpenApiParameter(
     description="ID Акции тура",
     required=True,
 )
-# Город вылета(Обязательный)
+# Город вылета
 tour_departure_city = OpenApiParameter(
     name="departure_city",
     type=str,
     description="Город вылета",
-    required=True,
+    required=False,
 )
-# Город прилета(Обязательный)
+# Город прилета
 tour_arrival_city = OpenApiParameter(
     name="arrival_city",
     type=str,
     description="Город прилета",
-    required=True,
+    required=False,
 )
-# Дата вылета(Обязательный)
+# Дата вылета
 tour_start_date = OpenApiParameter(
     name="start_date",
     type=str,
     description="Дата начала тура (YYYY-MM-DD)",
-    required=True,
+    required=False,
 )
-# Количество ночей в туре(Обязательный)
+# Количество ночей в туре
 tour_nights = OpenApiParameter(
     name="nights",
     type=int,
     description="Количество ночей",
-    required=True,
+    required=False,
 )
-# Количество гостей в туре(Обязательный)
+# Количество гостей в туре
 tour_guests = OpenApiParameter(
     name="guests",
     type=int,
     description="Количество гостей",
-    required=True,
-)
-# Город вылета(Необязательный)
-tour_departure_city_optional = OpenApiParameter(
-    name="departure_city",
-    type=str,
-    description="Город вылета",
     required=False,
 )
-# Город прилета(Необязательный)
-tour_arrival_city_optional = OpenApiParameter(
-    name="arrival_city",
-    type=str,
-    description="Город прилета",
-    required=False,
-)
-# Дата вылета(Необязательный)
-tour_start_date_optional = OpenApiParameter(
-    name="start_date", description="Дата начала тура (YYYY-MM-DD)", required=False, type=str
-)
-# Количество нрочей в туре(Необязательный)
-tour_nights_optional = OpenApiParameter(name="nights", type=int, description="Количество ночей", required=False)
-# Количество гостей в туре(Необязательный)
-tour_guests_optional = OpenApiParameter(name="guests", type=int, description="Количество гостей", required=False)
 # Город отеля
 filter_city = OpenApiParameter(name="city", type=str, description="Город отеля", required=False)
 # Тип размещения
@@ -491,8 +469,6 @@ WARM_CITY = [
     "Апиа",  # Самоа
     "Нукуалофа",  # Тонга
 ]
-# Максимально количество дней в дате выезда из отеля check_out_date
-MAX_DAYS_CHECK_OUT = 365
 DISCOUNT = (
     "Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - это уже величина. "
     "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей"

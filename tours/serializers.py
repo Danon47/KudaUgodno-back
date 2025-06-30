@@ -118,21 +118,6 @@ class TourStockSerializer(ModelSerializer):
         fields = ("id", "active_stock", "end_date", "discount_amount")
 
 
-class TourSearchRequestSerializer(Serializer):
-    """Сериализатор только для валидации параметров запроса поиска (все поля обязательные).."""
-
-    departure_city = CharField(required=True)
-    arrival_city = CharField(required=True)
-    start_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    nights = IntegerField(min_value=1, required=True)
-    guests = IntegerField(min_value=1, required=True)
-    validators = [StartDateValidator()]
-
-
 class TourFiltersRequestSerializer(Serializer):
     """Сериализатор для параметров расширенного поиска (все поля необязательные)."""
 

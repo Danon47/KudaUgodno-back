@@ -18,19 +18,14 @@ from all_fixture.fixture_views import (
     limit,
     offset,
     tour_arrival_city,
-    tour_arrival_city_optional,
     tour_departure_city,
-    tour_departure_city_optional,
     tour_guests,
-    tour_guests_optional,
     tour_id,
     tour_nights,
-    tour_nights_optional,
     tour_price_gte,
     tour_price_lte,
     tour_settings,
     tour_start_date,
-    tour_start_date_optional,
     tour_stock_id,
     tour_stock_settings,
 )
@@ -38,13 +33,12 @@ from all_fixture.pagination import CustomLOPagination
 from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
-from tours.filters import TourExtendedFilter, TourSearchFilter
+from tours.filters import TourFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
     TourFiltersRequestSerializer,
     TourListSerializer,
     TourPatchSerializer,
-    TourSearchRequestSerializer,
     TourSerializer,
     TourShortSerializer,
     TourStockSerializer,
@@ -192,68 +186,15 @@ class TourStockViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    search=extend_schema(
-        summary="Поиск туров",
-        description="Поиск туров по городам вылета/прилета, дате вылета, количеству ночей и гостей.",
-        parameters=[tour_departure_city, tour_arrival_city, tour_start_date, tour_nights, tour_guests, limit, offset],
-        tags=[tour_settings["name"]],
-        responses={
-            200: TourShortSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка валидации"),
-        },
-    )
-)
-class TourSearchView(viewsets.ModelViewSet):
-    """Поиск туров с учетом фильтров город вылета/прилёта, даты вылета, кол-ва ночей/гостей."""
-
-    queryset = Tour.objects.none
-    serializer_class = TourShortSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TourSearchFilter
-    pagination_class = CustomLOPagination
-    http_method_names = ["get"]
-
-    def get_queryset(self):
-        """Получение доступного тура с максимальным количеством гостей в комнате."""
-        guests_subquery = (
-            CalendarPrice.objects.filter(
-                room__tours=OuterRef("pk"),
-                room_date__available_for_booking=True,
-            )
-            .annotate(total_guests=F("room__number_of_adults") + F("room__number_of_children"))
-            .order_by("-total_guests")
-            .values("room__number_of_adults", "room__number_of_children")[:1]
-        )
-
-        queryset = (
-            Tour.objects.filter(is_active=True)
-            .annotate(
-                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
-                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
-            )
-            .order_by("arrival_country")
-        )
-
-        return queryset
-
-    @action(detail=False, methods=["get"])
-    def search(self, request):
-        request_serializer = TourSearchRequestSerializer(data=request.query_params)
-        if not request_serializer.is_valid():
-            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return self.list(request)
-
-
-@extend_schema_view(
     filters=extend_schema(
-        summary="Фильтрация туров",
-        description="Расширенная Фильтрация туров",
+        summary="Расширенный поиск туров",
+        description="Расширенный поиск туров по фильтрам.",
         parameters=[
-            tour_departure_city_optional,
-            tour_arrival_city_optional,
-            tour_start_date_optional,
-            tour_nights_optional,
-            tour_guests_optional,
+            tour_departure_city,
+            tour_arrival_city,
+            tour_start_date,
+            tour_nights,
+            tour_guests,
             filter_city,
             filter_type_of_rest,
             filter_place,
@@ -274,32 +215,28 @@ class TourSearchView(viewsets.ModelViewSet):
     ),
 )
 class TourFiltersView(viewsets.ModelViewSet):
-    """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
+    """Поиск туров по фильтрам."""
 
     queryset = Tour.objects.none
     serializer_class = TourShortSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = TourExtendedFilter
+    filterset_class = TourFilter
     pagination_class = CustomLOPagination
     http_method_names = ["get"]
 
     def get_queryset(self):
         """Получение доступного тура с максимальным количеством гостей в комнате."""
         guests_subquery = (
-            CalendarPrice.objects.filter(
-                room__tours=OuterRef("pk"),
-                room_date__available_for_booking=True,
-            )
-            .annotate(total_guests=F("room__number_of_adults") + F("room__number_of_children"))
-            .order_by("-total_guests")
-            .values("room__number_of_adults", "room__number_of_children")[:1]
+            Room.objects.filter(hotel_id=OuterRef("hotel_id"))
+            .order_by(-(F("number_of_adults") + F("number_of_children")))
+            .values("number_of_adults", "number_of_children")[:1]
         )
 
         queryset = (
             Tour.objects.filter(is_active=True)
             .annotate(
-                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
-                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+                number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("number_of_children")),
             )
             .order_by("arrival_country")
         )

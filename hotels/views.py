@@ -16,12 +16,9 @@ from all_fixture.fixture_views import (
     filter_type_of_rest,
     filter_user_rating,
     hotel_check_in,
-    hotel_check_in_optional,
     hotel_check_out,
-    hotel_check_out_optional,
     hotel_city,
     hotel_guests,
-    hotel_guests_optional,
     hotel_id,
     hotel_id_photo,
     hotel_photo_settings,
@@ -37,16 +34,15 @@ from all_fixture.fixture_views import (
 )
 from all_fixture.pagination import CustomLOPagination
 from calendars.models import CalendarPrice
-from hotels.filters import HotelExtendedFilter, HotelSearchFilter
+from hotels.filters import HotelFilter
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
 from hotels.serializers import (
     HotelBaseSerializer,
     HotelDetailSerializer,
     HotelFiltersRequestSerializer,
+    HotelFiltersResponseSerializer,
     HotelListRoomAndPhotoSerializer,
     HotelPhotoSerializer,
-    HotelSearchRequestSerializer,
-    HotelSearchResponseSerializer,
     HotelShortWithPriceSerializer,
     HotelWhatAboutFullSerializer,
 )
@@ -116,49 +112,6 @@ class HotelViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    search=extend_schema(
-        summary="Поиск отелей",
-        description="Поиск отелей по названию, датам и кол-ву гостей",
-        parameters=[hotel_city, hotel_check_in, hotel_check_out, hotel_guests, limit, offset],
-        tags=[hotel_settings["name"]],
-        responses={
-            200: HotelSearchResponseSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-        },
-    ),
-)
-class HotelSearchView(viewsets.ModelViewSet):
-    """Поиск комнат отелей с учетом фильтров(ночи, гости) и рассчет стоимости номера."""
-
-    queryset = Hotel.objects.filter(is_active=True)
-    serializer_class = HotelSearchResponseSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = HotelSearchFilter
-    pagination_class = CustomLOPagination
-    http_method_names = ["get"]
-
-    def get_serializer_context(self):
-        """Передача данных в сериализатор для обработки перед response."""
-        context = super().get_serializer_context()
-        context.update(
-            {
-                "guests": self.request.query_params.get("guests", 1),
-                "check_in_date": self.request.query_params["check_in_date"],
-                "check_out_date": self.request.query_params["check_out_date"],
-            }
-        )
-        return context
-
-    @action(detail=False, methods=["get"])
-    def search(self, request):
-        """Получение данных по поиску."""
-        request_serializer = HotelSearchRequestSerializer(data=request.query_params)
-        if not request_serializer.is_valid():
-            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return self.list(request)
-
-
-@extend_schema_view(
     filters=extend_schema(
         summary="Фильтрация отелей",
         description="Расширенная фильтрация отелей",
@@ -166,9 +119,9 @@ class HotelSearchView(viewsets.ModelViewSet):
             limit,
             offset,
             hotel_city,
-            hotel_check_in_optional,
-            hotel_check_out_optional,
-            hotel_guests_optional,
+            hotel_check_in,
+            hotel_check_out,
+            hotel_guests,
             filter_city,
             filter_type_of_rest,
             filter_place,
@@ -179,7 +132,7 @@ class HotelSearchView(viewsets.ModelViewSet):
         ],
         tags=[hotel_settings["name"]],
         responses={
-            200: HotelSearchResponseSerializer(many=True),
+            200: HotelFiltersResponseSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     ),
@@ -188,9 +141,9 @@ class HotelFiltersView(viewsets.ModelViewSet):
     """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
 
     queryset = Hotel.objects.filter(is_active=True)
-    serializer_class = HotelSearchResponseSerializer
+    serializer_class = HotelFiltersResponseSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = HotelExtendedFilter
+    filterset_class = HotelFilter
     pagination_class = CustomLOPagination
     http_method_names = ["get"]
 

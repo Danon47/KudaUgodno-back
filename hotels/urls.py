@@ -4,7 +4,6 @@ from hotels.apps import HotelsConfig
 from hotels.views import (
     HotelFiltersView,
     HotelPhotoViewSet,
-    HotelSearchView,
     HotelsHotView,
     HotelViewSet,
     HotelWarpUpViewSet,
@@ -62,11 +61,6 @@ urlpatterns = [
             }
         ),
         name="hotels-type-of-meals-destroy",
-    ),
-    path(
-        "hotels/search/",
-        HotelSearchView.as_view({"get": "search"}),
-        name="hotels-search",
     ),
     path(
         "hotels/filters/",
