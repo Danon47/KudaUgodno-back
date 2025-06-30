@@ -1,5 +1,5 @@
 from dal import autocomplete
-from django.db.models import F, OuterRef, Subquery, Window
+from django.db.models import Count, F, OuterRef, Subquery, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
@@ -39,6 +39,7 @@ from tours.serializers import (
     TourFiltersRequestSerializer,
     TourListSerializer,
     TourPatchSerializer,
+    TourPopularSerializer,
     TourSerializer,
     TourShortSerializer,
     TourStockSerializer,
@@ -273,7 +274,7 @@ class TourHotView(viewsets.ModelViewSet):
         """Получение тура по одному из каждой страны с минимальной ценой."""
         guests_subquery = (
             CalendarPrice.objects.filter(
-                room_date__stock=True, room_date__available_for_booking=True, room__tours=OuterRef("pk")
+                calendar_date__discount=True, calendar_date__available_for_booking=True, room__tours=OuterRef("pk")
             )
             .order_by("price")
             .values("room__number_of_adults", "room__number_of_children")[:1]
@@ -290,6 +291,49 @@ class TourHotView(viewsets.ModelViewSet):
             )
             .filter(country_rank=1)
             .order_by("arrival_country")
+        )
+
+        return queryset
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список популярных туров",
+        description="Получение списка шести популярных туров",
+        parameters=[limit, offset],
+        tags=[tour_settings["name"]],
+        responses={
+            200: TourPopularSerializer(many=True),
+        },
+    )
+)
+class TourPopularView(viewsets.ModelViewSet):
+    """Туры шести стран."""
+
+    serializer_class = TourPopularSerializer
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Получение тура по одному из шести страны с минимальной ценой."""
+
+        country_tour_count = (
+            Tour.objects.filter(is_active=True, arrival_country=OuterRef("arrival_country"))
+            .values("arrival_country")
+            .annotate(count=Count("id"))
+            .values("count")
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True)
+            .annotate(
+                tours_count=Subquery(country_tour_count),
+                country_rank=Window(
+                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                ),
+            )
+            .filter(country_rank=1)
+            .order_by("price")[:6]
         )
 
         return queryset

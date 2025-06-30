@@ -149,20 +149,12 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     #     return obj.created_by.email if obj.created_by else None
 
 
-class HotelShortSerializer(ModelSerializer):
+class HotelShortPhotoSerializer(ModelSerializer):
     photo = SerializerMethodField()
 
     class Meta:
         model = Hotel
-        fields = (
-            "id",
-            "photo",
-            "country",
-            "city",
-            "star_category",
-            "name",
-            "user_rating",
-        )
+        fields = ("photo",)
 
     def get_photo(self, obj: Hotel) -> str:
         request = self.context.get("request")
@@ -172,13 +164,42 @@ class HotelShortSerializer(ModelSerializer):
         return None
 
 
+class HotelPopularSerializer(HotelShortPhotoSerializer):
+    """
+    Сериализатор для списка популярных туров.
+    """
+
+    hotels_count = IntegerField(min_value=0, required=True)
+    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
+    class Meta:
+        model = Hotel
+        fields = HotelShortPhotoSerializer.Meta.fields + ("country", "min_price", "hotels_count")
+
+
+class HotelShortSerializer(HotelShortPhotoSerializer):
+
+    class Meta:
+        model = Hotel
+        fields = HotelShortPhotoSerializer.Meta.fields + (
+            "id",
+            "country",
+            "city",
+            "distance_to_the_center",
+            "distance_to_the_metro",
+            "star_category",
+            "name",
+            "user_rating",
+        )
+
+
 class HotelShortWithPriceSerializer(HotelShortSerializer):
 
     min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta(HotelShortSerializer.Meta):
         model = Hotel
-        fields = HotelShortSerializer.Meta.fields + ("min_price", "distance_to_the_center")
+        fields = HotelShortSerializer.Meta.fields + ("min_price",)
 
 
 class HotelWhatAboutFullSerializer(ModelSerializer):

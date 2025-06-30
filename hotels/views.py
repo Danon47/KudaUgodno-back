@@ -1,6 +1,6 @@
 from random import choice
 
-from django.db.models import F, OuterRef, Subquery, Window
+from django.db.models import Count, F, OuterRef, Subquery, Window
 from django.db.models.functions import RowNumber
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -43,6 +43,7 @@ from hotels.serializers import (
     HotelFiltersResponseSerializer,
     HotelListRoomAndPhotoSerializer,
     HotelPhotoSerializer,
+    HotelPopularSerializer,
     HotelShortWithPriceSerializer,
     HotelWhatAboutFullSerializer,
 )
@@ -138,7 +139,7 @@ class HotelViewSet(viewsets.ModelViewSet):
     ),
 )
 class HotelFiltersView(viewsets.ModelViewSet):
-    """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
+    """Расширенный поиск отелей с дополнительными фильтрами по отелям и другим параметрам."""
 
     queryset = Hotel.objects.filter(is_active=True)
     serializer_class = HotelFiltersResponseSerializer
@@ -181,7 +182,7 @@ class HotelFiltersView(viewsets.ModelViewSet):
     )
 )
 class HotelsHotView(viewsets.ModelViewSet):
-    """Горящие туры по одному из каждой страны по минимальной цене."""
+    """Горящее предложение от отелей по одному из каждой страны по минимальной цене."""
 
     serializer_class = HotelShortWithPriceSerializer
     pagination_class = CustomLOPagination
@@ -191,7 +192,7 @@ class HotelsHotView(viewsets.ModelViewSet):
         """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
         min_price_subquery = (
             CalendarPrice.objects.filter(
-                room_date__stock=True, room_date__available_for_booking=True, room__hotel=OuterRef("pk")
+                calendar_date__discount=True, calendar_date__available_for_booking=True, room__hotel=OuterRef("pk")
             )
             .order_by("price")
             .values("price")[:1]
@@ -208,6 +209,53 @@ class HotelsHotView(viewsets.ModelViewSet):
             )
             .filter(grouped_countries=1)
             .order_by("country")
+        )
+
+        return queryset
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список популярных отелей",
+        description="Получение списка шести популярных отелей",
+        parameters=[limit, offset],
+        tags=[hotel_settings["name"]],
+        responses={
+            200: HotelPopularSerializer(many=True),
+        },
+    )
+)
+class HotelsPopularView(viewsets.ModelViewSet):
+    """Отели шести стран."""
+
+    serializer_class = HotelPopularSerializer
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Получение запроса с отелями по одному из шести стран с минимальной ценой."""
+        min_price_subquery = (
+            CalendarPrice.objects.filter(calendar_date__available_for_booking=True, room__hotel=OuterRef("pk"))
+            .order_by("price")
+            .values("price")[:1]
+        )
+        country_hotel_count = (
+            Hotel.objects.filter(is_active=True, country=OuterRef("country"))
+            .values("country")
+            .annotate(count=Count("id"))
+            .values("count")
+        )
+        queryset = (
+            Hotel.objects.filter(is_active=True)
+            .annotate(hotels_count=Subquery(country_hotel_count), min_price=Subquery(min_price_subquery))
+            .exclude(min_price=None)
+            .annotate(
+                grouped_countries=Window(
+                    expression=RowNumber(), partition_by=[F("country")], order_by=F("min_price").asc()
+                )
+            )
+            .filter(grouped_countries=1)
+            .order_by("min_price")[:6]
         )
 
         return queryset
