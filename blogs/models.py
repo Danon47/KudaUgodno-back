@@ -4,107 +4,68 @@ from all_fixture.fixture_views import NULLABLE
 from users.models import User
 
 
-class Category(models.Model):
-    """Модель категории для статей блога"""
+class SlugNameModel(models.Model):
+    """
+    Абстрактная модель с полями name и slug.
+    """
 
-    name_category = models.CharField(
-        max_length=50,
-        verbose_name="Название категории",
-        help_text="Название категории",
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Название",
+        help_text="Укажите название",
     )
-    slug_category = models.SlugField(
-        max_length=50,
+    slug = models.SlugField(
+        max_length=100,
         unique=True,
-        verbose_name="Slug категории",
-        help_text="Slug категории",
+        verbose_name="Slug",
+        help_text="Уникальный идентификатор для URL",
     )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    """Модель категории для статей блога."""
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-        ordering = ["name_category"]
-
-    def __str__(self):
-        return self.name_category
+        ordering = ["name"]
 
 
 class Tag(models.Model):
-    """Модель тега для статей блога"""
-
-    name_tag = models.CharField(
-        max_length=50,
-        verbose_name="Название тега",
-        help_text="Название тега",
-    )
-    slug_tag = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name="Slug тега",
-        help_text="Slug тега",
-    )
+    """Модель тега для статей блога."""
 
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
-        ordering = ["name_tag"]
-
-    def __str__(self):
-        return self.name_tag
+        ordering = ["name"]
 
 
 class Country(models.Model):
-    """Модель страна"""
-
-    name_country = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name="Название страны",
-        help_text="Название страны",
-    )
-    slug_country = models.SlugField(
-        max_length=100,
-        unique=True,
-        verbose_name="Slug страны",
-        help_text="Название страны",
-        default="",
-    )
+    """Модель страна."""
 
     class Meta:
         verbose_name = "Страна"
         verbose_name_plural = "Страны"
-        ordering = ["name_country"]
-
-    def __str__(self):
-        return self.name_country
+        ordering = ["name"]
 
 
 class Theme(models.Model):
     """Модель тема статьи."""
 
-    name_theme = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name="Название темы",
-        help_text="Название темы",
-    )
-    slug_theme = models.SlugField(
-        max_length=100,
-        unique=True,
-        verbose_name="Название темы",
-        help_text="Название темы",
-    )
-
     class Meta:
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
-        ordering = ["name_theme"]
-
-    def __str__(self):
-        return self.name_theme
+        ordering = ["name"]
 
 
 class Article(models.Model):
-    """Модель статья"""
+    """Модель статья."""
 
     title = models.CharField(
         max_length=100,
@@ -195,7 +156,7 @@ class Article(models.Model):
 
 
 class Comment(models.Model):
-    """Модель комментария к статье"""
+    """Модель комментария к статье."""
 
     article = models.ForeignKey(
         Article,
@@ -248,7 +209,7 @@ class Comment(models.Model):
 
 
 class CommentLike(models.Model):
-    """Лайки/дизлайки к комментариям"""
+    """Лайки/дизлайки к комментариям."""
 
     comment = models.ForeignKey(
         Comment,
@@ -272,6 +233,11 @@ class CommentLike(models.Model):
         verbose_name="Дата и время создания",
         help_text="Дата и время создания",
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата и время обновления",
+        help_text="Дата и время обновления",
+    )
 
     class Meta:
         unique_together = ("comment", "user")  # Один пользователь — одна реакция на комментарий
@@ -283,7 +249,7 @@ class CommentLike(models.Model):
 
 
 class ArticleImage(models.Model):
-    """Модель фотографии к статье"""
+    """Модель фотографии к статье."""
 
     article = models.ForeignKey(
         Article,
