@@ -106,14 +106,6 @@ tour_guests = OpenApiParameter(
     description="Количество гостей",
     required=False,
 )
-# Дата вылета(Необязательный)
-tour_start_date_optional = OpenApiParameter(
-    name="start_date", description="Дата начала тура (YYYY-MM-DD)", required=False, type=str
-)
-# Количество нрочей в туре(Необязательный)
-tour_nights_optional = OpenApiParameter(name="nights", type=int, description="Количество ночей", required=False)
-# Количество гостей в туре(Необязательный)
-tour_guests_optional = OpenApiParameter(name="guests", type=int, description="Количество гостей", required=False)
 # Город отеля
 filter_city = OpenApiParameter(name="city", type=str, description="Город отеля", required=False)
 # Тип размещения
