@@ -155,7 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return None
 
     def update(self, request, *args, **kwargs):
-        """Полное обновление информации о пользователе (туристе)."""
+        """Полное обновление информации о пользователе по ID."""
         instance = self.get_object()
         data = request.data.copy()
 
@@ -397,13 +397,17 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         email_message.send()
 
     @extend_schema(
-        summary="Подтвердить код и получить токены",
-        description="Проверка email и кода, возврат JWT-токенов и информации о регистрации",
+        summary="Подтвердить код и установить токены",
+        description=(
+            "Проверка email и кода. В случае успеха — установка JWT токенов (access и refresh) "
+            "в cookie. В теле ответа возвращаются только роль и ID пользователя."
+        ),
         tags=[auth["name"]],
         request={"multipart/form-data": VerifyCodeSerializer},
         responses={
             200: OpenApiResponse(
-                response=VerifyCodeResponseSerializer, description="Успешный ответ с токенами и статусом регистрации"
+                response=VerifyCodeResponseSerializer,
+                description="Успешный ответ с ролью и ID пользователя. Токены установлены в cookie.",
             ),
             400: OpenApiResponse(
                 description="Неверный код",
@@ -426,8 +430,6 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             refresh = RefreshToken.for_user(user)
             response = Response(
                 {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
                     "role": user.role,
                     "id": user.id,
                 },
@@ -530,10 +532,16 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["get"], url_path="fetch_me", permission_classes=[IsAuthenticated])
     def fetch_me(self, request):
-        """Проверяет токен и возвращает данные пользователя через сериализатор."""
+        """Проверяет токен и возвращает текущего пользователя."""
         user = request.user
         serializer = UserSerializer(user, context={"request": request})
-        return Response({"message": "Токен активен", "user": serializer.data}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Токен активен",
+                "user": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         summary="Обновление токенов",
