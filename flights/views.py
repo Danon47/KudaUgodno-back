@@ -106,4 +106,5 @@ class FlightViewSet(viewsets.ModelViewSet):
         "arrival_country",
         "arrival_city",
         "arrival_date",
+        "flight_number",
     )
