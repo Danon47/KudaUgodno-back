@@ -1,10 +1,6 @@
 from django.urls import path
 
-from rooms.apps import RoomsConfig
-from rooms.views import RoomDateViewSet, RoomPhotoViewSet, RoomViewSet
-
-
-app_name = RoomsConfig.name
+from rooms.views import RoomPhotoViewSet, RoomViewSet
 
 
 urlpatterns = [
@@ -33,21 +29,5 @@ urlpatterns = [
         "rooms/<int:room_id>/photos/<int:pk>/",
         RoomPhotoViewSet.as_view({"delete": "destroy"}),
         name="rooms-photo-detail",
-    ),
-    path(
-        "<int:hotel_id>/rooms/dates/",
-        RoomDateViewSet.as_view({"get": "list", "post": "create"}),
-        name="rooms-dates-list",
-    ),
-    path(
-        "<int:hotel_id>/rooms/dates/<int:pk>/",
-        RoomDateViewSet.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "delete": "destroy",
-            }
-        ),
-        name="rooms-dates-detail",
     ),
 ]

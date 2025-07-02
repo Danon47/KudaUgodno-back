@@ -1,13 +1,15 @@
 from django.core.mail import EmailMessage
-from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from all_fixture.errors.mailings import MAILING_400, MAILING_404, MAILING_ID_ERROR
 from all_fixture.fixture_views import MAILING_ID, MAILING_SETTINGS, limit, offset
 from config.settings import EMAIL_HOST_USER
 from mailings.models import Mailing
-from mailings.serializers import MailingErrorSerializer, MailingSerializer
+from mailings.serializers import MailingSerializer
 
 
 @extend_schema(tags=[MAILING_SETTINGS["name"]])
@@ -16,25 +18,19 @@ from mailings.serializers import MailingErrorSerializer, MailingSerializer
         summary="Список рассылок",
         description="Получение списка всех рассылок",
         parameters=[limit, offset],
-        responses={200: MailingSerializer(many=True)},
+        responses={
+            200: OpenApiResponse(
+                response=MailingSerializer(many=True), description="Успешное получение списка всех рассылок"
+            )
+        },
     ),
     create=extend_schema(
         summary="Добавление рассылки на главной странице",
         description="Добавление и отправка рассылки в письме на главной странице",
         request={"multipart/form-data": MailingSerializer},
         responses={
-            201: MailingSerializer,
-            400: OpenApiResponse(
-                response=MailingErrorSerializer,
-                description="Ошибка валидации",
-                examples=[
-                    OpenApiExample(
-                        name="Ошибка: Email уже есть в БД",
-                        value={"email": ["Этот email уже зарегистрирован."]},
-                        response_only=True,
-                    )
-                ],
-            ),
+            201: OpenApiResponse(response=MailingSerializer, description="Успешное создание рассылки"),
+            400: MAILING_400,
         },
     ),
     retrieve=extend_schema(
@@ -42,19 +38,19 @@ from mailings.serializers import MailingErrorSerializer, MailingSerializer
         description="Получение полной информации о конкретном рассылке по ID",
         parameters=[MAILING_ID],
         responses={
-            200: MailingSerializer,
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            200: OpenApiResponse(response=MailingSerializer, description="Успешное получение рассылки"),
+            404: MAILING_404,
         },
     ),
     update=extend_schema(
-        summary="Полное обновление парамет рассылки на главной странице",
+        summary="Полное обновление параметр рассылки на главной странице",
         description="Обновление всех полей рассылки на главной странице",
         request={"multipart/form-data": MailingSerializer},
         parameters=[MAILING_ID],
         responses={
-            200: MailingSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            200: OpenApiResponse(response=MailingSerializer, description="Успешное полное обновление"),
+            400: MAILING_400,
+            404: MAILING_404,
         },
     ),
     partial_update=extend_schema(
@@ -63,9 +59,9 @@ from mailings.serializers import MailingErrorSerializer, MailingSerializer
         request={"multipart/form-data": MailingSerializer},
         parameters=[MAILING_ID],
         responses={
-            200: MailingSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            200: OpenApiResponse(response=MailingSerializer, description="Успешное частичное обновление"),
+            400: MAILING_400,
+            404: MAILING_404,
         },
     ),
     destroy=extend_schema(
@@ -74,7 +70,7 @@ from mailings.serializers import MailingErrorSerializer, MailingSerializer
         parameters=[MAILING_ID],
         responses={
             204: OpenApiResponse(description="Рассылка отключена"),
-            404: OpenApiResponse(description="Рассылка не найдена"),
+            404: MAILING_404,
         },
     ),
 )
@@ -122,3 +118,9 @@ class MailingViewSet(viewsets.ModelViewSet):
         instance.mailing = False
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_object(self):
+        try:
+            return Mailing.objects.get(pk=self.kwargs["pk"])
+        except Mailing.DoesNotExist:
+            raise NotFound(MAILING_ID_ERROR) from None

@@ -23,10 +23,11 @@ from applications.models import (
     ApplicationTour,
     ApplicationVisa,
 )
+from calendars.models import CalendarDate, CalendarPrice
 from flights.models import Flight
 from guests.models import Guest
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
-from rooms.models import Room, RoomCategory, RoomDate, RoomPhoto
+from rooms.models import Room, RoomPhoto
 from tours.models import Tour, TourStock
 from users.models import User
 from vzhuhs.models import Vzhuh, VzhuhPhoto
@@ -402,7 +403,6 @@ class Command(BaseCommand):
                     room.rules.create(
                         name=rule_name,
                         option=random.choice([True, False]),
-                        created_by=None,
                     )
 
                 rooms.append(room)
@@ -420,27 +420,27 @@ class Command(BaseCommand):
                 num_dates = random.randint(1, 5)
                 current_start_date = date(2025, random.randint(6, 12), random.randint(1, 28))
                 for _ in range(num_dates):
-                    stock = random.choice([True, False])
+                    discount = random.choice([True, False])
                     end_date = current_start_date + timedelta(days=random.randint(10, 14))
                     price = round(random.uniform(2000, 50000), 2)
-                    category = RoomCategory.objects.create(room=room, price=price)
 
-                    # Генерация share_size: либо 0.01-0.99, либо 100-2000
-                    if stock:
+                    # Генерация discount_amount: либо 0.01-0.99, либо 100-2000
+                    if discount:
                         if random.choice([True, False]):  # 50% вероятность для каждого диапазона
-                            share_size = round(random.uniform(0.01, 0.99), 2)
+                            discount_amount = round(random.uniform(0.01, 0.99), 2)
                         else:
-                            share_size = random.randint(100, 2000)
+                            discount_amount = random.randint(100, 2000)
                     else:
-                        share_size = None
-                    room_date = RoomDate.objects.create(
+                        discount_amount = None
+                    calendar_date = CalendarDate.objects.create(
+                        hotel=hotel,
                         start_date=current_start_date,
                         end_date=end_date,
                         available_for_booking=True,
-                        stock=stock,
-                        share_size=share_size,
+                        discount=discount,
+                        discount_amount=discount_amount,
                     )
-                    room_date.categories.set([category])
+                    CalendarPrice.objects.create(calendar_date=calendar_date, room=room, price=price)
                     current_start_date = end_date + timedelta(days=1)
 
     def create_flights(self):

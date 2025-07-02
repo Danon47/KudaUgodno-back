@@ -1,4 +1,6 @@
 from dal import autocomplete
+from django.db.models import Count, F, OuterRef, Subquery, Window
+from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
@@ -6,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from all_fixture.fixture_views import (
+    POPULAR_SETTINGS,
     filter_city,
     filter_distance_to_the_airport,
     filter_place,
@@ -16,34 +19,30 @@ from all_fixture.fixture_views import (
     limit,
     offset,
     tour_arrival_city,
-    tour_arrival_city_optional,
     tour_departure_city,
-    tour_departure_city_optional,
     tour_guests,
-    tour_guests_optional,
     tour_id,
     tour_nights,
-    tour_nights_optional,
     tour_price_gte,
     tour_price_lte,
     tour_settings,
     tour_start_date,
-    tour_start_date_optional,
     tour_stock_id,
     tour_stock_settings,
 )
 from all_fixture.pagination import CustomLOPagination
+from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
-from tours.filters import TourExtendedFilter, TourSearchFilter
+from tours.filters import TourFilter
 from tours.models import Tour, TourStock
 from tours.serializers import (
     TourFiltersRequestSerializer,
     TourListSerializer,
     TourPatchSerializer,
-    TourSearchRequestSerializer,
-    TourSearchResponseSerializer,
+    TourPopularSerializer,
     TourSerializer,
+    TourShortSerializer,
     TourStockSerializer,
 )
 
@@ -189,50 +188,15 @@ class TourStockViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    search=extend_schema(
-        summary="Поиск туров",
-        description="Поиск туров по городам вылета/прилета, дате вылета, количеству ночей и гостей.",
-        parameters=[tour_departure_city, tour_arrival_city, tour_start_date, tour_nights, tour_guests, limit, offset],
-        tags=[tour_settings["name"]],
-        responses={
-            200: TourSearchResponseSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка валидации"),
-        },
-    )
-)
-class TourSearchView(viewsets.ModelViewSet):
-    """Поиск туров с учетом фильтров город вылета/прилёта, даты вылета, кол-ва ночей/гостей."""
-
-    queryset = Tour.objects.filter(is_active=True)
-    serializer_class = TourSearchResponseSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TourSearchFilter
-    pagination_class = CustomLOPagination
-    http_method_names = ["get"]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["guests"] = self.request.query_params.get("guests", 1)
-        return context
-
-    @action(detail=False, methods=["get"])
-    def search(self, request):
-        request_serializer = TourSearchRequestSerializer(data=request.query_params)
-        if not request_serializer.is_valid():
-            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return self.list(request)
-
-
-@extend_schema_view(
     filters=extend_schema(
         summary="Расширенный поиск туров",
         description="Расширенный поиск туров по фильтрам.",
         parameters=[
-            tour_departure_city_optional,
-            tour_arrival_city_optional,
-            tour_start_date_optional,
-            tour_nights_optional,
-            tour_guests_optional,
+            tour_departure_city,
+            tour_arrival_city,
+            tour_start_date,
+            tour_nights,
+            tour_guests,
             filter_city,
             filter_type_of_rest,
             filter_place,
@@ -247,25 +211,41 @@ class TourSearchView(viewsets.ModelViewSet):
         ],
         tags=[tour_settings["name"]],
         responses={
-            200: TourSearchResponseSerializer(many=True),
+            200: TourShortSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     ),
 )
 class TourFiltersView(viewsets.ModelViewSet):
-    """Расширенный поиск туров с дополнительными фильтрами по отелям и другим параметрам."""
+    """Поиск туров по фильтрам."""
 
-    queryset = Tour.objects.filter(is_active=True)
-    serializer_class = TourSearchResponseSerializer
+    queryset = Tour.objects.none
+    serializer_class = TourShortSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = TourExtendedFilter
+    filterset_class = TourFilter
     pagination_class = CustomLOPagination
     http_method_names = ["get"]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["guests"] = self.request.query_params.get("guests", 1)
-        return context
+    def get_queryset(self):
+        """Получение доступного тура с максимальным количеством гостей в комнате."""
+        guests_subquery = (
+            Room.objects.filter(hotel_id=OuterRef("hotel_id"))
+            .order_by(-(F("number_of_adults") + F("number_of_children")))
+            .values("number_of_adults", "number_of_children")[:1]
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True)
+            .annotate(
+                number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("number_of_children")),
+            )
+            .select_related("hotel")
+            .prefetch_related("hotel__hotel_photos")
+            .order_by("arrival_country")
+        )
+
+        return queryset
 
     @action(detail=False, methods=["get"])
     def filters(self, request):
@@ -273,6 +253,96 @@ class TourFiltersView(viewsets.ModelViewSet):
         if not request_serializer.is_valid():
             return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список горящих туров",
+        description="Получение списка всех горящих туров",
+        parameters=[limit, offset],
+        tags=[tour_settings["name"]],
+        responses={
+            200: TourShortSerializer(many=True),
+        },
+    )
+)
+class TourHotView(viewsets.ModelViewSet):
+    """Горящие туры по одному из каждой страны по минимальной цене."""
+
+    serializer_class = TourShortSerializer
+    pagination_class = CustomLOPagination
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Получение тура по одному из каждой страны с минимальной ценой."""
+        guests_subquery = (
+            CalendarPrice.objects.filter(
+                calendar_date__discount=True, calendar_date__available_for_booking=True, room__tours=OuterRef("pk")
+            )
+            .order_by("price")
+            .values("room__number_of_adults", "room__number_of_children")[:1]
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True, stock__active_stock=True)
+            .annotate(
+                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+                country_rank=Window(
+                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                ),
+            )
+            .filter(country_rank=1)
+            .order_by("arrival_country")
+        )
+
+        return queryset
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список популярных туров",
+        description=(
+            "Получение списка шести популярных туров. В данный момент фотография берётся из тура, "
+            "в туре фотография отеля, позже обновим на фотографию стран. Популярные направления - сейчас это "
+            "сортировка от больше к меньшему количеству туров и дополнительно еще главная сортировка по минимальной "
+            "стоимости тура."
+        ),
+        tags=[POPULAR_SETTINGS["name"]],
+        responses={
+            200: TourPopularSerializer(many=True),
+        },
+    ),
+    retrieve=extend_schema(exclude=True),
+)
+class TourPopularView(viewsets.ModelViewSet):
+    """Туры шести стран."""
+
+    serializer_class = TourPopularSerializer
+
+    def get_queryset(self):
+        """Получение тура по одному из шести страны с минимальной ценой."""
+
+        country_tour_count = (
+            Tour.objects.filter(is_active=True, arrival_country=OuterRef("arrival_country"))
+            .values("arrival_country")
+            .annotate(count=Count("id"))
+            .values("count")
+        )
+
+        queryset = (
+            Tour.objects.filter(is_active=True)
+            .annotate(
+                tours_count=Subquery(country_tour_count),
+                country_rank=Window(
+                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                ),
+            )
+            .filter(country_rank=1)
+            .order_by("price")[:6]
+        )
+
+        return queryset
 
 
 class HotelAutocomplete(autocomplete.Select2QuerySetView):

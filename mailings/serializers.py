@@ -1,12 +1,7 @@
-from django.core.exceptions import ValidationError
-from rest_framework.fields import CharField
-from rest_framework.serializers import BooleanField, EmailField, ModelSerializer, Serializer
+from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import BooleanField, EmailField, ModelSerializer
 
 from mailings.models import Mailing
-
-
-class MailingErrorSerializer(Serializer):
-    detail = CharField()
 
 
 class MailingSerializer(ModelSerializer):

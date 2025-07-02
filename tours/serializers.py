@@ -1,4 +1,5 @@
-from drf_spectacular.utils import extend_schema_field
+from typing import Dict
+
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -8,11 +9,12 @@ from rest_framework.serializers import (
     ModelSerializer,
     Serializer,
     SerializerMethodField,
+    SlugRelatedField,
 )
 
 from all_fixture.fixture_views import decimal_ivalid
 from flights.serializers import FlightSerializer
-from hotels.serializers import HotelListWithPhotoSerializer
+from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
 from rooms.serializers import RoomDetailSerializer
 from tours.models import Tour, TourStock
@@ -94,45 +96,72 @@ class TourListSerializer(TourSerializer):
         return obj.tour_operator.company_name
 
 
+class TourPopularSerializer(ModelSerializer):
+    """
+    Сериализатор для списка популярных туров.
+    """
+
+    photo = SerializerMethodField()
+    tours_count = IntegerField(min_value=0, required=True)
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость минимального популярного тура",
+        error_messages=decimal_ivalid,
+    )
+
+    class Meta:
+        model = Tour
+        fields = ("arrival_country", "photo", "price", "tours_count")
+
+    def get_photo(self, obj) -> str:
+        """
+        Возвращает URL первой фотографии отеля.
+        """
+        request = self.context.get("request")
+        first_photo = obj.hotel.hotel_photos.first()
+        if first_photo:
+            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
+        return None
+
+
+class TourShortSerializer(ModelSerializer):
+    """
+    Сериализатор для списка горящих туров.
+    """
+
+    hotel = HotelShortSerializer()
+    tour_operator = SlugRelatedField(
+        slug_field="company_name",
+        read_only=True,
+    )
+    guests = SerializerMethodField()
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость горящего тура",
+        error_messages=decimal_ivalid,
+    )
+
+    class Meta:
+        model = Tour
+        fields = ("hotel", "price", "start_date", "end_date", "guests", "tour_operator")
+
+    def get_guests(self, obj) -> Dict[str, int]:
+        return {
+            "number_of_adults": obj.number_of_adults,
+            "number_of_children": obj.number_of_children,
+        }
+
+
 class TourStockSerializer(ModelSerializer):
     class Meta:
         model = TourStock
         fields = ("id", "active_stock", "end_date", "discount_amount")
-
-
-class TourSearchResponseSerializer(TourListSerializer):
-    """Сериализатор только для формирования ответа поиска."""
-
-    nights = SerializerMethodField()
-    guests = SerializerMethodField()
-
-    class Meta(TourListSerializer.Meta):
-        fields = TourListSerializer.Meta.fields + ("nights", "guests")
-
-    @extend_schema_field(int)
-    def get_nights(self, obj) -> int:
-        """Расчет количества ночей."""
-        return (obj.end_date - obj.start_date).days
-
-    @extend_schema_field(int)
-    def get_guests(self, obj) -> int:
-        """Получение количества гостей из контекста."""
-        return int(self.context.get("guests", 1))
-
-
-class TourSearchRequestSerializer(Serializer):
-    """Сериализатор только для валидации параметров запроса поиска (все поля обязательные).."""
-
-    departure_city = CharField(required=True)
-    arrival_city = CharField(required=True)
-    start_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    nights = IntegerField(min_value=1, required=True)
-    guests = IntegerField(min_value=1, required=True)
-    validators = [StartDateValidator()]
 
 
 class TourFiltersRequestSerializer(Serializer):
@@ -156,7 +185,7 @@ class TourFiltersRequestSerializer(Serializer):
     price_gte = IntegerField(min_value=0, required=False)
     price_lte = IntegerField(min_value=0, required=False)
     user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, required=False)
+    star_category = IntegerField(min_value=0, max_value=5, required=False)
     distance_to_the_airport = IntegerField(min_value=0, required=False)
     tour_operator = CharField(required=False)
     validators = [StartDateValidator()]

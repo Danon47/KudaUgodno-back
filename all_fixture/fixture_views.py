@@ -24,11 +24,13 @@ application_guest_settings = {"name": "Гости", "description": "Методы
 insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 what_about_settings = {"name": "Что на счёт ...", "description": "Получаем список подборок что насчёт..."}
 type_of_meal_settings = {"name": "Тип питания", "description": "Методы для работы с типами питания"}
-room_date_settings = {
-    "name": "Даты доступности номеров",
-    "description": "Методы для работы с датами доступности номеров",
+CALENDAR_SETTINGS = {
+    "name": "Календарь стоимость номеров в отеле",
+    "description": "Методы для работы с календарём стоимости номеров в отеле",
 }
 MAILING_SETTINGS = {"name": "Рассылки", "description": "Методы для работы с рассылками"}
+POPULAR_SETTINGS = {"name": "Популярные направления", "description": "Методы для работы с популярными направлениями"}
+DISCOUNT_SETTINGS = {"name": "Акции", "description": "Методы для работы с акциями"}
 
 # Отображение ошибки
 decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
@@ -71,63 +73,41 @@ tour_stock_id = OpenApiParameter(
     description="ID Акции тура",
     required=True,
 )
-# Город вылета(Обязательный)
+# Город вылета
 tour_departure_city = OpenApiParameter(
     name="departure_city",
     type=str,
     description="Город вылета",
-    required=True,
+    required=False,
 )
-# Город прилета(Обязательный)
+# Город прилета
 tour_arrival_city = OpenApiParameter(
     name="arrival_city",
     type=str,
     description="Город прилета",
-    required=True,
+    required=False,
 )
-# Дата вылета(Обязательный)
+# Дата вылета
 tour_start_date = OpenApiParameter(
     name="start_date",
     type=str,
-    description="Дата начала тура",
-    required=True,
+    description="Дата начала тура (YYYY-MM-DD)",
+    required=False,
 )
-# Количество ночей в туре(Обязательный)
+# Количество ночей в туре
 tour_nights = OpenApiParameter(
     name="nights",
     type=int,
     description="Количество ночей",
-    required=True,
+    required=False,
 )
-# Количество гостей в туре(Обязательный)
+# Количество гостей в туре
 tour_guests = OpenApiParameter(
     name="guests",
     type=int,
     description="Количество гостей",
-    required=True,
-)
-# Город вылета(Необязательный)
-tour_departure_city_optional = OpenApiParameter(
-    name="departure_city",
-    type=str,
-    description="Город вылета",
     required=False,
 )
-# Город прилета(Необязательный)
-tour_arrival_city_optional = OpenApiParameter(
-    name="arrival_city",
-    type=str,
-    description="Город прилета",
-    required=False,
-)
-# Дата вылета(Необязательный)
-tour_start_date_optional = OpenApiParameter(
-    name="start_date", description="Дата начала тура", required=False, type=str
-)
-# Количество нрочей в туре(Необязательный)
-tour_nights_optional = OpenApiParameter(name="nights", type=int, description="Количество ночей", required=False)
-# Количество гостей в туре(Необязательный)
-tour_guests_optional = OpenApiParameter(name="guests", type=int, description="Количество гостей", required=False)
 # Город отеля
 filter_city = OpenApiParameter(name="city", type=str, description="Город отеля", required=False)
 # Тип размещения
@@ -263,16 +243,24 @@ insurance_id = OpenApiParameter(
     description="ID Страховки",
     required=True,
 )
+# ID Календаря
+CALENDAR_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Календаря",
+    required=True,
+)
 # Дата заезда в отель(Обязательный)
 hotel_check_in = OpenApiParameter(
-    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=True, type=str
+    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=False, type=str
 )
 # Дата выезда из отеля(Обязательный)
 hotel_check_out = OpenApiParameter(
-    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=True, type=str
+    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=False, type=str
 )
 # Количество гостей в отеле(Обязательный)
-hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=True, type=int)
+hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=False, type=int)
 # Название отеля
 hotel_city = OpenApiParameter(
     name="hotel_city",
@@ -533,3 +521,7 @@ WARM_CITY = [
     "Апиа",  # Самоа
     "Нукуалофа",  # Тонга
 ]
+DISCOUNT = (
+    "Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - это уже величина. "
+    "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей."
+)

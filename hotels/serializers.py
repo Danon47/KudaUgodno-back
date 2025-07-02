@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.db.models import Min
 from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
@@ -16,7 +15,6 @@ from rest_framework.serializers import (
 
 from hotels.models import Hotel, HotelPhoto, HotelRules, HotelWhatAbout
 from hotels.validators import DateValidator
-from rooms.models import RoomCategory
 from rooms.serializers import RoomDetailSerializer
 
 
@@ -151,27 +149,79 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     #     return obj.created_by.email if obj.created_by else None
 
 
-class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
+class HotelShortPhotoSerializer(ModelSerializer):
+    photo = SerializerMethodField()
+
+    class Meta:
+        model = Hotel
+        fields = ("photo",)
+
+    def get_photo(self, obj: Hotel) -> str:
+        request = self.context.get("request")
+        first_photo = obj.hotel_photos.first()
+        if first_photo:
+            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
+        return None
+
+
+class HotelPopularSerializer(HotelShortPhotoSerializer):
     """
-    Cериализатор отеля для получения ответа из поиска.
+    Сериализатор для списка популярных туров.
+    """
+
+    hotels_count = IntegerField(min_value=0, required=True)
+    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
+    class Meta:
+        model = Hotel
+        fields = HotelShortPhotoSerializer.Meta.fields + ("country", "min_price", "hotels_count")
+
+
+class HotelShortSerializer(HotelShortPhotoSerializer):
+
+    class Meta:
+        model = Hotel
+        fields = HotelShortPhotoSerializer.Meta.fields + (
+            "id",
+            "country",
+            "city",
+            "distance_to_the_center",
+            "distance_to_the_metro",
+            "star_category",
+            "name",
+            "user_rating",
+        )
+
+
+class HotelShortWithPriceSerializer(HotelShortSerializer):
+
+    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
+    class Meta(HotelShortSerializer.Meta):
+        model = Hotel
+        fields = HotelShortSerializer.Meta.fields + ("min_price",)
+
+
+class HotelWhatAboutFullSerializer(ModelSerializer):
+    hotel = HotelShortSerializer(many=True, read_only=True)
+    name_set = CharField(read_only=True)
+
+    class Meta:
+        model = HotelWhatAbout
+        fields = ("name_set", "hotel")
+
+
+class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
+    """
+    Сериализатор отеля для получения ответа из поиска.
     """
 
     nights = SerializerMethodField()
     guests = SerializerMethodField()
-    rooms = SerializerMethodField()
 
-    class Meta(HotelListRoomAndPhotoSerializer.Meta):
-        fields = HotelListRoomAndPhotoSerializer.Meta.fields + ("nights", "guests")
-
-    @extend_schema_field(field=RoomDetailSerializer(many=True))
-    def get_rooms(self, obj):
-        """
-        Возвращаем только отфильтрованные комнаты по количеству гостей и другим параметрам.
-        """
-        rooms = getattr(obj, "filtered_rooms", None)
-        if rooms is None:
-            return []  # если не было префетча
-        return RoomDetailSerializer(rooms, many=True).data
+    class Meta(HotelShortWithPriceSerializer.Meta):
+        model = Hotel
+        fields = HotelShortWithPriceSerializer.Meta.fields + ("nights", "guests")
 
     @extend_schema_field(int)
     def get_nights(self, obj) -> int:
@@ -196,26 +246,6 @@ class HotelSearchResponseSerializer(HotelListRoomAndPhotoSerializer):
         Получение количества гостей из контекста.
         """
         return int(self.context.get("guests", 1))
-
-
-class HotelSearchRequestSerializer(Serializer):
-    """
-    Cериализатор отеля для поиска.
-    """
-
-    city = CharField(required=False)
-    check_in_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    check_out_date = DateField(
-        required=True,
-        input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
-    )
-    guests = IntegerField(min_value=1, required=True)
-    validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
 
 
 class HotelFiltersRequestSerializer(Serializer):
@@ -244,43 +274,5 @@ class HotelFiltersRequestSerializer(Serializer):
     price_gte = IntegerField(min_value=1, required=False)
     price_lte = IntegerField(min_value=0, required=False)
     user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, required=False)
+    star_category = IntegerField(min_value=0, max_value=5, required=False)
     validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
-
-
-class HotelShortSerializer(ModelSerializer):
-    photo = SerializerMethodField()
-    min_price = SerializerMethodField()
-
-    class Meta:
-        model = Hotel
-        fields = (
-            "id",
-            "photo",
-            "country",
-            "city",
-            "star_category",
-            "name",
-            "distance_to_the_center",
-            "min_price",
-            "user_rating",
-        )
-
-    def get_photo(self, obj: Hotel) -> str:
-        request = self.context.get("request")
-        first_photo = obj.hotel_photos.first()
-        if first_photo:
-            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
-        return None
-
-    def get_min_price(self, obj: Hotel) -> int:
-        return RoomCategory.objects.filter(room__hotel=obj).aggregate(min_price=Min("price"))["min_price"]
-
-
-class HotelWhatAboutFullSerializer(ModelSerializer):
-    hotel = HotelShortSerializer(many=True, read_only=True)
-    name_set = CharField(read_only=True)
-
-    class Meta:
-        model = HotelWhatAbout
-        fields = ("name_set", "hotel")

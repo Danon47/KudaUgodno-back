@@ -1,0 +1,13 @@
+from django.contrib import admin
+
+from calendars.models import CalendarDate, CalendarPrice
+
+
+@admin.register(CalendarPrice)
+class RoomCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "price")
+
+
+@admin.register(CalendarDate)
+class CalendarAdmin(admin.ModelAdmin):
+    list_display = ("id", "start_date", "end_date")
