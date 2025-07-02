@@ -17,7 +17,6 @@ from all_fixture.fixture_views import (
     filter_user_rating,
     hotel_check_in,
     hotel_check_out,
-    hotel_city,
     hotel_guests,
     hotel_id,
     hotel_id_photo,
@@ -119,7 +118,6 @@ class HotelViewSet(viewsets.ModelViewSet):
         parameters=[
             limit,
             offset,
-            hotel_city,
             hotel_check_in,
             hotel_check_out,
             hotel_guests,

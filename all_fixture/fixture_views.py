@@ -253,14 +253,14 @@ CALENDAR_ID = OpenApiParameter(
 )
 # Дата заезда в отель(Обязательный)
 hotel_check_in = OpenApiParameter(
-    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=True, type=str
+    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=False, type=str
 )
 # Дата выезда из отеля(Обязательный)
 hotel_check_out = OpenApiParameter(
-    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=True, type=str
+    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=False, type=str
 )
 # Количество гостей в отеле(Обязательный)
-hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=True, type=int)
+hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=False, type=int)
 # Название отеля
 hotel_city = OpenApiParameter(
     name="hotel_city",

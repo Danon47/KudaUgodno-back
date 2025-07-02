@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 class ApplicationVisaSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
     class Meta:
         model = ApplicationVisa
         fields = (
@@ -33,6 +36,9 @@ class ApplicationVisaSerializer(serializers.ModelSerializer):
 
 
 class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
     class Meta:
         model = ApplicationMedicalInsurance
         fields = (
@@ -43,6 +49,8 @@ class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
 
 
 class ApplicationCancellationInsuranceSerializer(serializers.ModelSerializer):
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
     class Meta:
         model = ApplicationCancellationInsurance
         fields = ("total_price",)

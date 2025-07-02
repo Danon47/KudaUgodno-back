@@ -8,7 +8,6 @@ from hotels.models import Hotel
 class HotelFilter(FilterSet):
     """Класс фильтров для расширенного поиска отелей."""
 
-    hotel_city = CharFilter(field_name="city", lookup_expr="iexact")
     check_in_date = DateFilter(method="filter_by_dates")
     check_out_date = DateFilter(method="filter_by_dates")
     guests = NumberFilter(method="filter_by_guests")
