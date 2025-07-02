@@ -433,6 +433,7 @@ class Command(BaseCommand):
                     else:
                         discount_amount = None
                     calendar_date = CalendarDate.objects.create(
+                        hotel=hotel,
                         start_date=current_start_date,
                         end_date=end_date,
                         available_for_booking=True,

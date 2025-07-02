@@ -11,6 +11,14 @@ class CalendarDate(models.Model):
     Модель для создания календаря стоимости номеров.
     """
 
+    hotel = models.ForeignKey(
+        "hotels.Hotel",
+        on_delete=models.CASCADE,
+        related_name="calendar_dates",
+        verbose_name="Отель",
+        help_text="Отель",
+        **NULLABLE,
+    )
     start_date = models.DateField(
         verbose_name="Начало периода стоимости категорий номеров", help_text="Введите дату в формате YYYY-MM-DD"
     )

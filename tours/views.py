@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from all_fixture.fixture_views import (
+    POPULAR_SETTINGS,
     filter_city,
     filter_distance_to_the_airport,
     filter_place,
@@ -301,20 +302,23 @@ class TourHotView(viewsets.ModelViewSet):
 @extend_schema_view(
     list=extend_schema(
         summary="Список популярных туров",
-        description="Получение списка шести популярных туров",
-        parameters=[limit, offset],
-        tags=[tour_settings["name"]],
+        description=(
+            "Получение списка шести популярных туров. В данный момент фотография берётся из тура, "
+            "в туре фотография отеля, позже обновим на фотографию стран. Популярные направления - сейчас это "
+            "сортировка от больше к меньшему количеству туров и дополнительно еще главная сортировка по минимальной "
+            "стоимости тура."
+        ),
+        tags=[POPULAR_SETTINGS["name"]],
         responses={
             200: TourPopularSerializer(many=True),
         },
-    )
+    ),
+    retrieve=extend_schema(exclude=True),
 )
 class TourPopularView(viewsets.ModelViewSet):
     """Туры шести стран."""
 
     serializer_class = TourPopularSerializer
-    pagination_class = CustomLOPagination
-    http_method_names = ["get"]
 
     def get_queryset(self):
         """Получение тура по одному из шести страны с минимальной ценой."""

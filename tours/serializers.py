@@ -103,6 +103,14 @@ class TourPopularSerializer(ModelSerializer):
 
     photo = SerializerMethodField()
     tours_count = IntegerField(min_value=0, required=True)
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость минимального популярного тура",
+        error_messages=decimal_ivalid,
+    )
 
     class Meta:
         model = Tour
@@ -130,6 +138,14 @@ class TourShortSerializer(ModelSerializer):
         read_only=True,
     )
     guests = SerializerMethodField()
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+        required=False,
+        help_text="Стоимость горящего тура",
+        error_messages=decimal_ivalid,
+    )
 
     class Meta:
         model = Tour

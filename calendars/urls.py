@@ -7,7 +7,7 @@ urlpatterns = [
     path(
         "<int:hotel_id>/price_calendars/",
         PriceCalendarViewSet.as_view({"get": "list", "post": "create"}),
-        name="rooms-dates-list_1",
+        name="calendar-price-list",
     ),
     path(
         "<int:hotel_id>/price_calendars/<int:pk>/",
@@ -18,6 +18,6 @@ urlpatterns = [
                 "delete": "destroy",
             }
         ),
-        name="rooms-dates-detail_1",
+        name="calendar-price-detail",
     ),
 ]

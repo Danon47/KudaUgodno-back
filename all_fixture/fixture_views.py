@@ -24,11 +24,13 @@ application_guest_settings = {"name": "Гости", "description": "Методы
 insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
 what_about_settings = {"name": "Что на счёт ...", "description": "Получаем список подборок что насчёт..."}
 type_of_meal_settings = {"name": "Тип питания", "description": "Методы для работы с типами питания"}
-room_date_settings = {
-    "name": "Даты доступности номеров",
-    "description": "Методы для работы с датами доступности номеров",
+CALENDAR_SETTINGS = {
+    "name": "Календарь стоимость номеров в отеле",
+    "description": "Методы для работы с календарём стоимости номеров в отеле",
 }
 MAILING_SETTINGS = {"name": "Рассылки", "description": "Методы для работы с рассылками"}
+POPULAR_SETTINGS = {"name": "Популярные направления", "description": "Методы для работы с популярными направлениями"}
+DISCOUNT_SETTINGS = {"name": "Акции", "description": "Методы для работы с акциями"}
 
 # Отображение ошибки
 decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
@@ -239,6 +241,14 @@ insurance_id = OpenApiParameter(
     name="id",
     type=int,
     description="ID Страховки",
+    required=True,
+)
+# ID Календаря
+CALENDAR_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID Календаря",
     required=True,
 )
 # Дата заезда в отель(Обязательный)
@@ -513,5 +523,5 @@ WARM_CITY = [
 ]
 DISCOUNT = (
     "Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - это уже величина. "
-    "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей"
+    "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей."
 )
