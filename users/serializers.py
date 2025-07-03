@@ -5,7 +5,6 @@ from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, Languag
 from all_fixture.validators.validators import ForbiddenWordValidator
 from users.models import User
 
-
 # ───── Пользователи ───────────────────────────────────────────────────────────
 
 

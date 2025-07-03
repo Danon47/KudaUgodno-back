@@ -5,12 +5,11 @@ from .models import Vzhuh
 
 
 class VzhuhFilter(FilterSet):
-    id = CharFilter(field_name="id", lookup_expr="exact")
     departure_city = CharFilter(method="filter_departure_city")
 
     class Meta:
         model = Vzhuh
-        fields = ["id", "departure_city"]
+        fields = ["departure_city"]
 
     def filter_departure_city(self, queryset, name, value):
         if value:

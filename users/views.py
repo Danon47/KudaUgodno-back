@@ -18,12 +18,23 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from all_fixture.choices import RoleChoices
-from all_fixture.fixture_views import auth, entreprise, entreprise_id, limit, offset, user_id, user_settings
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    AUTH_SETTINGS,
+    ENTREPRISE_ID,
+    ENTREPRISE_SETTINGS,
+    LIMIT,
+    OFFSET,
+    USER_ID,
+    USER_SETTINGS,
+)
 from config.settings import EMAIL_HOST_USER
 from users.models import User
 from users.permissions import IsAdminOrOwner
@@ -41,7 +52,6 @@ from users.serializers import (
     VerifyCodeResponseSerializer,
     VerifyCodeSerializer,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,22 +71,22 @@ def blacklist_user_tokens(user):
     list=extend_schema(
         summary="Список пользователей (турист)",
         description="Получение списка всех обычных пользователей",
-        tags=[user_settings["name"]],
-        parameters=[limit, offset],
+        tags=[USER_SETTINGS["name"]],
+        parameters=[LIMIT, OFFSET],
         responses={200: UserSerializer(many=True)},
     ),
     create=extend_schema(
         summary="Создание пользователя",
         description="Создание нового пользователя с указанием email и пароля",
-        tags=[user_settings["name"]],
+        tags=[USER_SETTINGS["name"]],
         request={"multipart/form-data": UserSerializer},
         responses={201: UserSerializer},
     ),
     retrieve=extend_schema(
         summary="Детальная информация о пользователе",
         description="Получение полной информации о конкретном пользователе (туристе) по ID",
-        tags=[user_settings["name"]],
-        parameters=[user_id],
+        tags=[USER_SETTINGS["name"]],
+        parameters=[USER_ID],
         responses={
             200: UserSerializer,
             404: OpenApiResponse(description="Пользователь не найден"),
@@ -85,8 +95,8 @@ def blacklist_user_tokens(user):
     update=extend_schema(
         summary="Обновление пользователя",
         description="Полное обновление информации о пользователе (туристе) по ID",
-        tags=[user_settings["name"]],
-        parameters=[user_id],
+        tags=[USER_SETTINGS["name"]],
+        parameters=[USER_ID],
         request={"multipart/form-data": UserSerializer},
         responses={
             200: UserSerializer,
@@ -103,8 +113,8 @@ def blacklist_user_tokens(user):
             "- Туроператоры и Отельеры удаляются только через ручку компаний.\n\n"
             "Можно передать `refresh` токен в теле запроса для его аннулирования (необязательно)."
         ),
-        tags=[user_settings["name"]],
-        parameters=[user_id],
+        tags=[USER_SETTINGS["name"]],
+        parameters=[USER_ID],
         request=DeleteTokenSerializer,
         responses={
             204: OpenApiResponse(description="Пользователь удалён"),
@@ -200,22 +210,22 @@ class UserViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список компаний (Туроператоры и Отельеры)",
         description="Получение списка всех компаний (Туроператоры и Отельеры)",
-        tags=[entreprise["name"]],
-        parameters=[limit, offset],
+        tags=[ENTREPRISE_SETTINGS["name"]],
+        parameters=[LIMIT, OFFSET],
         responses={200: CompanyUserSerializer(many=True)},
     ),
     create=extend_schema(
         summary="Создание компании",
         description="Создание нового Туроператора или Отельера",
-        tags=[entreprise["name"]],
+        tags=[ENTREPRISE_SETTINGS["name"]],
         request=CompanyUserSerializer,
         responses={201: CompanyUserSerializer},
     ),
     retrieve=extend_schema(
         summary="Детальная информация о компании",
         description="Получение детальной информации о конкретной компании по ID",
-        tags=[entreprise["name"]],
-        parameters=[entreprise_id],
+        tags=[ENTREPRISE_SETTINGS["name"]],
+        parameters=[ENTREPRISE_ID],
         responses={
             200: CompanyUserSerializer,
             404: OpenApiResponse(description="Компания не найдена"),
@@ -224,8 +234,8 @@ class UserViewSet(viewsets.ModelViewSet):
     update=extend_schema(
         summary="Обновление компании",
         description="Полное обновление информации о компании по ID",
-        tags=[entreprise["name"]],
-        parameters=[entreprise_id],
+        tags=[ENTREPRISE_SETTINGS["name"]],
+        parameters=[ENTREPRISE_ID],
         request=CompanyUserSerializer,  # 👈 верный сериализатор для обновления
         responses={
             200: CompanyUserSerializer,
@@ -241,8 +251,8 @@ class UserViewSet(viewsets.ModelViewSet):
             "- Туроператор и Отельер **не могут удалить себя самостоятельно**.\n\n"
             "Можно передать `refresh` токен для аннулирования (опционально)."
         ),
-        tags=[entreprise["name"]],
-        parameters=[entreprise_id],
+        tags=[ENTREPRISE_SETTINGS["name"]],
+        parameters=[ENTREPRISE_ID],
         request=DeleteTokenSerializer,  # 👈 универсальный сериализатор
         responses={
             204: OpenApiResponse(description="Компания удалена"),
@@ -310,7 +320,10 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
 
         # Только админ может удалять компании
         if not user.is_superuser:
-            return Response({"error": "Удаление разрешено только администратору"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Удаление разрешено только администратору"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Мягкое аннулирование токена
         refresh_token = request.data.get("refresh")
@@ -346,13 +359,22 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Запросить код для входа",
         description="Отправляет 4-значный код на email пользователя для входа в систему.",
-        tags=[auth["name"]],
+        tags=[AUTH_SETTINGS["name"]],
         request={"multipart/form-data": EmailLoginSerializer},
         responses={
-            200: OpenApiResponse(response=EmailCodeResponseSerializer, description="Код успешно отправлен"),
+            200: OpenApiResponse(
+                response=EmailCodeResponseSerializer,
+                description="Код успешно отправлен",
+            ),
             404: OpenApiResponse(description="Пользователь не найден"),
         },
-        examples=[OpenApiExample(name="Пример запроса", value={"email": "user@example.com"}, request_only=True)],
+        examples=[
+            OpenApiExample(
+                name="Пример запроса",
+                value={"email": "user@example.com"},
+                request_only=True,
+            )
+        ],
     )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -364,7 +386,8 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response(
-                {"error": "Пользователь не найден", "register": is_registered}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Пользователь не найден", "register": is_registered},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         code = random.randint(1000, 9999)
@@ -373,7 +396,10 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         self.send_email(user.email, code)
 
-        return Response({"message": "Код отправлен на email", "register": is_registered}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Код отправлен на email", "register": is_registered},
+            status=status.HTTP_200_OK,
+        )
 
     @staticmethod
     def send_email(email, code):
@@ -402,7 +428,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             "Проверка email и кода. В случае успеха — установка JWT токенов (access и refresh) "
             "в cookie. В теле ответа возвращаются только роль и ID пользователя."
         ),
-        tags=[auth["name"]],
+        tags=[AUTH_SETTINGS["name"]],
         request={"multipart/form-data": VerifyCodeSerializer},
         responses={
             200: OpenApiResponse(
@@ -411,7 +437,13 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             ),
             400: OpenApiResponse(
                 description="Неверный код",
-                examples=[OpenApiExample(name="Ошибка", value={"error": "Неверный код"}, response_only=True)],
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка",
+                        value={"error": "Неверный код"},
+                        response_only=True,
+                    )
+                ],
             ),
         },
     )
@@ -462,10 +494,13 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Выход из системы (Logout)",
         description="Аннулирует refresh-токен и завершает сессию пользователя.",
-        tags=[auth["name"]],
+        tags=[AUTH_SETTINGS["name"]],
         request={"multipart/form-data": LogoutSerializer},
         responses={
-            205: OpenApiResponse(response=LogoutSuccessResponseSerializer, description="Вы успешно вышли из системы"),
+            205: OpenApiResponse(
+                response=LogoutSuccessResponseSerializer,
+                description="Вы успешно вышли из системы",
+            ),
             400: OpenApiResponse(
                 response=ErrorResponseSerializer,
                 description="Ошибка при выходе",
@@ -484,7 +519,12 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             ),
         },
     )
-    @action(detail=False, methods=["post"], url_path="logout", permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="logout",
+        permission_classes=[IsAuthenticated],
+    )
     def logout(self, request):
         """
         Выход из системы: аннулирование refresh-токена и удаление cookies.
@@ -499,7 +539,10 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         )
 
         if not refresh_token:
-            return Response({"error": "Refresh-токен не передан"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Refresh-токен не передан"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             token = RefreshToken(refresh_token)
@@ -516,21 +559,31 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Проверка активности access-токена",
         description="Проверяет, действителен ли access-токен. Если токен истёк или отсутствует, возвращает 401.",
-        tags=[auth["name"]],
+        tags=[AUTH_SETTINGS["name"]],
         responses={
-            200: OpenApiResponse(response=CheckTokenSuccessResponseSerializer, description="Токен действителен"),
+            200: OpenApiResponse(
+                response=CheckTokenSuccessResponseSerializer,
+                description="Токен действителен",
+            ),
             401: OpenApiResponse(
                 response=CheckTokenErrorResponseSerializer,
                 description="Токен недействителен или отсутствует",
                 examples=[
                     OpenApiExample(
-                        name="Ошибка", value={"error": "Недействительный или отсутствующий токен"}, response_only=True
+                        name="Ошибка",
+                        value={"error": "Недействительный или отсутствующий токен"},
+                        response_only=True,
                     )
                 ],
             ),
         },
     )
-    @action(detail=False, methods=["get"], url_path="fetch_me", permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="fetch_me",
+        permission_classes=[IsAuthenticated],
+    )
     def fetch_me(self, request):
         """Проверяет токен и возвращает текущего пользователя."""
         user = request.user
@@ -546,22 +599,37 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @extend_schema(
         summary="Обновление токенов",
         description="Обновляет access и refresh токены. Возвращает новые токены и обновляет cookies.",
-        tags=[auth["name"]],
+        tags=[AUTH_SETTINGS["name"]],
         request=RefreshRequestSerializer,
         responses={
             200: OpenApiResponse(
                 description="Новые токены выданы",
-                examples=[OpenApiExample(name="OK", value={"access": "str", "refresh": "str"}, response_only=True)],
+                examples=[
+                    OpenApiExample(
+                        name="OK",
+                        value={"access": "str", "refresh": "str"},
+                        response_only=True,
+                    )
+                ],
             ),
             401: OpenApiResponse(
                 description="Невалидный или отозванный токен",
                 examples=[
-                    OpenApiExample(name="Ошибка", value={"error": "Token is invalid or expired"}, response_only=True)
+                    OpenApiExample(
+                        name="Ошибка",
+                        value={"error": "Token is invalid or expired"},
+                        response_only=True,
+                    )
                 ],
             ),
         },
     )
-    @action(detail=False, methods=["post"], url_path="refresh", permission_classes=[AllowAny])
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="refresh",
+        permission_classes=[AllowAny],
+    )
     def refresh(self, request):
         serializer = RefreshRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -579,10 +647,20 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             secure = not settings.DEBUG
 
             response.set_cookie(
-                "access_token", str(access), httponly=True, secure=secure, samesite="Lax", expires=expires
+                "access_token",
+                str(access),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
             )
             response.set_cookie(
-                "refresh_token", str(refresh), httponly=True, secure=secure, samesite="Lax", expires=expires
+                "refresh_token",
+                str(refresh),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
             )
             return response
 

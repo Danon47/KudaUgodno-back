@@ -3,8 +3,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.choices import (
+    ContactPriorityChoices,
+    CurrencyChoices,
+    LanguageChoices,
+    RoleChoices,
+)
+from all_fixture.views_fixture import NULLABLE
 from users.managers import CustomUserManager
 
 
@@ -17,32 +22,48 @@ class User(AbstractUser):
     настройки: предпочитаемая валюта, язык интерфейса, оповещения и канал связи.
     """
 
-    # Отключаем стандартное поле username
     username = None
-
-    # Основные поля пользователя
-    first_name = models.CharField(max_length=100, verbose_name="Имя")
-    last_name = models.CharField(max_length=100, verbose_name="Фамилия")
-    email = models.EmailField(unique=True, verbose_name="Email")
+    first_name = models.CharField(
+        max_length=100,
+        verbose_name="Имя",
+    )
+    last_name = models.CharField(
+        max_length=100,
+        verbose_name="Фамилия",
+    )
+    email = models.EmailField(
+        unique=True,
+        verbose_name="Email",
+    )
     phone_number = PhoneNumberField(
         region="RU",
         verbose_name="Телефон",
         help_text="Телефон в формате: +7 (XXX) XXX-XX-XX",
     )
-    avatar = models.ImageField(upload_to="users/", verbose_name="Аватар", **NULLABLE)
-    birth_date = models.DateField(verbose_name="Дата рождения", **NULLABLE)
-
-    # Расширенные поля для компаний
-    company_name = models.CharField(max_length=150, verbose_name="Название компании", **NULLABLE)
-    documents = models.FileField(upload_to="documents/", verbose_name="Документы", **NULLABLE)
-
+    avatar = models.ImageField(
+        upload_to="users/",
+        verbose_name="Аватар",
+        **NULLABLE,
+    )
+    birth_date = models.DateField(
+        verbose_name="Дата рождения",
+        **NULLABLE,
+    )
+    company_name = models.CharField(
+        max_length=150,
+        verbose_name="Название компании",
+        **NULLABLE,
+    )
+    documents = models.FileField(
+        upload_to="documents/",
+        verbose_name="Документы",
+        **NULLABLE,
+    )
     role = models.CharField(
         choices=RoleChoices.choices,
         default=RoleChoices.USER,
         verbose_name="Роль пользователя",
     )
-
-    # Поля пользовательских настроек
     currency = models.CharField(
         max_length=3,
         choices=CurrencyChoices.choices,
@@ -66,11 +87,8 @@ class User(AbstractUser):
         verbose_name="Приоритетный канал связи",
     )
 
-    # Настройки аутентификации
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
-
-    # Кастомный менеджер
     objects = CustomUserManager()
 
     class Meta:

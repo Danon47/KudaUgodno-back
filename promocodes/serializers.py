@@ -55,10 +55,10 @@ class PromoCodeCheckSerializer(Serializer):
         try:
             promo = Promocode.objects.get(code=promo_code_value)
         except Promocode.DoesNotExist:
-            raise ValidationError("Промокод не найден.")
+            raise ValidationError("Промокод не найден.") from None
 
         if not promo.is_valid():
-            raise ValidationError("Промокод просрочен или неактивен.")
+            raise ValidationError("Промокод просрочен или неактивен.") from None
 
         if tour_id:
             if not promo.tours.filter(id=tour_id).exists():
@@ -72,11 +72,11 @@ class PromoCodeCheckSerializer(Serializer):
 
         elif hotel_id:
             if not promo.hotels.filter(id=hotel_id).exists():
-                raise ValidationError("Промокод не действует на данный отель.")
+                raise ValidationError("Промокод не действует на данный отель.") from None
             # hotel = get_object_or_404(Hotel, id=hotel_id)
             return {
                 "discount_amount": promo.discount_amount,
             }
 
         else:
-            raise ValidationError("Нужно передать tour_id или hotel_id.")
+            raise ValidationError("Нужно передать tour_id или hotel_id.") from None

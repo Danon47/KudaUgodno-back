@@ -5,8 +5,9 @@ from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from all_fixture.errors.mailings import MAILING_400, MAILING_404, MAILING_ID_ERROR
-from all_fixture.fixture_views import MAILING_ID, MAILING_SETTINGS, limit, offset
+from all_fixture.errors.list_error import MAILING_ID_ERROR
+from all_fixture.errors.views_error import MAILING_400, MAILING_404
+from all_fixture.views_fixture import LIMIT, MAILING_ID, MAILING_SETTINGS, OFFSET
 from config.settings import EMAIL_HOST_USER
 from mailings.models import Mailing
 from mailings.serializers import MailingSerializer
@@ -17,10 +18,11 @@ from mailings.serializers import MailingSerializer
     list=extend_schema(
         summary="Список рассылок",
         description="Получение списка всех рассылок",
-        parameters=[limit, offset],
+        parameters=[LIMIT, OFFSET],
         responses={
             200: OpenApiResponse(
-                response=MailingSerializer(many=True), description="Успешное получение списка всех рассылок"
+                response=MailingSerializer(many=True),
+                description="Успешное получение списка всех рассылок",
             )
         },
     ),

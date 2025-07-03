@@ -1,18 +1,22 @@
-from rest_framework import serializers
+from rest_framework.serializers import (
+    CharField,
+    ModelSerializer,
+    SerializerMethodField,
+)
 
 from all_fixture.validators.validators import ForbiddenWordValidator
 from guests.models import Guest
 from guests.validators import DateBornValidator, ValidityOfForeignPassportValidator
 
 
-class GuestDetailSerializer(serializers.ModelSerializer):
+class GuestDetailSerializer(ModelSerializer):
     """
     Сериализатор для модели Guest
     """
 
-    firstname = serializers.CharField(validators=[ForbiddenWordValidator()])
-    lastname = serializers.CharField(validators=[ForbiddenWordValidator()])
-    citizenship = serializers.CharField(validators=[ForbiddenWordValidator()])
+    firstname = CharField(validators=[ForbiddenWordValidator()])
+    lastname = CharField(validators=[ForbiddenWordValidator()])
+    citizenship = CharField(validators=[ForbiddenWordValidator()])
 
     class Meta:
         model = Guest
@@ -40,7 +44,7 @@ class GuestSerializer(GuestDetailSerializer):
     Сериализатор для модели Guest
     """
 
-    user_owner = serializers.SerializerMethodField()
+    user_owner = SerializerMethodField()
 
     class Meta(GuestDetailSerializer.Meta):
         fields = GuestDetailSerializer.Meta.fields

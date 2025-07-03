@@ -1,4 +1,4 @@
-from typing import Dict
+from decimal import Decimal
 
 from rest_framework.serializers import (
     CharField,
@@ -12,7 +12,24 @@ from rest_framework.serializers import (
     SlugRelatedField,
 )
 
-from all_fixture.fixture_views import decimal_ivalid
+from all_fixture.errors.list_error import (
+    DATE_ERROR,
+    DECIMAL_ERROR,
+    DECIMAL_INVALID,
+    FLIGHT_ERROR,
+    FLIGHT_FROM_ERROR,
+    FLIGHT_TO_ERROR,
+    HOTEL_FORMAT_ERROR,
+    HOTEL_ID_ERROR,
+    MIN_ERROR,
+    ROOM_FORMAT_ERROR,
+    ROOM_ID_ERROR,
+    TOUR_MAX_PRICE_ERROR,
+    TOUROPERATOR_ERROR,
+    TOUROPERATOR_FORMAT_ERROR,
+    TYPE_OF_MEAL_ERROR,
+    TYPE_OF_MEAL_FORMAT_ERROR,
+)
 from flights.serializers import FlightSerializer
 from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
@@ -28,13 +45,30 @@ class TourSerializer(ModelSerializer):
     Создание, Обновление.
     """
 
+    start_date = DateField(
+        format="%Y-%m-%d",
+        input_formats=["%Y-%m-%d"],
+        error_messages={"invalid": DATE_ERROR},
+    )
+    end_date = DateField(
+        format="%Y-%m-%d",
+        input_formats=["%Y-%m-%d"],
+        error_messages={"invalid": DATE_ERROR},
+    )
+
     price = DecimalField(
         max_digits=10,
         decimal_places=2,
         coerce_to_string=False,
         required=False,
         help_text="Стоимость тура",
-        error_messages=decimal_ivalid,
+        min_value=Decimal("0.00"),
+        max_value=Decimal("99999999.00"),
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": TOUR_MAX_PRICE_ERROR,
+            "invalid": DECIMAL_ERROR,
+        },
     )
 
     class Meta:
@@ -61,6 +95,51 @@ class TourSerializer(ModelSerializer):
         )
         read_only_fields = ("created_at", "updated_at")
         validators = [StartDateValidator(), EndDateValidator(), PriceValidator()]
+
+        extra_kwargs = {
+            "flight_to": {
+                "error_messages": {
+                    "does_not_exist": FLIGHT_ERROR,
+                    "invalid": FLIGHT_TO_ERROR,
+                }
+            },
+            "flight_from": {
+                "error_messages": {
+                    "does_not_exist": FLIGHT_ERROR,
+                    "invalid": FLIGHT_FROM_ERROR,
+                }
+            },
+            "tour_operator": {
+                "error_messages": {
+                    "does_not_exist": TOUROPERATOR_ERROR,
+                    "invalid": TOUROPERATOR_FORMAT_ERROR,
+                }
+            },
+            "hotel": {
+                "error_messages": {
+                    "does_not_exist": HOTEL_ID_ERROR,
+                    "invalid": HOTEL_FORMAT_ERROR,
+                }
+            },
+            "rooms": {
+                "error_messages": {
+                    "does_not_exist": ROOM_ID_ERROR,
+                    "invalid": ROOM_FORMAT_ERROR,
+                    "null": "Список номеров не может быть пустым.",
+                    "blank": "Список номеров не может быть пустым.",
+                    "not_a_list": "Ожидается список ID номеров.",
+                }
+            },
+            "type_of_meals": {
+                "error_messages": {
+                    "does_not_exist": TYPE_OF_MEAL_ERROR,
+                    "invalid": TYPE_OF_MEAL_FORMAT_ERROR,
+                    "null": "Список типов питания не может быть пустым.",
+                    "blank": "Список типов питания не может быть пустым.",
+                    "not_a_list": "Ожидается список ID типов питания.",
+                }
+            },
+        }
 
 
 class TourPatchSerializer(ModelSerializer):
@@ -109,7 +188,7 @@ class TourPopularSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость минимального популярного тура",
-        error_messages=decimal_ivalid,
+        error_messages=DECIMAL_INVALID,
     )
 
     class Meta:
@@ -144,14 +223,14 @@ class TourShortSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость горящего тура",
-        error_messages=decimal_ivalid,
+        error_messages=DECIMAL_INVALID,
     )
 
     class Meta:
         model = Tour
         fields = ("hotel", "price", "start_date", "end_date", "guests", "tour_operator")
 
-    def get_guests(self, obj) -> Dict[str, int]:
+    def get_guests(self, obj) -> dict[str, int]:
         return {
             "number_of_adults": obj.number_of_adults,
             "number_of_children": obj.number_of_children,

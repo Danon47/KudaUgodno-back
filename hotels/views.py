@@ -2,36 +2,60 @@ from random import choice
 
 from django.db.models import Count, F, OuterRef, Subquery, Window
 from django.db.models.functions import RowNumber
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from all_fixture.fixture_views import (
-    filter_city,
-    filter_place,
-    filter_star_category,
-    filter_type_of_rest,
-    filter_user_rating,
-    hotel_check_in,
-    hotel_check_out,
-    hotel_guests,
-    hotel_id,
-    hotel_id_photo,
-    hotel_photo_settings,
-    hotel_price_gte,
-    hotel_price_lte,
-    hotel_settings,
-    id_hotel,
-    limit,
-    offset,
-    type_of_meal_id,
-    type_of_meal_settings,
-    what_about_settings,
+from all_fixture.errors.list_error import (
+    HOTEL_ID_ERROR,
+    PHOTO_ERROR,
+    TYPE_OF_MEAL_ERROR,
+)
+from all_fixture.errors.serializers_error import (
+    HotelBaseErrorSerializer,
+    HotelErrorIdSerializer,
+    HotelPhotoErrorFileSerializer,
+    RoomDateErrorHotelIdSerializer,
+    TypeOfMealErrorNameSerializer,
+)
+from all_fixture.errors.views_error import (
+    HOTEL_PHOTO_DESTROY_404,
+    HOTEL_UPDATE_404,
+    TYPE_OF_MEAL_DESTROY_404,
+    TYPE_OF_MEAL_RETRIEVE_404,
+    TYPE_OF_MEAL_UPDATE_404,
 )
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    FILTER_CITY,
+    FILTER_PLACE,
+    FILTER_STAR_CATEGORY,
+    FILTER_TYPE_OF_REST,
+    FILTER_USER_RATING,
+    HOTEL_CHECK_IN,
+    HOTEL_CHECK_OUT,
+    HOTEL_GUESTS,
+    HOTEL_ID,
+    HOTEL_ID_PHOTO,
+    HOTEL_PHOTO_SETTINGS,
+    HOTEL_PRICE_GTE,
+    HOTEL_PRICE_LTE,
+    HOTEL_SETTINGS,
+    ID_HOTEL,
+    LIMIT,
+    OFFSET,
+    TYPE_OF_MEAL_ID,
+    TYPE_OF_MEAL_SETTINGS,
+    WHAT_ABOUT_SETTINGS,
+)
 from calendars.models import CalendarPrice
 from hotels.filters import HotelFilter
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
@@ -49,58 +73,122 @@ from hotels.serializers import (
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
 
 
+class HotelRelatedViewSet(viewsets.ModelViewSet):
+    hotel_lookup_field = "hotel_id"
+    error_message = None
+
+    def get_hotel(self):
+        if not hasattr(self, "_hotel"):
+            hotel_id = self.kwargs.get(self.hotel_lookup_field)
+            try:
+                return Hotel.objects.get(id=hotel_id)
+            except Hotel.DoesNotExist:
+                raise NotFound(HOTEL_ID_ERROR) from None
+        return self._hotel
+
+    def get_queryset(self):
+        hotel = self.get_hotel()
+        return self.model.objects.filter(hotel_id=hotel.id)
+
+    def perform_create(self, serializer):
+        hotel = self.get_hotel()
+        serializer.save(hotel=hotel)
+
+    def get_object(self):
+        hotel = self.get_hotel()
+        try:
+            return self.model.objects.select_related("hotel").get(hotel_id=hotel.id, id=self.kwargs["pk"])
+        except self.model.DoesNotExist:
+            raise NotFound(self.error_message) from None
+
+
+@extend_schema(tags=[HOTEL_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список отелей",
         description="Получение списка всех отелей с пагинацией",
-        parameters=[offset, limit],
+        parameters=[OFFSET, LIMIT],
         responses={
-            200: HotelListRoomAndPhotoSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=HotelListRoomAndPhotoSerializer(many=True),
+                description="Успешное получение списка отелей",
+            ),
         },
-        tags=[hotel_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление отеля",
         description="Создание нового отеля",
         request=HotelBaseSerializer,
-        responses={201: HotelBaseSerializer, 400: OpenApiResponse(description="Ошибка валидации")},
-        tags=[hotel_settings["name"]],
+        responses={
+            201: OpenApiResponse(
+                response=HotelBaseSerializer,
+                description="Успешное создание отеля",
+            ),
+            400: OpenApiResponse(
+                response=HotelBaseErrorSerializer,
+                description="Ошибки при создании отеля",
+                examples=[
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Обязательное поле",
+                        value={
+                            "name": ["Обязательное поле."],
+                        },
+                    )
+                ],
+            ),
+        },
     ),
     retrieve=extend_schema(
         summary="Детали отеля",
         description="Получение полной информации об отеле",
-        parameters=[id_hotel],
-        responses={200: HotelListRoomAndPhotoSerializer, 404: OpenApiResponse(description="Отель не найден")},
-        tags=[hotel_settings["name"]],
+        parameters=[ID_HOTEL],
+        responses={
+            200: OpenApiResponse(
+                response=HotelListRoomAndPhotoSerializer,
+                description="Успешное получение отеля",
+            ),
+            404: OpenApiResponse(
+                response=RoomDateErrorHotelIdSerializer,
+                description="Ошибка: отель не найден",
+            ),
+        },
     ),
     update=extend_schema(
         summary="Полное обновление отеля",
         description="Обновление всех полей отеля",
-        parameters=[id_hotel],
+        parameters=[ID_HOTEL],
         request=HotelDetailSerializer,
         responses={
-            200: HotelDetailSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Отель не найден"),
+            200: OpenApiResponse(
+                response=HotelDetailSerializer,
+                description="Успешное обновление отеля",
+            ),
+            400: HOTEL_UPDATE_404,
+            404: OpenApiResponse(
+                response=RoomDateErrorHotelIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[hotel_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление отеля",
         description="Полное удаление отеля",
-        parameters=[id_hotel],
+        parameters=[ID_HOTEL],
         responses={
-            204: OpenApiResponse(description="Отель удален"),
-            404: OpenApiResponse(description="Отель не найден"),
+            204: OpenApiResponse(
+                description="Успешное удаление отеля",
+            ),
+            404: OpenApiResponse(
+                response=RoomDateErrorHotelIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[hotel_settings["name"]],
     ),
 )
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     pagination_class = CustomLOPagination
-    http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]  # Исключаем 'patch'
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -110,28 +198,37 @@ class HotelViewSet(viewsets.ModelViewSet):
         else:
             return HotelDetailSerializer
 
+    def get_object(self):
+        try:
+            return self.queryset.get(id=self.kwargs["pk"])
+        except Hotel.DoesNotExist:
+            raise NotFound(HOTEL_ID_ERROR) from None
+
 
 @extend_schema_view(
     filters=extend_schema(
         summary="Фильтрация отелей",
         description="Расширенная фильтрация отелей",
         parameters=[
-            limit,
-            offset,
-            hotel_check_in,
-            hotel_check_out,
-            hotel_guests,
-            filter_city,
-            filter_type_of_rest,
-            filter_place,
-            hotel_price_gte,
-            hotel_price_lte,
-            filter_user_rating,
-            filter_star_category,
+            LIMIT,
+            OFFSET,
+            HOTEL_CHECK_IN,
+            HOTEL_CHECK_OUT,
+            HOTEL_GUESTS,
+            FILTER_CITY,
+            FILTER_TYPE_OF_REST,
+            FILTER_PLACE,
+            HOTEL_PRICE_GTE,
+            HOTEL_PRICE_LTE,
+            FILTER_USER_RATING,
+            FILTER_STAR_CATEGORY,
         ],
-        tags=[hotel_settings["name"]],
+        tags=[HOTEL_SETTINGS["name"]],
         responses={
-            200: HotelFiltersResponseSerializer(many=True),
+            200: OpenApiResponse(
+                response=HotelFiltersResponseSerializer(many=True),
+                description="Успешно отфильтрованные отели",
+            ),
             400: OpenApiResponse(description="Ошибка валидации"),
         },
     ),
@@ -164,7 +261,10 @@ class HotelFiltersView(viewsets.ModelViewSet):
         """Получение данных по фильтрам."""
         request_serializer = HotelFiltersRequestSerializer(data=request.query_params)
         if not request_serializer.is_valid():
-            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"errors": request_serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return self.list(request)
 
 
@@ -172,8 +272,8 @@ class HotelFiltersView(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список акционных отелей",
         description="Получение списка всех акционных отелей",
-        parameters=[limit, offset],
-        tags=[hotel_settings["name"]],
+        parameters=[LIMIT, OFFSET],
+        tags=[HOTEL_SETTINGS["name"]],
         responses={
             200: HotelShortWithPriceSerializer(many=True),
         },
@@ -190,7 +290,9 @@ class HotelsHotView(viewsets.ModelViewSet):
         """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
         min_price_subquery = (
             CalendarPrice.objects.filter(
-                calendar_date__discount=True, calendar_date__available_for_booking=True, room__hotel=OuterRef("pk")
+                calendar_date__discount=True,
+                calendar_date__available_for_booking=True,
+                room__hotel=OuterRef("pk"),
             )
             .order_by("price")
             .values("price")[:1]
@@ -202,7 +304,9 @@ class HotelsHotView(viewsets.ModelViewSet):
             .exclude(min_price=None)
             .annotate(
                 grouped_countries=Window(
-                    expression=RowNumber(), partition_by=[F("country")], order_by=F("min_price").asc()
+                    expression=RowNumber(),
+                    partition_by=[F("country")],
+                    order_by=F("min_price").asc(),
                 )
             )
             .filter(grouped_countries=1)
@@ -216,8 +320,8 @@ class HotelsHotView(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список популярных отелей",
         description="Получение списка шести популярных отелей",
-        parameters=[limit, offset],
-        tags=[hotel_settings["name"]],
+        parameters=[LIMIT, OFFSET],
+        tags=[HOTEL_SETTINGS["name"]],
         responses={
             200: HotelPopularSerializer(many=True),
         },
@@ -245,11 +349,16 @@ class HotelsPopularView(viewsets.ModelViewSet):
         )
         queryset = (
             Hotel.objects.filter(is_active=True)
-            .annotate(hotels_count=Subquery(country_hotel_count), min_price=Subquery(min_price_subquery))
+            .annotate(
+                hotels_count=Subquery(country_hotel_count),
+                min_price=Subquery(min_price_subquery),
+            )
             .exclude(min_price=None)
             .annotate(
                 grouped_countries=Window(
-                    expression=RowNumber(), partition_by=[F("country")], order_by=F("min_price").asc()
+                    expression=RowNumber(),
+                    partition_by=[F("country")],
+                    order_by=F("min_price").asc(),
                 )
             )
             .filter(grouped_countries=1)
@@ -259,124 +368,147 @@ class HotelsPopularView(viewsets.ModelViewSet):
         return queryset
 
 
+@extend_schema(tags=[HOTEL_PHOTO_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список типов фотографий отеля",
         description="Получение списка всех фотографий отеля",
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         responses={
-            200: HotelPhotoSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=HotelPhotoSerializer(many=True),
+                description="Успешное получение всех фотографий отеля",
+            ),
+            404: OpenApiResponse(
+                response=HotelErrorIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[hotel_photo_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление фотографий отеля",
         description="Создание новых фотографий отеля",
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         request={
             "multipart/form-data": HotelPhotoSerializer,
         },
         responses={
-            201: HotelPhotoSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            201: OpenApiResponse(
+                response=HotelPhotoSerializer,
+                description="Успешное создание фотографии в отеле",
+            ),
+            400: OpenApiResponse(
+                response=HotelPhotoErrorFileSerializer,
+                description="Ошибка: Загрузки фотографии в отеле",
+            ),
+            404: OpenApiResponse(
+                response=HotelErrorIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[hotel_photo_settings["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление фотографий отеля",
         description="Полное удаление фотографий отеля",
-        parameters=[hotel_id, hotel_id_photo],
+        parameters=[HOTEL_ID, HOTEL_ID_PHOTO],
         responses={
-            204: OpenApiResponse(description="Тип питания в отеле удален"),
-            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+            204: OpenApiResponse(
+                description="Фотография в отеле удалена",
+            ),
+            404: HOTEL_PHOTO_DESTROY_404,
         },
-        tags=[hotel_photo_settings["name"]],
     ),
 )
-class HotelPhotoViewSet(viewsets.ModelViewSet):
+class HotelPhotoViewSet(HotelRelatedViewSet):
+    model = HotelPhoto
     queryset = HotelPhoto.objects.none()
     serializer_class = HotelPhotoSerializer
-    http_method_names = ["get", "post", "delete", "head", "options", "trace"]  # исключаем обновления
-
-    def get_queryset(self):
-        hotel_id = self.kwargs["hotel_id"]
-        return HotelPhoto.objects.filter(hotel_id=hotel_id)
-
-    def perform_create(self, serializer):
-        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
-        serializer.save(hotel=hotel)
+    error_message = PHOTO_ERROR
 
 
+@extend_schema(tags=[TYPE_OF_MEAL_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список типов питания в определённом отеле",
         description="Получение списка всех типов питания в определённом отеле",
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         responses={
-            200: TypeOfMealSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=TypeOfMealSerializer(many=True),
+                description="Успешное получение типов питания в отеле",
+            ),
+            404: OpenApiResponse(
+                response=HotelErrorIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[type_of_meal_settings["name"]],
     ),
     create=extend_schema(
         summary="Добавление типа питания в определённый отель",
         description="Создание нового типа питания в определённом отеле",
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         request={
             "multipart/form-data": TypeOfMealSerializer,
         },
         responses={
-            201: TypeOfMealSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            201: OpenApiResponse(
+                response=TypeOfMealSerializer,
+                description="Успешное создание типа питания в отеле",
+            ),
+            400: OpenApiResponse(
+                response=TypeOfMealErrorNameSerializer,
+                description="Ошибка: Создания типа питания в отеле",
+            ),
+            404: OpenApiResponse(
+                response=HotelErrorIdSerializer,
+                description="Ошибка: Отель не найден",
+            ),
         },
-        tags=[type_of_meal_settings["name"]],
     ),
     retrieve=extend_schema(
         summary="Получение типа питания в определённом отеле",
         description="Получение типа питания в определённом отеле",
-        parameters=[hotel_id, type_of_meal_id],
+        parameters=[HOTEL_ID, TYPE_OF_MEAL_ID],
         responses={
-            200: TypeOfMealSerializer,
-            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+            200: OpenApiResponse(
+                response=TypeOfMealSerializer,
+                description="Успешное получение типа питания в отеле",
+            ),
+            404: TYPE_OF_MEAL_RETRIEVE_404,
         },
-        tags=[type_of_meal_settings["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление типа питания в определённом отеле",
         description="Обновление всех полей типа питания в определённом отеле",
-        request=TypeOfMealSerializer,
-        parameters=[hotel_id, type_of_meal_id],
-        responses={
-            200: TypeOfMealSerializer,
-            400: OpenApiResponse(description="Ошибка запроса"),
-            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+        request={
+            "multipart/form-data": TypeOfMealSerializer,
         },
-        tags=[type_of_meal_settings["name"]],
+        parameters=[HOTEL_ID, TYPE_OF_MEAL_ID],
+        responses={
+            200: OpenApiResponse(
+                response=TypeOfMealSerializer,
+                description="Успешное обновление типа питания в отеле",
+            ),
+            404: TYPE_OF_MEAL_UPDATE_404,
+        },
     ),
     destroy=extend_schema(
         summary="Удаление типа питания в определённом отеле",
         description="Полное удаление типа питания в определённом отеле",
-        parameters=[hotel_id, type_of_meal_id],
+        parameters=[HOTEL_ID, TYPE_OF_MEAL_ID],
         responses={
-            204: OpenApiResponse(description="Тип питания в отеле удален"),
-            404: OpenApiResponse(description="Тип питания в отеле не найден"),
+            204: OpenApiResponse(
+                description="Тип питания в отеле удален",
+            ),
+            404: TYPE_OF_MEAL_DESTROY_404,
         },
-        tags=[type_of_meal_settings["name"]],
     ),
 )
-class TypeOfMealViewSet(viewsets.ModelViewSet):
+class TypeOfMealViewSet(HotelRelatedViewSet):
+    model = TypeOfMeal
     queryset = TypeOfMeal.objects.none()
     serializer_class = TypeOfMealSerializer
-    http_method_names = ["get", "post", "delete", "put", "head", "options", "trace"]  # исключаем обновления
-
-    def get_queryset(self):
-        hotel_id = self.kwargs["hotel_id"]
-        return TypeOfMeal.objects.filter(hotel_id=hotel_id)
-
-    def perform_create(self, serializer):
-        hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])
-        serializer.save(hotel=hotel)
+    error_message = TYPE_OF_MEAL_ERROR
 
 
 @extend_schema_view(
@@ -384,10 +516,12 @@ class TypeOfMealViewSet(viewsets.ModelViewSet):
         summary="Список подборок что насчёт ...",
         description="Получение списка подборок что насчёт ...",
         responses={
-            200: HotelWhatAboutFullSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=HotelWhatAboutFullSerializer(many=True),
+                description="Успешное получение списка подборок",
+            ),
         },
-        tags=[what_about_settings["name"]],
+        tags=[WHAT_ABOUT_SETTINGS["name"]],
     )
 )
 class HotelWarpUpViewSet(viewsets.ModelViewSet):

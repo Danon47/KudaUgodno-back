@@ -10,14 +10,17 @@ class TourAdminForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             "hotel": autocomplete.ModelSelect2(
-                url="tours:hotel_autocomplete",
+                url="tours:tour_autocomplete_hotels",
+                attrs={"style": "width: 100%"},
             ),
-            "room": autocomplete.ModelSelect2Multiple(
-                url="tours:room_autocomplete",
-                forward=["hotel"],  # Передаем поле hotel для фильтрации
+            "rooms": autocomplete.ModelSelect2Multiple(
+                url="tours:tour_autocomplete_rooms",
+                forward=["hotel", "rooms"],
+                attrs={"style": "width: 100%"},
             ),
             "type_of_meals": autocomplete.ModelSelect2Multiple(
-                url="tours:type_of_meal_autocomplete",
-                forward=["hotel"],  # Передаем поле hotel для фильтрации
+                url="tours:tour_autocomplete_type_of_meals",
+                forward=["hotel", "type_of_meals"],
+                attrs={"style": "width: 100%"},
             ),
         }

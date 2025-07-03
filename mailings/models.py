@@ -5,6 +5,7 @@ class Mailing(models.Model):
     email = models.EmailField(
         unique=True,
         verbose_name="Email для рассылки.",
+        help_text="Email туриста, на который будет отправляться рассылка.",
     )
     mailing = models.BooleanField(
         default=False,

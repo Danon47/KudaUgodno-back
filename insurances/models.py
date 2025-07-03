@@ -1,12 +1,16 @@
 from django.db import models
 
 from all_fixture.choices import MedicalInsuranceChoices, NotLeavingInsuranceChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 
 
 class Insurances(models.Model):
     id = models.OneToOneField(
-        "users.User", on_delete=models.CASCADE, primary_key=True, related_name="insurance", verbose_name="Пользователь"
+        "users.User",
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="insurance",
+        verbose_name="Пользователь",
     )
     medical = models.CharField(
         choices=MedicalInsuranceChoices.choices,

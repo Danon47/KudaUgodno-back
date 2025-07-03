@@ -1,10 +1,6 @@
 from django.urls import path
 
-from applications.apps import ApplicationsConfig
 from applications.views import ApplicationHotelViewSet, ApplicationTourViewSet
-
-
-app_name = ApplicationsConfig.name
 
 urlpatterns = [
     # Добавление и просмотр всех заявок на тур

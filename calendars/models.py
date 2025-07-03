@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.fixture_views import DISCOUNT, NULLABLE
+from all_fixture.views_fixture import DISCOUNT, NULLABLE
 
 
 class CalendarDate(models.Model):
@@ -20,10 +20,12 @@ class CalendarDate(models.Model):
         **NULLABLE,
     )
     start_date = models.DateField(
-        verbose_name="Начало периода стоимости категорий номеров", help_text="Введите дату в формате YYYY-MM-DD"
+        verbose_name="Начало периода стоимости категорий номеров",
+        help_text="Введите дату в формате YYYY-MM-DD",
     )
     end_date = models.DateField(
-        verbose_name="Конец периода стоимости категорий номеров", help_text="Введите дату в формате YYYY-MM-DD"
+        verbose_name="Конец периода стоимости категорий номеров",
+        help_text="Введите дату в формате YYYY-MM-DD",
     )
     available_for_booking = models.BooleanField(
         verbose_name="Доступна для бронирования",
@@ -32,7 +34,12 @@ class CalendarDate(models.Model):
     )
     discount = models.BooleanField(verbose_name="Акция", help_text="Применяется ли скидка на период", default=False)
     discount_amount = models.DecimalField(
-        verbose_name="Размер скидки", help_text=DISCOUNT, max_digits=8, decimal_places=2, **NULLABLE, default=None
+        verbose_name="Размер скидки",
+        help_text=DISCOUNT,
+        max_digits=8,
+        decimal_places=2,
+        **NULLABLE,
+        default=None,
     )
 
     class Meta:
@@ -68,7 +75,10 @@ class CalendarPrice(models.Model):
         help_text="Введите стоимость категории номеров в сутки",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("9999999.99"))],
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("9999999.99")),
+        ],
         **NULLABLE,
     )
 

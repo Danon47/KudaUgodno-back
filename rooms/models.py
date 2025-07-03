@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from all_fixture.choices import RoomCategoryChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 
 
 class RoomRules(models.Model):

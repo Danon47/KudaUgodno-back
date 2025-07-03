@@ -1,27 +1,34 @@
 import logging
 
 from django.db import transaction
-from rest_framework import serializers
+from rest_framework.serializers import DecimalField, ModelSerializer, ValidationError
 
 from calendars.models import CalendarDate, CalendarPrice
-
 
 logger = logging.getLogger(__name__)
 
 
-class CalendarPriceSerializer(serializers.ModelSerializer):
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+class CalendarPriceSerializer(ModelSerializer):
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+    )
 
     class Meta:
         model = CalendarPrice
         fields = ("room", "price")
 
 
-class CalendarDateSerializer(serializers.ModelSerializer):
+class CalendarDateSerializer(ModelSerializer):
     calendar_prices = CalendarPriceSerializer(
         many=True,
     )
-    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    discount_amount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+    )
 
     class Meta:
         model = CalendarDate
@@ -53,7 +60,7 @@ class CalendarDateSerializer(serializers.ModelSerializer):
                 CalendarPrice.objects.bulk_create(calendar_prices_to_create)
         except Exception as e:
             logger.error(f"Ошибка при создании CalendarDate: {e}")
-            raise serializers.ValidationError("Ошибка при создании объекта")
+            raise ValidationError("Ошибка при создании объекта") from None
 
         return calendar_date
 
@@ -85,10 +92,10 @@ class CalendarDateSerializer(serializers.ModelSerializer):
                 CalendarPrice.objects.bulk_create(calendar_prices_to_create)
         except Exception as e:
             logger.error(f"Ошибка при обновлении CalendarDate: {e}")
-            raise serializers.ValidationError("Ошибка при обновлении объекта")
+            raise ValidationError("Ошибка при обновлении объекта") from None
         return instance
 
     def validate(self, data):
         if data["start_date"] > data["end_date"]:
-            raise serializers.ValidationError("Дата окончания должна быть позже даты начала")
+            raise ValidationError("Дата окончания должна быть позже даты начала") from None
         return data

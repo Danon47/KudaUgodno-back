@@ -2,8 +2,15 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import CALENDAR_ID, CALENDAR_SETTINGS, DISCOUNT, hotel_id, limit, offset
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    CALENDAR_ID,
+    CALENDAR_SETTINGS,
+    DISCOUNT,
+    HOTEL_ID,
+    LIMIT,
+    OFFSET,
+)
 from calendars.models import CalendarDate
 from calendars.serializers import CalendarDateSerializer
 from hotels.models import Hotel
@@ -13,7 +20,7 @@ from hotels.models import Hotel
     list=extend_schema(
         summary="Календарь стоимости номеров в определённом отеле",
         description="`hotel_id` - обязательное поле, необходимо чтобы отдать список календаря у определённого отеля",
-        parameters=[hotel_id, limit, offset],
+        parameters=[HOTEL_ID, LIMIT, OFFSET],
         responses={
             200: OpenApiResponse(
                 CalendarDateSerializer(many=True),
@@ -30,7 +37,7 @@ from hotels.models import Hotel
             f"`discount_amount` - {DISCOUNT}"
         ),
         request=CalendarDateSerializer,
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         responses={
             201: OpenApiResponse(
                 CalendarDateSerializer,
@@ -42,7 +49,7 @@ from hotels.models import Hotel
     retrieve=extend_schema(
         summary="Детали каленжаря стоимости номеров в определённом отеле",
         description="Получение информации о календаре стоимости номеров в определённом отеле",
-        parameters=[hotel_id, CALENDAR_ID],
+        parameters=[HOTEL_ID, CALENDAR_ID],
         responses={
             200: OpenApiResponse(
                 CalendarDateSerializer,
@@ -56,7 +63,7 @@ from hotels.models import Hotel
         summary="Полное обновление календаря стоимости номеров в определённом отеле",
         description="Обновление всех полей календаря стоимости номеров в определённом отеле",
         request=CalendarDateSerializer,
-        parameters=[hotel_id, CALENDAR_ID],
+        parameters=[HOTEL_ID, CALENDAR_ID],
         responses={
             200: OpenApiResponse(
                 CalendarDateSerializer,
@@ -68,7 +75,7 @@ from hotels.models import Hotel
     destroy=extend_schema(
         summary="Удаление календаря стоимости номеров в определённом отеле",
         description="Полное удаление календаря стоимости номеров в определённом отеле",
-        parameters=[hotel_id, CALENDAR_ID],
+        parameters=[HOTEL_ID, CALENDAR_ID],
         responses={
             204: OpenApiResponse(description="Календарь удален"),
         },

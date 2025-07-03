@@ -9,13 +9,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from all_fixture.fixture_views import vzhuh_settings
+from all_fixture.views_fixture import VZHUH_SETTINGS
 from hotels.models import Hotel
 from tours.models import Tour
 from vzhuhs.filters import VzhuhFilter
 from vzhuhs.models import Vzhuh
 from vzhuhs.serializers import VzhuhSerializer
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,21 +22,14 @@ logger = logging.getLogger(__name__)
 @extend_schema_view(
     list=extend_schema(
         summary="Список Вжухов",
-        tags=[vzhuh_settings["name"]],
+        tags=[VZHUH_SETTINGS["name"]],
         parameters=[
             OpenApiParameter(
                 name="departure_city",
                 type=str,
                 location=OpenApiParameter.QUERY,
                 description="Фильтр по городу вылета",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="id",
-                type=int,
-                location=OpenApiParameter.QUERY,
-                description="Фильтр по ID Вжуха",
-                required=False,
+                required=True,
             ),
         ],
     ),
@@ -45,15 +37,9 @@ logger = logging.getLogger(__name__)
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
     """
-    Представление только для чтения (ReadOnly) опубликованных объектов модели Vzhuh.
+    - Возвращает только записи с `is_published=True`.
 
-    - Использует сериализатор `VzhuhSerializer`
-
-    - Возвращает только записи с `is_published=True`
-
-    - Эндпоинт отображается в Swagger как "Список Вжухов"
-
-    - Добавлена фильтрация по `departure_city` - городу отправления
+    - Добавлена фильтрация по `departure_city` - городу отправления, поле обязательное.
     """
 
     queryset = Vzhuh.objects.none()
@@ -92,12 +78,12 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             # fmt: on
 
         # Создаем список доступных ID
-        remaining = [id for id in all_ids if id not in seen]
+        remaining = [item_id for item_id in all_ids if item_id not in seen]
 
         if not remaining:
             # При сбросе цикла исключаем последний показанный
             last_seen = seen[-1] if seen else None
-            pool = [id for id in all_ids if id != last_seen]
+            pool = [item_id for item_id in all_ids if item_id != last_seen]
             if not pool:  # На случай, если всего 1 объект
                 pool = list(all_ids)
             chosen_id = random.choice(pool)
@@ -108,7 +94,7 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
                 if seen[-1] == seen[-2]:
                     # Если последняя сущность такая же, как предыдущая, выбираем другую
                     seen.pop()
-                    chosen_id = next(id for id in all_ids if id != seen[-1])
+                    chosen_id = next(item_id for item_id in all_ids if item_id != seen[-1])
                     seen.append(chosen_id)
                 else:
                     chosen_id = remaining[random.randint(0, len(remaining) - 1)]

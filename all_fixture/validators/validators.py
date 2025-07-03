@@ -1,5 +1,5 @@
-import os
 from datetime import datetime
+from pathlib import Path
 
 from rest_framework.exceptions import ValidationError
 
@@ -16,13 +16,13 @@ class ForbiddenWordValidator:
         """
         Загружает запрещенные слова из файла forbidden_words.txt.
         """
-        base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "forbidden_words.txt")
+        base_dir = Path(__file__).parent
+        file_path = base_dir / "forbidden_words.txt"
         try:
-            with open(file_path, "r", encoding="utf-8") as file:
+            with open(file_path, encoding="utf-8") as file:
                 return [word.strip() for word in file.read().splitlines()]
         except FileNotFoundError:
-            raise FileNotFoundError("Файл forbidden_words.txt не был найден.")
+            raise FileNotFoundError("Файл forbidden_words.txt не был найден.") from None
 
     def __call__(self, value):
         """
