@@ -19,7 +19,7 @@ class StartDateValidator:
                 if isinstance(start_date, date):
                     date_start_date = start_date
                 else:
-                    raise serializers.ValidationError("Некорректный формат даты. Используйте YYYY-MM-DD")
+                    raise serializers.ValidationError("Некорректный формат даты. Используйте YYYY-MM-DD") from None
         else:
             date_start_date = value
 

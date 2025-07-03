@@ -11,7 +11,6 @@ from hotels.views import (
     TypeOfMealViewSet,
 )
 
-
 app_name = HotelsConfig.name
 
 

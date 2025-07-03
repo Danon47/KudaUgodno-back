@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db import models
 
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from hotels.models import Hotel
 from tours.models import Tour
 

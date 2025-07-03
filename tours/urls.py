@@ -13,7 +13,6 @@ from tours.views import (
     TypeOfMealAutocomplete,
 )
 
-
 app_name = ToursConfig.name
 
 router = DefaultRouter()

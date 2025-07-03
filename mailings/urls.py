@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from mailings.views import MailingViewSet
 
-
 app_name = "mailings"
 
 router = DefaultRouter()

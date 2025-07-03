@@ -1,13 +1,8 @@
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse
-from rest_framework.serializers import CharField, Serializer
 
+from all_fixture.errors.list_error import MAILING_EMAIL_ERROR, MAILING_ID_ERROR
+from all_fixture.errors.serializers_error import MailingErrorSerializer
 
-class MailingErrorSerializer(Serializer):
-    detail = CharField()
-
-
-MAILING_ID_ERROR = "Рассылка не найдена, введён неверный ID рассылки."
-MAILING_EMAIL_ERROR = "Этот email уже зарегистрирован."
 MAILING_400 = OpenApiResponse(
     response=MailingErrorSerializer,
     description="Ошибка валидации",

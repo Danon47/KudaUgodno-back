@@ -1,9 +1,9 @@
 import logging
-from typing import Any, Dict, Type
+from typing import Any
 
 from django.db import IntegrityError, transaction
-from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import CharField, DecimalField, ModelSerializer
 
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import (
@@ -18,13 +18,12 @@ from hotels.serializers import HotelListWithPhotoSerializer
 from rooms.serializers import RoomDetailSerializer
 from tours.serializers import TourListSerializer
 
-
 logger = logging.getLogger(__name__)
 
 
-class ApplicationVisaSerializer(serializers.ModelSerializer):
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+class ApplicationVisaSerializer(ModelSerializer):
+    price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    total_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = ApplicationVisa
@@ -35,9 +34,9 @@ class ApplicationVisaSerializer(serializers.ModelSerializer):
         )
 
 
-class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+class ApplicationMedicalInsuranceSerializer(ModelSerializer):
+    price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    total_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = ApplicationMedicalInsurance
@@ -48,8 +47,8 @@ class ApplicationMedicalInsuranceSerializer(serializers.ModelSerializer):
         )
 
 
-class ApplicationCancellationInsuranceSerializer(serializers.ModelSerializer):
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+class ApplicationCancellationInsuranceSerializer(ModelSerializer):
+    total_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = ApplicationCancellationInsurance
@@ -65,7 +64,7 @@ class RelatedObjectsMixin:
         "cancellation_insurance": ApplicationCancellationInsurance,
     }
 
-    def _create_related_objects(self, validated_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_related_objects(self, validated_data: dict[str, Any]) -> dict[str, Any]:
         """Создание связанных объектов и возврат словаря с созданными объектами"""
         related_objects = {}
         for field_name, model_class in self.RELATED_FIELDS_MAP.items():
@@ -75,11 +74,15 @@ class RelatedObjectsMixin:
                     related_objects[field_name] = model_class.objects.create(**data)
                 except Exception as e:
                     logger.error(f"Ошибка создания {field_name}: {str(e)}")
-                    raise ValidationError({field_name: f"Ошибка создания {field_name}"})
+                    raise ValidationError({field_name: f"Ошибка создания {field_name}"}) from None
         return related_objects
 
     def _update_related_object(
-        self, instance: Any, validated_data: Dict[str, Any], field_name: str, model_class: Type
+        self,
+        instance: Any,
+        validated_data: dict[str, Any],
+        field_name: str,
+        model_class: type,
     ) -> None:
         """Универсальный метод для обновления связанных объектов"""
         field_data = validated_data.pop(field_name, None)
@@ -97,25 +100,25 @@ class RelatedObjectsMixin:
                     setattr(instance, field_name, new_obj)
             except Exception as e:
                 logger.error(f"Ошибка обновления {field_name}: {str(e)}")
-                raise ValidationError({field_name: f"Ошибка обновления {field_name}"})
+                raise ValidationError({field_name: f"Ошибка обновления {field_name}"}) from None
 
-    def _update_all_related_objects(self, instance: Any, validated_data: Dict[str, Any]) -> None:
+    def _update_all_related_objects(self, instance: Any, validated_data: dict[str, Any]) -> None:
         """Обновление всех связанных объектов"""
         for field_name, model_class in self.RELATED_FIELDS_MAP.items():
             self._update_related_object(instance, validated_data, field_name, model_class)
 
 
-class ApplicationBaseSerializer(RelatedObjectsMixin, serializers.ModelSerializer):
+class ApplicationBaseSerializer(RelatedObjectsMixin, ModelSerializer):
     """
     Базовая сериализация для заявок.
     Содержит общую логику для работы со связанными объектами.
     """
 
-    wishes = serializers.CharField(validators=[ForbiddenWordValidator()], required=False, allow_blank=True)
+    wishes = CharField(validators=[ForbiddenWordValidator()], required=False, allow_blank=True)
     visa = ApplicationVisaSerializer(required=False)
     med_insurance = ApplicationMedicalInsuranceSerializer(required=False)
     cancellation_insurance = ApplicationCancellationInsuranceSerializer(required=False)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         fields = (
@@ -149,7 +152,7 @@ class ApplicationBaseSerializer(RelatedObjectsMixin, serializers.ModelSerializer
             raise ValidationError("Номер телефона обязателен для заполнения")
         return value.strip()
 
-    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Кастомная валидация данных"""
         # Проверка визы
         visa_data = data.get("visa")
@@ -164,7 +167,7 @@ class ApplicationBaseSerializer(RelatedObjectsMixin, serializers.ModelSerializer
         return data
 
     @transaction.atomic
-    def create(self, validated_data: Dict[str, Any]) -> Any:
+    def create(self, validated_data: dict[str, Any]) -> Any:
         """
         Создание заявки с связанными объектами.
 
@@ -197,13 +200,13 @@ class ApplicationBaseSerializer(RelatedObjectsMixin, serializers.ModelSerializer
             raise
         except IntegrityError as e:
             logger.error(f"Ошибка целостности данных при создании заявки: {str(e)}")
-            raise ValidationError({"detail": "Конфликт данных при создании заявки"})
+            raise ValidationError({"detail": "Конфликт данных при создании заявки"}) from None
         except Exception as e:
             logger.error(f"Неожиданная ошибка при создании заявки: {str(e)}")
-            raise ValidationError({"detail": "Произошла неожиданная ошибка при создании заявки"})
+            raise ValidationError({"detail": "Произошла неожиданная ошибка при создании заявки"}) from None
 
     @transaction.atomic
-    def update(self, instance: Any, validated_data: Dict[str, Any]) -> Any:
+    def update(self, instance: Any, validated_data: dict[str, Any]) -> Any:
         """
         Обновление заявки с связанными объектами.
 
@@ -238,10 +241,10 @@ class ApplicationBaseSerializer(RelatedObjectsMixin, serializers.ModelSerializer
             raise
         except IntegrityError as e:
             logger.error(f"Ошибка целостности данных при обновлении заявки {instance.id}: {str(e)}")
-            raise ValidationError({"detail": "Конфликт данных при обновлении заявки"})
+            raise ValidationError({"detail": "Конфликт данных при обновлении заявки"}) from None
         except Exception as e:
             logger.error(f"Неожиданная ошибка при обновлении заявки {instance.id}: {str(e)}")
-            raise ValidationError({"detail": "Произошла неожиданная ошибка при обновлении заявки"})
+            raise ValidationError({"detail": "Произошла неожиданная ошибка при обновлении заявки"}) from None
 
 
 class ApplicationTourSerializer(ApplicationBaseSerializer):
@@ -264,7 +267,7 @@ class ApplicationTourSerializer(ApplicationBaseSerializer):
             raise ValidationError("Тур обязателен для заполнения")
         return value
 
-    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Расширенная валидация для заявок на туры"""
         data = super().validate(data)
 
@@ -314,7 +317,11 @@ class ApplicationHotelSerializer(ApplicationBaseSerializer):
 
     class Meta(ApplicationBaseSerializer.Meta):
         model = ApplicationHotel
-        fields = ApplicationBaseSerializer.Meta.fields + ("hotel", "room", "quantity_guests")
+        fields = ApplicationBaseSerializer.Meta.fields + (
+            "hotel",
+            "room",
+            "quantity_guests",
+        )
         extra_kwargs = {
             **ApplicationBaseSerializer.Meta.extra_kwargs,
             "hotel": {"required": True},
@@ -333,7 +340,7 @@ class ApplicationHotelSerializer(ApplicationBaseSerializer):
             raise ValidationError("Номер обязателен для заполнения")
         return value
 
-    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Расширенная валидация для заявок на отели"""
         data = super().validate(data)
 
@@ -366,7 +373,11 @@ class ApplicationHotelListSerializer(ApplicationBaseSerializer):
 
     class Meta(ApplicationBaseSerializer.Meta):
         model = ApplicationHotel
-        fields = ApplicationBaseSerializer.Meta.fields + ("hotel", "room", "quantity_guests")
+        fields = ApplicationBaseSerializer.Meta.fields + (
+            "hotel",
+            "room",
+            "quantity_guests",
+        )
         read_only_fields = ("status", "id")
 
     @classmethod

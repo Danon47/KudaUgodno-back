@@ -2,7 +2,6 @@ from django.urls import path
 
 from guests.views import GuestViewSet
 
-
 urlpatterns = [
     path(
         "<int:user_id>/guests/",

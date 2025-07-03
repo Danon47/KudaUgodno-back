@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
-from all_fixture.fixture_views import application_guest_id, application_guest_settings
+from all_fixture.views_fixture import GUEST_ID, GUEST_SETTINGS
 from guests.models import Guest
 from guests.serializers import GuestDetailSerializer, GuestSerializer
 
@@ -12,7 +12,7 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
     list=extend_schema(
         summary="Список гостей",
         description="Получение списка всех гостей. Доступен только авторизованным пользователям.",
-        tags=[application_guest_settings["name"]],
+        tags=[GUEST_SETTINGS["name"]],
         responses={
             200: GuestSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -23,7 +23,7 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
         summary="Добавление Гостя",
         description="Создание нового Гостя. Доступно только авторизованным пользователям.",
         request=GuestDetailSerializer,
-        tags=[application_guest_settings["name"]],
+        tags=[GUEST_SETTINGS["name"]],
         responses={
             201: GuestSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -33,8 +33,8 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
     retrieve=extend_schema(
         summary="Информация о Госте",
         description="Получение информации о Госте через идентификатор. Доступно только авторизованным пользователям.",
-        tags=[application_guest_settings["name"]],
-        parameters=[application_guest_id],
+        tags=[GUEST_SETTINGS["name"]],
+        parameters=[GUEST_ID],
         responses={
             200: GuestSerializer,
             404: OpenApiResponse(description="Гость не найден"),
@@ -45,8 +45,8 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
         summary="Полное обновление Гостя",
         description="Обновление всех полей Гостя. Доступно только авторизованным пользователям.",
         request=GuestDetailSerializer,
-        tags=[application_guest_settings["name"]],
-        parameters=[application_guest_id],
+        tags=[GUEST_SETTINGS["name"]],
+        parameters=[GUEST_ID],
         responses={
             200: GuestSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -57,8 +57,8 @@ from guests.serializers import GuestDetailSerializer, GuestSerializer
     destroy=extend_schema(
         summary="Удаление Гостя",
         description="Полное удаление Гостя. Доступно только авторизованным пользователям.",
-        tags=[application_guest_settings["name"]],
-        parameters=[application_guest_id],
+        tags=[GUEST_SETTINGS["name"]],
+        parameters=[GUEST_ID],
         responses={
             204: OpenApiResponse(description="Гость удален"),
             404: OpenApiResponse(description="Гость не найден"),
@@ -91,7 +91,7 @@ class GuestViewSet(viewsets.ModelViewSet):
         try:
             return Guest.objects.get(pk=self.kwargs["pk"], user_owner_id=self.kwargs["user_id"])
         except Guest.DoesNotExist:
-            raise NotFound("Гость не найден")
+            raise NotFound("Гость не найден") from None
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

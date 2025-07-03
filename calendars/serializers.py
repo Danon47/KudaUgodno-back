@@ -5,7 +5,6 @@ from rest_framework import serializers
 
 from calendars.models import CalendarDate, CalendarPrice
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +52,7 @@ class CalendarDateSerializer(serializers.ModelSerializer):
                 CalendarPrice.objects.bulk_create(calendar_prices_to_create)
         except Exception as e:
             logger.error(f"Ошибка при создании CalendarDate: {e}")
-            raise serializers.ValidationError("Ошибка при создании объекта")
+            raise serializers.ValidationError("Ошибка при создании объекта") from None
 
         return calendar_date
 
@@ -85,7 +84,7 @@ class CalendarDateSerializer(serializers.ModelSerializer):
                 CalendarPrice.objects.bulk_create(calendar_prices_to_create)
         except Exception as e:
             logger.error(f"Ошибка при обновлении CalendarDate: {e}")
-            raise serializers.ValidationError("Ошибка при обновлении объекта")
+            raise serializers.ValidationError("Ошибка при обновлении объекта") from None
         return instance
 
     def validate(self, data):

@@ -5,7 +5,7 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 from all_fixture.choices import StatusChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from guests.models import Guest
 from hotels.models import Hotel
 from rooms.models import Room
@@ -45,14 +45,6 @@ class BaseApplication(models.Model):
             MinValueValidator(Decimal("0.00")),
             MaxValueValidator(Decimal("9999999.99")),
         ],
-    )
-    price = models.DecimalField(
-        verbose_name="Итоговая стоимость",
-        help_text="Итоговая стоимость",
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("9999999.99"))],
-        **NULLABLE,
     )
 
     class Meta:

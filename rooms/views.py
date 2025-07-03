@@ -3,17 +3,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import (
-    hotel_id,
-    id_room,
-    limit,
-    offset,
-    room_id,
-    room_id_photo,
-    room_photo_settings,
-    room_settings,
-)
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    HOTEL_ID,
+    ID_ROOM,
+    LIMIT,
+    OFFSET,
+    ROOM_ID,
+    ROOM_ID_PHOTO,
+    ROOM_PHOTO_SETTINGS,
+    ROOM_SETTINGS,
+)
 from hotels.models import Hotel
 from rooms.filters import RoomFilter
 from rooms.models import Room, RoomPhoto, RoomRules
@@ -29,55 +29,55 @@ from rooms.serializers import (
     list=extend_schema(
         summary="Список номеров",
         description="Получение списка всех номеров с пагинацией",
-        parameters=[hotel_id, limit, offset],
+        parameters=[HOTEL_ID, LIMIT, OFFSET],
         responses={
             200: RoomDetailSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[ROOM_SETTINGS["name"]],
     ),
     create=extend_schema(
         summary="Добавление номера",
         description="Создание нового номера",
         request=RoomBaseSerializer,
-        parameters=[hotel_id],
+        parameters=[HOTEL_ID],
         responses={
             201: RoomBaseSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[ROOM_SETTINGS["name"]],
     ),
     retrieve=extend_schema(
         summary="Детали номера",
         description="Получение информации о номере",
-        parameters=[hotel_id, id_room],
+        parameters=[HOTEL_ID, ID_ROOM],
         responses={
             200: RoomDetailSerializer,
             404: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_settings["name"]],
+        tags=[ROOM_SETTINGS["name"]],
     ),
     update=extend_schema(
         summary="Полное обновление номера",
         description="Обновление всех полей номера",
         request=RoomBaseSerializer,
-        parameters=[hotel_id, id_room],
+        parameters=[HOTEL_ID, ID_ROOM],
         responses={
             200: RoomBaseSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[room_settings["name"]],
+        tags=[ROOM_SETTINGS["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление номера",
         description="Полное удаление номера",
-        parameters=[hotel_id, id_room],
+        parameters=[HOTEL_ID, ID_ROOM],
         responses={
             204: OpenApiResponse(description="Номер удален"),
             404: OpenApiResponse(description="Номер не найден"),
         },
-        tags=[room_settings["name"]],
+        tags=[ROOM_SETTINGS["name"]],
     ),
 )
 class RoomViewSet(viewsets.ModelViewSet):
@@ -108,17 +108,17 @@ class RoomViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список фотографий номера",
         description="Получение списка всех фотографий номера с пагинацией",
-        parameters=[limit, offset, room_id],
+        parameters=[LIMIT, OFFSET, ROOM_ID],
         responses={
             200: RoomPhotoSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
     create=extend_schema(
         summary="Добавление фотографии номера",
         description="Создание новой фотографии номера",
-        parameters=[room_id],
+        parameters=[ROOM_ID],
         request={
             "multipart/form-data": RoomPhotoSerializer,  # Указываем формат данных
         },
@@ -126,17 +126,17 @@ class RoomViewSet(viewsets.ModelViewSet):
             201: RoomPhotoSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление фотографии номера",
         description="Полное удаление фотографии номера",
-        parameters=[room_id, room_id_photo],
+        parameters=[ROOM_ID, ROOM_ID_PHOTO],
         responses={
             204: OpenApiResponse(description="Фотография номера удалена"),
             404: OpenApiResponse(description="Фотография номера не найдена"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
 )
 class RoomPhotoViewSet(viewsets.ModelViewSet):
@@ -157,17 +157,17 @@ class RoomPhotoViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список фотографий номера",
         description="Получение списка всех фотографий номера с пагинацией",
-        parameters=[limit, offset],
+        parameters=[LIMIT, OFFSET],
         responses={
             200: RoomRulesSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
     create=extend_schema(
         summary="Добавление фотографии номера",
         description="Создание новой фотографии номера",
-        parameters=[room_id],
+        parameters=[ROOM_ID],
         request={
             "multipart/form-data": RoomRulesSerializer,  # Указываем формат данных
         },
@@ -175,7 +175,7 @@ class RoomPhotoViewSet(viewsets.ModelViewSet):
             201: RoomRulesSerializer,
             400: OpenApiResponse(description="Ошибка запроса"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
     destroy=extend_schema(
         summary="Удаление фотографии номера",
@@ -185,7 +185,7 @@ class RoomPhotoViewSet(viewsets.ModelViewSet):
             204: OpenApiResponse(description="Фотография номера удалена"),
             404: OpenApiResponse(description="Фотография номера не найдена"),
         },
-        tags=[room_photo_settings["name"]],
+        tags=[ROOM_PHOTO_SETTINGS["name"]],
     ),
 )
 class RoomRulesViewSet(viewsets.ModelViewSet):

@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from hotels.models import Hotel
 from tours.models import Tour
 
@@ -20,7 +20,10 @@ class Promocode(models.Model):
         "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("99999.99"))],
+        validators=[
+            MinValueValidator(Decimal("0.01")),
+            MaxValueValidator(Decimal("99999.99")),
+        ],
     )
     description = models.TextField()
     tours = models.ManyToManyField(Tour, verbose_name="Туры", help_text="Туры", blank=True)

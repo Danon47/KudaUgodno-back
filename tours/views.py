@@ -7,30 +7,30 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from all_fixture.fixture_views import (
-    POPULAR_SETTINGS,
-    filter_city,
-    filter_distance_to_the_airport,
-    filter_place,
-    filter_star_category,
-    filter_tour_operator,
-    filter_type_of_rest,
-    filter_user_rating,
-    limit,
-    offset,
-    tour_arrival_city,
-    tour_departure_city,
-    tour_guests,
-    tour_id,
-    tour_nights,
-    tour_price_gte,
-    tour_price_lte,
-    tour_settings,
-    tour_start_date,
-    tour_stock_id,
-    tour_stock_settings,
-)
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    FILTER_CITY,
+    FILTER_DISTANCE_TO_THE_AIRPORT,
+    FILTER_PLACE,
+    FILTER_STAR_CATEGORY,
+    FILTER_TOUR_OPERATOR,
+    FILTER_TYPE_OF_REST,
+    FILTER_USER_RATING,
+    LIMIT,
+    OFFSET,
+    POPULAR_SETTINGS,
+    TOUR_ARRIVAL_CITY,
+    TOUR_DEPARTURE_CITY,
+    TOUR_GUESTS,
+    TOUR_ID,
+    TOUR_NIGHTS,
+    TOUR_PRICE_GTE,
+    TOUR_PRICE_LTE,
+    TOUR_SETTINGS,
+    TOUR_START_DATE,
+    TOUR_STOCK_ID,
+    TOUR_STOCK_SETTINGS,
+)
 from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
@@ -51,8 +51,8 @@ from tours.serializers import (
     list=extend_schema(
         summary="Список туров",
         description="Получение списка всех туров",
-        tags=[tour_settings["name"]],
-        parameters=[limit, offset],
+        tags=[TOUR_SETTINGS["name"]],
+        parameters=[LIMIT, OFFSET],
         responses={
             200: TourListSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -62,7 +62,7 @@ from tours.serializers import (
         summary="Добавление тура",
         description="Создание нового тура",
         request=TourSerializer,
-        tags=[tour_settings["name"]],
+        tags=[TOUR_SETTINGS["name"]],
         responses={
             201: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -71,8 +71,8 @@ from tours.serializers import (
     retrieve=extend_schema(
         summary="Информация о туре",
         description="Получение информации о туре через идентификатор",
-        tags=[tour_settings["name"]],
-        parameters=[tour_id],
+        tags=[TOUR_SETTINGS["name"]],
+        parameters=[TOUR_ID],
         responses={
             200: TourListSerializer,
             404: OpenApiResponse(description="Тур не найден"),
@@ -82,8 +82,8 @@ from tours.serializers import (
         summary="Полное обновление тура",
         description="Обновление всех полей тура",
         request=TourSerializer,
-        tags=[tour_settings["name"]],
-        parameters=[tour_id],
+        tags=[TOUR_SETTINGS["name"]],
+        parameters=[TOUR_ID],
         responses={
             200: TourSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -94,8 +94,8 @@ from tours.serializers import (
         summary="Частичное обновление тура",
         description="Обновление отдельных полей тура",
         request=TourPatchSerializer,
-        tags=[tour_settings["name"]],
-        parameters=[tour_id],
+        tags=[TOUR_SETTINGS["name"]],
+        parameters=[TOUR_ID],
         responses={
             200: TourPatchSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -105,8 +105,8 @@ from tours.serializers import (
     destroy=extend_schema(
         summary="Удаление тура",
         description="Полное удаление тура",
-        tags=[tour_settings["name"]],
-        parameters=[tour_id],
+        tags=[TOUR_SETTINGS["name"]],
+        parameters=[TOUR_ID],
         responses={
             204: OpenApiResponse(description="Тур удален"),
             404: OpenApiResponse(description="Тур не найден"),
@@ -130,8 +130,8 @@ class TourViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список всех акций в турах",
         description="Получение списка всех акций в турах",
-        tags=[tour_stock_settings["name"]],
-        parameters=[limit, offset],
+        tags=[TOUR_STOCK_SETTINGS["name"]],
+        parameters=[LIMIT, OFFSET],
         responses={
             200: TourStockSerializer(many=True),
             400: OpenApiResponse(description="Ошибка запроса"),
@@ -141,7 +141,7 @@ class TourViewSet(viewsets.ModelViewSet):
         summary="Добавление акции в туре",
         description="Создание новой акции в туре",
         request={"multipart/form-data": TourSerializer},
-        tags=[tour_stock_settings["name"]],
+        tags=[TOUR_STOCK_SETTINGS["name"]],
         responses={
             201: TourStockSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -150,8 +150,8 @@ class TourViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(
         summary="Информация о акции в туре",
         description="Получение информации о акции в туре через идентификатор",
-        tags=[tour_stock_settings["name"]],
-        parameters=[tour_stock_id],
+        tags=[TOUR_STOCK_SETTINGS["name"]],
+        parameters=[TOUR_STOCK_ID],
         responses={
             200: TourStockSerializer,
             404: OpenApiResponse(description="Акция в туре не найдена"),
@@ -161,8 +161,8 @@ class TourViewSet(viewsets.ModelViewSet):
         summary="Полное обновление акции в туре",
         description="Обновление всех полей акции в туре",
         request=TourStockSerializer,
-        tags=[tour_stock_settings["name"]],
-        parameters=[tour_stock_id],
+        tags=[TOUR_STOCK_SETTINGS["name"]],
+        parameters=[TOUR_STOCK_ID],
         responses={
             200: TourStockSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -172,8 +172,8 @@ class TourViewSet(viewsets.ModelViewSet):
     destroy=extend_schema(
         summary="Удаление акции в туре",
         description="Полное удаление акции в туре",
-        tags=[tour_stock_settings["name"]],
-        parameters=[tour_stock_id],
+        tags=[TOUR_STOCK_SETTINGS["name"]],
+        parameters=[TOUR_STOCK_ID],
         responses={
             204: OpenApiResponse(description="Акция в туре удалена"),
             404: OpenApiResponse(description="Акция в туре не найдена"),
@@ -192,24 +192,24 @@ class TourStockViewSet(viewsets.ModelViewSet):
         summary="Расширенный поиск туров",
         description="Расширенный поиск туров по фильтрам.",
         parameters=[
-            tour_departure_city,
-            tour_arrival_city,
-            tour_start_date,
-            tour_nights,
-            tour_guests,
-            filter_city,
-            filter_type_of_rest,
-            filter_place,
-            tour_price_gte,
-            tour_price_lte,
-            filter_user_rating,
-            filter_star_category,
-            filter_distance_to_the_airport,
-            filter_tour_operator,
-            limit,
-            offset,
+            TOUR_DEPARTURE_CITY,
+            TOUR_ARRIVAL_CITY,
+            TOUR_START_DATE,
+            TOUR_NIGHTS,
+            TOUR_GUESTS,
+            FILTER_CITY,
+            FILTER_TYPE_OF_REST,
+            FILTER_PLACE,
+            TOUR_PRICE_GTE,
+            TOUR_PRICE_LTE,
+            FILTER_USER_RATING,
+            FILTER_STAR_CATEGORY,
+            FILTER_DISTANCE_TO_THE_AIRPORT,
+            FILTER_TOUR_OPERATOR,
+            LIMIT,
+            OFFSET,
         ],
-        tags=[tour_settings["name"]],
+        tags=[TOUR_SETTINGS["name"]],
         responses={
             200: TourShortSerializer(many=True),
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -251,7 +251,10 @@ class TourFiltersView(viewsets.ModelViewSet):
     def filters(self, request):
         request_serializer = TourFiltersRequestSerializer(data=request.query_params)
         if not request_serializer.is_valid():
-            return Response({"errors": request_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"errors": request_serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return self.list(request)
 
 
@@ -259,8 +262,8 @@ class TourFiltersView(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список горящих туров",
         description="Получение списка всех горящих туров",
-        parameters=[limit, offset],
-        tags=[tour_settings["name"]],
+        parameters=[LIMIT, OFFSET],
+        tags=[TOUR_SETTINGS["name"]],
         responses={
             200: TourShortSerializer(many=True),
         },
@@ -277,7 +280,9 @@ class TourHotView(viewsets.ModelViewSet):
         """Получение тура по одному из каждой страны с минимальной ценой."""
         guests_subquery = (
             CalendarPrice.objects.filter(
-                calendar_date__discount=True, calendar_date__available_for_booking=True, room__tours=OuterRef("pk")
+                calendar_date__discount=True,
+                calendar_date__available_for_booking=True,
+                room__tours=OuterRef("pk"),
             )
             .order_by("price")
             .values("room__number_of_adults", "room__number_of_children")[:1]
@@ -289,7 +294,9 @@ class TourHotView(viewsets.ModelViewSet):
                 number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
                 number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
                 country_rank=Window(
-                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                    expression=RowNumber(),
+                    partition_by=[F("arrival_country")],
+                    order_by=F("price").asc(),
                 ),
             )
             .filter(country_rank=1)
@@ -335,7 +342,9 @@ class TourPopularView(viewsets.ModelViewSet):
             .annotate(
                 tours_count=Subquery(country_tour_count),
                 country_rank=Window(
-                    expression=RowNumber(), partition_by=[F("arrival_country")], order_by=F("price").asc()
+                    expression=RowNumber(),
+                    partition_by=[F("arrival_country")],
+                    order_by=F("price").asc(),
                 ),
             )
             .filter(country_rank=1)

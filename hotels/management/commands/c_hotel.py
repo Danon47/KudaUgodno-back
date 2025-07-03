@@ -131,7 +131,7 @@ class Command(BaseCommand):
         operators = []
         for i, (first_name, last_name) in enumerate(name_to_surname.items()):
             company_name = f"ООО Тима {last_name[4:]}"
-            email = f"operator.{i+1}{random.randint(1, 9999)}@mail.ru"
+            email = f"operator.{i + 1}{random.randint(1, 9999)}@mail.ru"
             phone_number = f"+7995{random.randint(1000000, 9999999)}"
             user = User.objects.create_user(
                 first_name=first_name,
@@ -154,7 +154,7 @@ class Command(BaseCommand):
         }
         tourists = []
         for i, (first_name, last_name) in enumerate(name_to_surname.items()):
-            email = f"tourists.{i+1}{random.randint(1, 9999)}@mail.ru"
+            email = f"tourists.{i + 1}{random.randint(1, 9999)}@mail.ru"
             phone_number = f"+7926{random.randint(1000000, 9999999)}"
             birth_date = date(random.randint(2000, 2004), random.randint(1, 12), random.randint(1, 28))
             user = User.objects.create_user(
@@ -241,7 +241,10 @@ class Command(BaseCommand):
             "Россия": ["Москва", "Санкт-Петербург"],
         }
 
-        rules = {"С животными": "Можно если за ними следить", "Бухать": "Можно если за Вами следит жена"}
+        rules = {
+            "С животными": "Можно если за ними следить",
+            "Бухать": "Можно если за Вами следит жена",
+        }
         # Пути к тестовым фотографиям отелей
         hotel_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_hotel")
 
@@ -250,29 +253,32 @@ class Command(BaseCommand):
             country = random.choice(list(countries_cities.keys()))
             city = random.choice(countries_cities[country])
             hotel = Hotel.objects.create(
-                name=f"Отель в {city} {i+1}",
+                name=f"Отель в {city} {i + 1}",
                 star_category=random.randint(1, 5),
                 place=random.choice(places),
                 country=country,
                 city=city,
-                address=f"Ул. Пушкина, д. {i+1}",
+                address=f"Ул. Пушкина, д. {i + 1}",
                 distance_to_the_station=random.randint(0, 50000),
                 distance_to_the_sea=random.randint(0, 50000),
                 distance_to_the_center=random.randint(0, 50000),
                 distance_to_the_metro=random.randint(0, 50000),
                 distance_to_the_airport=random.randint(0, 50000),
-                description=f"Так себе описание отеля под номером {i+1}",
+                description=f"Так себе описание отеля под номером {i + 1}",
                 check_in_time=time(random.randint(14, 16), 0),
                 check_out_time=time(random.randint(10, 12), 0),
                 amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
                 amenities_in_the_room=random.sample(
-                    amenities_in_the_room, k=random.randint(1, len(amenities_in_the_room))
+                    amenities_in_the_room,
+                    k=random.randint(1, len(amenities_in_the_room)),
                 ),
                 amenities_sports_and_recreation=random.sample(
-                    amenities_sports_and_recreation, k=random.randint(1, len(amenities_sports_and_recreation))
+                    amenities_sports_and_recreation,
+                    k=random.randint(1, len(amenities_sports_and_recreation)),
                 ),
                 amenities_for_children=random.sample(
-                    amenities_for_children, k=random.randint(1, len(amenities_for_children))
+                    amenities_for_children,
+                    k=random.randint(1, len(amenities_for_children)),
                 ),
                 user_rating=round(random.uniform(2, 9), 1),
                 type_of_rest=random.choice(types_of_holiday),
@@ -297,12 +303,12 @@ class Command(BaseCommand):
         где каждый следующий тип питания стоит больше, чем предыдущий.
         """
         type_of_meals = []
-        BASIC_TYPES = [
+        basic_types = [
             TypeOfMealChoices.BREAKFAST,
             TypeOfMealChoices.BREAKFAST_AND_DINNER,
             TypeOfMealChoices.FULL_BOARD,
         ]
-        PREMIUM_TYPES = [
+        premium_types = [
             TypeOfMealChoices.ALL_INCLUSIVE,
             TypeOfMealChoices.ULTRA_ALL_INCLUSIVE,
         ]
@@ -312,7 +318,7 @@ class Command(BaseCommand):
             for meal_name in [choice[0] for choice in TypeOfMealChoices.choices]:
                 if meal_name == TypeOfMealChoices.NO_MEAL:
                     price = 0
-                elif meal_name in BASIC_TYPES:
+                elif meal_name in basic_types:
                     if meal_name == TypeOfMealChoices.BREAKFAST:
                         price = round(random.uniform(1000, 5001) / 500) * 500
                     elif meal_name == TypeOfMealChoices.BREAKFAST_AND_DINNER:
@@ -320,11 +326,12 @@ class Command(BaseCommand):
                     elif meal_name == TypeOfMealChoices.FULL_BOARD:
                         price = (
                             meal_prices.get(
-                                TypeOfMealChoices.BREAKFAST_AND_DINNER, meal_prices.get(TypeOfMealChoices.BREAKFAST, 0)
+                                TypeOfMealChoices.BREAKFAST_AND_DINNER,
+                                meal_prices.get(TypeOfMealChoices.BREAKFAST, 0),
                             )
                             + round(random.uniform(1000, 5001) / 500) * 500
                         )
-                elif meal_name in PREMIUM_TYPES:
+                elif meal_name in premium_types:
                     if meal_name == TypeOfMealChoices.ALL_INCLUSIVE:
                         price = round(random.uniform(1000, 100001) / 1000) * 1000
                     elif meal_name == TypeOfMealChoices.ULTRA_ALL_INCLUSIVE:
@@ -361,7 +368,7 @@ class Command(BaseCommand):
         for hotel in hotels:
             # Получаем все типы питания, которые мы только что создали
             available_meals = list(hotel.type_of_meals.all())
-            for iteration_bed in range(count):
+            for _iteration_bed in range(count):
                 number_of_adults = random.randint(2, 4)
                 number_of_children = random.randint(0, 4)
                 # Кровати для взрослых
@@ -550,7 +557,7 @@ class Command(BaseCommand):
                 arrival_date=dep_date,
                 arrival_time=arrival_time,
                 price=round(random.uniform(1000, 10000), 2),
-                price_for_child=round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None,
+                price_for_child=(round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None),
                 service_class=random.choice(service_classes),
                 flight_type=random.choice(flight_types),
                 description=random.choice(descriptions),
@@ -576,7 +583,7 @@ class Command(BaseCommand):
                 arrival_date=return_date,
                 arrival_time=return_arrival_time,
                 price=round(random.uniform(1000, 10000), 2),
-                price_for_child=round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None,
+                price_for_child=(round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None),
                 service_class=random.choice(service_classes),
                 flight_type=random.choice(flight_types),
                 description=random.choice(descriptions),
@@ -687,7 +694,7 @@ class Command(BaseCommand):
 
         for i in range(10):
             tourist = random.choice(tourists)
-            email = f"application.{i+1}{random.randint(1, 9999)}@mail.ru"
+            email = f"application.{i + 1}{random.randint(1, 9999)}@mail.ru"
             phone_number = f"+7915{random.randint(1000000, 9999999)}"
             wishes = random.choice(wishes_samples)
             status = StatusChoices.AWAIT_CONFIRM
@@ -775,7 +782,13 @@ class Command(BaseCommand):
         common_cities = hotel_cities.intersection(tour_cities)
 
         # Базовые города вылета
-        departure_cities = ["Москва", "Санкт-Петербург", "Екатеринбург", "Новосибирск", "Казань"]
+        departure_cities = [
+            "Москва",
+            "Санкт-Петербург",
+            "Екатеринбург",
+            "Новосибирск",
+            "Казань",
+        ]
 
         # Путь к фотографиям
         photo_dir = os.path.join("static", "test_vzhuh")

@@ -7,7 +7,6 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 import users.extensions  # noqa
 from config import settings
 
-
 admin.site.site_header = 'Администрирование "Куда Угодно"'
 admin.site.site_title = 'Администрирование "Куда Угодно"'
 admin.site.index_title = 'Администрирование "Куда Угодно"'

@@ -1,56 +1,107 @@
 from drf_spectacular.utils import OpenApiParameter
 
-
 NULLABLE = {"blank": True, "null": True}
 # Теги для settings
-user_settings = {"name": "Пользователи", "description": "Методы для работы с пользователями"}
-entreprise = {"name": "Компании", "description": "Методы для работы с компаниями"}
-auth = {"name": "Авторизация", "description": "Методы для работы с авторизацией"}
-tour_settings = {"name": "Туры", "description": "Методы для работы с турами"}
-tour_stock_settings = {"name": "Акции в туре", "description": "Методы для работы с акциями в туре"}
-hotel_settings = {"name": "Отели", "description": "Методы для работы с отелями"}
-hotel_photo_settings = {
+USER_SETTINGS = {
+    "name": "Пользователи",
+    "description": "Методы для работы с пользователями",
+}
+ENTREPRISE_SETTINGS = {
+    "name": "Компании",
+    "description": "Методы для работы с компаниями",
+}
+AUTH_SETTINGS = {
+    "name": "Авторизация",
+    "description": "Методы для работы с авторизацией",
+}
+TOUR_SETTINGS = {
+    "name": "Туры",
+    "description": "Методы для работы с турами",
+}
+TOUR_STOCK_SETTINGS = {
+    "name": "Акции в туре",
+    "description": "Методы для работы с акциями в туре",
+}
+HOTEL_SETTINGS = {
+    "name": "Отели",
+    "description": "Методы для работы с отелями",
+}
+HOTEL_PHOTO_SETTINGS = {
     "name": "Фотографии в отеле",
     "description": "Методы для работы с фотографиями отелей",
 }
-room_settings = {"name": "Номера", "description": "Методы для работы с номерами"}
-room_photo_settings = {
+ROOM_SETTINGS = {
+    "name": "Номера",
+    "description": "Методы для работы с номерами",
+}
+ROOM_PHOTO_SETTINGS = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
 }
-flight_settings = {"name": "Рейсы", "description": "Методы для работы с рейсами"}
-application_settings = {"name": "Заявки", "description": "Методы для работы с заявками"}
-application_guest_settings = {"name": "Гости", "description": "Методы для работы с гостями"}
-insurance_settings = {"name": "Страховки", "description": "Методы для работы со страховками"}
-what_about_settings = {"name": "Что на счёт ...", "description": "Получаем список подборок что насчёт..."}
-type_of_meal_settings = {"name": "Тип питания", "description": "Методы для работы с типами питания"}
+FLIGHT_SETTINGS = {
+    "name": "Рейсы",
+    "description": "Методы для работы с рейсами",
+}
+APPLICATION_SETTINGS = {
+    "name": "Заявки",
+    "description": "Методы для работы с заявками",
+}
+GUEST_SETTINGS = {
+    "name": "Гости",
+    "description": "Методы для работы с гостями",
+}
+INSURANCE_SETTINGS = {
+    "name": "Страховки",
+    "description": "Методы для работы со страховками",
+}
+WHAT_ABOUT_SETTINGS = {
+    "name": "Что на счёт ...",
+    "description": "Получаем список подборок что насчёт...",
+}
+TYPE_OF_MEAL_SETTINGS = {
+    "name": "Тип питания",
+    "description": "Методы для работы с типами питания",
+}
 CALENDAR_SETTINGS = {
     "name": "Календарь стоимость номеров в отеле",
     "description": "Методы для работы с календарём стоимости номеров в отеле",
 }
-MAILING_SETTINGS = {"name": "Рассылки", "description": "Методы для работы с рассылками"}
-POPULAR_SETTINGS = {"name": "Популярные направления", "description": "Методы для работы с популярными направлениями"}
-DISCOUNT_SETTINGS = {"name": "Акции", "description": "Методы для работы с акциями"}
-
-# Отображение ошибки
-decimal_ivalid = {"invalid": "Введите цену с точкой, а не с запятой."}
-
-# Сеттинг Вжухи
-vzhuh_settings = {
+MAILING_SETTINGS = {
+    "name": "Рассылки",
+    "description": "Методы для работы с рассылками",
+}
+POPULAR_SETTINGS = {
+    "name": "Популярные направления",
+    "description": "Методы для работы с популярными направлениями",
+}
+DISCOUNT_SETTINGS = {
+    "name": "Акции",
+    "description": "Методы для работы с акциями",
+}
+VZHUH_SETTINGS = {
     "name": "Вжухи",
     "description": "Список актуальных спецпредложений по направлениям",
 }
 
+
 # ID пользователя
-user_id = OpenApiParameter(
+USER_ID = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
     description="ID Пользователя",
     required=True,
 )
+# ID туриста
+ID_USER = OpenApiParameter(
+    name="user_id",
+    type=int,
+    location=OpenApiParameter.PATH,
+    description="ID Туриста",
+    required=True,
+)
 # ID компании
-entreprise_id = OpenApiParameter(
+ENTREPRISE_ID = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
@@ -58,7 +109,7 @@ entreprise_id = OpenApiParameter(
     required=True,
 )
 # ID тура
-tour_id = OpenApiParameter(
+TOUR_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -66,7 +117,7 @@ tour_id = OpenApiParameter(
     required=True,
 )
 # ID акции тура
-tour_stock_id = OpenApiParameter(
+TOUR_STOCK_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -74,89 +125,105 @@ tour_stock_id = OpenApiParameter(
     required=True,
 )
 # Город вылета
-tour_departure_city = OpenApiParameter(
+TOUR_DEPARTURE_CITY = OpenApiParameter(
     name="departure_city",
     type=str,
     description="Город вылета",
     required=False,
 )
 # Город прилета
-tour_arrival_city = OpenApiParameter(
+TOUR_ARRIVAL_CITY = OpenApiParameter(
     name="arrival_city",
     type=str,
     description="Город прилета",
     required=False,
 )
 # Дата вылета
-tour_start_date = OpenApiParameter(
+TOUR_START_DATE = OpenApiParameter(
     name="start_date",
     type=str,
     description="Дата начала тура (YYYY-MM-DD)",
     required=False,
 )
 # Количество ночей в туре
-tour_nights = OpenApiParameter(
+TOUR_NIGHTS = OpenApiParameter(
     name="nights",
     type=int,
     description="Количество ночей",
     required=False,
 )
 # Количество гостей в туре
-tour_guests = OpenApiParameter(
+TOUR_GUESTS = OpenApiParameter(
     name="guests",
     type=int,
     description="Количество гостей",
     required=False,
 )
 # Город отеля
-filter_city = OpenApiParameter(name="city", type=str, description="Город отеля", required=False)
+FILTER_CITY = OpenApiParameter(
+    name="city",
+    type=str,
+    description="Город отеля",
+    required=False,
+)
 # Тип размещения
-filter_place = OpenApiParameter(
+FILTER_PLACE = OpenApiParameter(
     name="place",
     type=str,
     description="Тип размещения",
     required=False,
 )
 # Тип отдыха
-filter_type_of_rest = OpenApiParameter(name="type_of_rest", type=str, description="Тип отдыха", required=False)
+FILTER_TYPE_OF_REST = OpenApiParameter(
+    name="type_of_rest",
+    type=str,
+    description="Тип отдыха",
+    required=False,
+)
 # Пользовательская оценка
-filter_user_rating = OpenApiParameter(
-    name="user_rating", type=float, description="Пользовательская оценка", required=False
+FILTER_USER_RATING = OpenApiParameter(
+    name="user_rating",
+    type=float,
+    description="Пользовательская оценка",
+    required=False,
 )
 # Расстояние от отеля до аэропорта
-filter_distance_to_the_airport = OpenApiParameter(
-    name="distance_to_the_airport", type=int, description="Расстояние до аэропорта в метрах", required=False
+FILTER_DISTANCE_TO_THE_AIRPORT = OpenApiParameter(
+    name="distance_to_the_airport",
+    type=int,
+    description="Расстояние до аэропорта в метрах",
+    required=False,
 )
 # Максимальная стоимость тура
-tour_price_lte = OpenApiParameter(
+TOUR_PRICE_LTE = OpenApiParameter(
     name="price_lte",
     type=int,
     description="Максимальная стоимость тура",
     required=False,
 )
 # Минимальная стоимость тура
-tour_price_gte = OpenApiParameter(
+TOUR_PRICE_GTE = OpenApiParameter(
     name="price_gte",
     type=int,
     description="Минимальная стоимость тура",
     required=False,
 )
 # Туроператор
-filter_tour_operator = OpenApiParameter(
+FILTER_TOUR_OPERATOR = OpenApiParameter(
     name="tour_operator",
     type=str,
     description="Туроператор",
     required=False,
 )
 # Категория отеля в кол-ве звед
-filter_star_category = OpenApiParameter(
+FILTER_STAR_CATEGORY = OpenApiParameter(
     name="star_category",
     type=str,
     description="Категорию отеля (от 0 до 5)",
     required=False,
 )
 # ID отеля
-hotel_id = OpenApiParameter(
+HOTEL_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="hotel_id",
     type=int,
@@ -164,7 +231,7 @@ hotel_id = OpenApiParameter(
     required=False,
 )
 # ID типа питания
-type_of_meal_id = OpenApiParameter(
+TYPE_OF_MEAL_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -172,7 +239,7 @@ type_of_meal_id = OpenApiParameter(
     required=False,
 )
 # ID номера
-room_id = OpenApiParameter(
+ROOM_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="room_id",
     type=int,
@@ -180,7 +247,7 @@ room_id = OpenApiParameter(
     required=False,
 )
 # ID фотографии в номере
-room_id_photo = OpenApiParameter(
+ROOM_ID_PHOTO = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -188,7 +255,7 @@ room_id_photo = OpenApiParameter(
     required=True,
 )
 # ID фотографии в отеле
-hotel_id_photo = OpenApiParameter(
+HOTEL_ID_PHOTO = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
@@ -196,7 +263,7 @@ hotel_id_photo = OpenApiParameter(
     required=True,
 )
 # ID в отеле
-id_hotel = OpenApiParameter(
+ID_HOTEL = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -204,7 +271,7 @@ id_hotel = OpenApiParameter(
     required=False,
 )
 # ID номера
-id_room = OpenApiParameter(
+ID_ROOM = OpenApiParameter(
     name="id",
     type=int,
     location=OpenApiParameter.PATH,
@@ -212,7 +279,7 @@ id_room = OpenApiParameter(
     required=True,
 )
 # ID Рейса
-flight_id = OpenApiParameter(
+FLIGHT_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -220,7 +287,7 @@ flight_id = OpenApiParameter(
     required=True,
 )
 # ID заявки
-application_id = OpenApiParameter(
+APPLICATION_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -228,7 +295,7 @@ application_id = OpenApiParameter(
     required=True,
 )
 # ID гостя
-application_guest_id = OpenApiParameter(
+GUEST_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -236,7 +303,7 @@ application_guest_id = OpenApiParameter(
     required=True,
 )
 # ID страховки
-insurance_id = OpenApiParameter(
+INSURANCE_ID = OpenApiParameter(
     location=OpenApiParameter.PATH,
     name="id",
     type=int,
@@ -251,55 +318,68 @@ CALENDAR_ID = OpenApiParameter(
     description="ID Календаря",
     required=True,
 )
-# Дата заезда в отель(Обязательный)
-hotel_check_in = OpenApiParameter(
-    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=False, type=str
+# Дата заезда в отель
+HOTEL_CHECK_IN = OpenApiParameter(
+    name="check_in_date",
+    type=str,
+    description="Дата заезда (YYYY-MM-DD)",
+    required=False,
 )
-# Дата выезда из отеля(Обязательный)
-hotel_check_out = OpenApiParameter(
-    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=False, type=str
+# Дата выезда из отеля
+HOTEL_CHECK_OUT = OpenApiParameter(
+    name="check_out_date",
+    type=str,
+    description="Дата выезда (YYYY-MM-DD)",
+    required=False,
 )
 # Количество гостей в отеле(Обязательный)
-hotel_guests = OpenApiParameter(name="guests", description="Количество гостей", required=False, type=int)
+HOTEL_GUESTS = OpenApiParameter(
+    name="guests",
+    type=int,
+    description="Количество гостей",
+    required=False,
+)
 # Название отеля
-hotel_city = OpenApiParameter(
+HOTEL_CITY = OpenApiParameter(
     name="hotel_city",
     type=str,
     description="Название города",
     required=False,
 )
 # Дата заезда в отель(Необязательный)
-hotel_check_in_optional = OpenApiParameter(
-    name="check_in_date", description="Дата заезда (YYYY-MM-DD)", required=False, type=str
+HOTEL_CHECK_IN_OPTIONAL = OpenApiParameter(
+    name="check_in_date",
+    type=str,
+    description="Дата заезда (YYYY-MM-DD)",
+    required=False,
 )
 # Дата выезда из отеля(Необязательный)
-hotel_check_out_optional = OpenApiParameter(
-    name="check_out_date", description="Дата выезда (YYYY-MM-DD)", required=False, type=str
+HOTEL_CHECK_OUT_OPTIONAL = OpenApiParameter(
+    name="check_out_date",
+    type=str,
+    description="Дата выезда (YYYY-MM-DD)",
+    required=False,
 )
 # Количество гостей в отеле(Необязательный)
-hotel_guests_optional = OpenApiParameter(name="guests", description="Количество гостей", required=False, type=int)
+HOTEL_GUESTS_OPTIONAL = OpenApiParameter(
+    name="guests",
+    type=int,
+    description="Количество гостей",
+    required=False,
+)
 # Максимальная стоимость отеля
-hotel_price_lte = OpenApiParameter(
+HOTEL_PRICE_LTE = OpenApiParameter(
     name="price_lte",
     type=int,
     description="Максимальная стоимость отеля",
     required=False,
 )
 # Минимальная стоимость отеля
-hotel_price_gte = OpenApiParameter(
+HOTEL_PRICE_GTE = OpenApiParameter(
     name="price_gte",
     type=int,
     description="Минимальная стоимость отеля",
     required=False,
-)
-
-# ID Даты стоимости номеров
-room_date_id = OpenApiParameter(
-    location=OpenApiParameter.PATH,
-    name="id",
-    type=int,
-    description="ID Даты стоимости номеров",
-    required=True,
 )
 # ID рассылки
 MAILING_ID = OpenApiParameter(
@@ -310,55 +390,62 @@ MAILING_ID = OpenApiParameter(
     required=True,
 )
 # Рейс страна вылета
-flight_departure_country = OpenApiParameter(
+FLIGHT_DEPARTURE_COUNTRY = OpenApiParameter(
     name="departure_country",
     type=str,
     description="Страна вылета",
     required=False,
 )
 # Рейс город вылета
-flight_departure_city = OpenApiParameter(
+FLIGHT_DEPARTURE_CITY = OpenApiParameter(
     name="departure_city",
     type=str,
     description="Город вылета",
     required=False,
 )
 # Рейс дата вылета
-flight_departure_date = OpenApiParameter(
+FLIGHT_DEPARTURE_DATE = OpenApiParameter(
     name="departure_date",
     type=str,
     description="Дата вылета",
     required=False,
 )
 # Рейс страна вылета
-flight_arrival_country = OpenApiParameter(
+FLIGHT_ARRIVAL_COUNTRY = OpenApiParameter(
     name="arrival_country",
     type=str,
     description="Страна прилёта",
     required=False,
 )
 # Рейс город вылета
-flight_arrival_city = OpenApiParameter(
+FLIGHT_ARRIVAL_CITY = OpenApiParameter(
     name="arrival_city",
     type=str,
     description="Город прилёта",
     required=False,
 )
 # Рейс дата вылета
-flight_arrival_date = OpenApiParameter(
+FLIGHT_ARRIVAL_DATE = OpenApiParameter(
     name="arrival_date",
     type=str,
     description="Дата прилёта",
     required=False,
 )
+# Рейс номер
+FLIGHT_NUMBER = OpenApiParameter(
+    name="flight_number",
+    type=str,
+    description="Номер рейса",
+    required=False,
+)
 # Для пагинации
-limit = OpenApiParameter(
+LIMIT = OpenApiParameter(
     name="limit",
     type=int,
     description="Количество объектов на одной странице",
     required=False,
 )
-offset = OpenApiParameter(
+OFFSET = OpenApiParameter(
     name="offset",
     type=int,
     description="Начальный индекс для пагинации",

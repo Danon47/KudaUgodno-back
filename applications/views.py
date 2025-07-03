@@ -1,10 +1,22 @@
-from django.http import Http404
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
 
-from all_fixture.fixture_views import application_id, application_settings, limit, offset
+from all_fixture.errors.list_error import (
+    APPLICATION_HOTEL_ERROR,
+    APPLICATION_TOUR_ERROR,
+)
+from all_fixture.errors.serializers_error import (
+    ApplicationHotelErrorIdSerializer,
+    ApplicationTourErrorIdSerializer,
+)
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    APPLICATION_ID,
+    APPLICATION_SETTINGS,
+    LIMIT,
+    OFFSET,
+)
 from applications.models import ApplicationHotel, ApplicationTour
 from applications.serializers import (
     ApplicationHotelListSerializer,
@@ -14,142 +26,171 @@ from applications.serializers import (
 )
 
 
+class ApplicationBaseViewSet(viewsets.ModelViewSet):
+    def get_object(self):
+        try:
+            return self.model.objects.get(pk=self.kwargs["pk"])
+        except self.model.DoesNotExist:
+            raise NotFound(self.error_message) from None
+
+
+@extend_schema(tags=[APPLICATION_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список заявок на тур",
         description="Получение списка всех заявок на тур",
-        tags=[application_settings["name"]],
-        parameters=[limit, offset],
+        parameters=[LIMIT, OFFSET],
         responses={
-            200: ApplicationTourListSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=ApplicationTourListSerializer(many=True),
+                description="Успешное получение заявок на тур",
+            ),
         },
     ),
     create=extend_schema(
         summary="Добавление заявки на тур",
         description="Создание новой заявки на тур",
         request=ApplicationTourSerializer,
-        tags=[application_settings["name"]],
         responses={
-            201: ApplicationTourListSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            201: OpenApiResponse(
+                response=ApplicationTourListSerializer,
+                description="Успешное создание заявки на тур",
+            ),
         },
     ),
     retrieve=extend_schema(
         summary="Информация о заявке на тур",
         description="Получение информации о заявке на тур через идентификатор",
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            200: ApplicationTourListSerializer,
-            404: OpenApiResponse(description="Заявка на тур не найдена"),
+            200: OpenApiResponse(
+                response=ApplicationTourListSerializer,
+                description="Успешное получение заявки на тур",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationTourErrorIdSerializer,
+                description="Ошибка: заявка на тур не найдена",
+            ),
         },
     ),
     update=extend_schema(
         summary="Полное обновление заявки на тур",
         description="Обновление всех полей заявки",
         request=ApplicationTourSerializer,
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            200: ApplicationTourSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Заявка не найден"),
+            200: OpenApiResponse(
+                response=ApplicationTourSerializer,
+                description="Успешное обновление заявки на тур",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationTourErrorIdSerializer,
+                description="Ошибка: заявка на тур не найдена",
+            ),
         },
     ),
     destroy=extend_schema(
         summary="Удаление заявки на тур",
         description="Полное удаление заявки на тур",
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            204: OpenApiResponse(description="Заявка на тур удалена"),
-            404: OpenApiResponse(description="Заявка на тур не найдена"),
+            204: OpenApiResponse(
+                description="Успешное удаление заявки на тур",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationTourErrorIdSerializer,
+                description="Ошибка: заявка на тур не найдена",
+            ),
         },
     ),
 )
-class ApplicationTourViewSet(viewsets.ModelViewSet):
+class ApplicationTourViewSet(ApplicationBaseViewSet):
     queryset = ApplicationTour.objects.all()
     pagination_class = CustomLOPagination
-
-    def get_object(self):
-        try:
-            return super().get_object()
-        except Http404:
-            raise NotFound(detail="Заявка на тур не найдена")
+    model = ApplicationTour
+    error_message = APPLICATION_TOUR_ERROR
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return ApplicationTourSerializer
         return ApplicationTourListSerializer
 
-    # def perform_create(self, serializer):
-    #     serializer.save(user_owner=self.request.user)
 
-
+@extend_schema(tags=[APPLICATION_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список заявок на отель",
         description="Получение списка заявок на отель",
-        tags=[application_settings["name"]],
-        parameters=[limit, offset],
+        parameters=[LIMIT, OFFSET],
         responses={
-            200: ApplicationHotelListSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=ApplicationHotelListSerializer(many=True),
+                description="Успешное получение заявок на отель",
+            ),
         },
     ),
     create=extend_schema(
         summary="Добавление заявки на отель",
         description="Создание новой заявки на отель",
         request=ApplicationHotelSerializer,
-        tags=[application_settings["name"]],
         responses={
-            201: ApplicationHotelSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            201: OpenApiResponse(
+                response=ApplicationHotelSerializer,
+                description="Заявка на отель создана",
+            ),
         },
     ),
     retrieve=extend_schema(
         summary="Информация о заявке на отель",
         description="Получение информации о заявке на отель через идентификатор",
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            200: ApplicationHotelListSerializer,
-            404: OpenApiResponse(description="Заявка не найдена"),
+            200: OpenApiResponse(
+                response=ApplicationHotelListSerializer,
+                description="Успешное получение заявки на отель",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationHotelErrorIdSerializer,
+                description="Заявка на отель не найдена",
+            ),
         },
     ),
     update=extend_schema(
         summary="Полное обновление заявки на отель",
         description="Обновление всех полей заявки на отель",
         request=ApplicationHotelSerializer,
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            200: ApplicationHotelSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Заявка не найдена"),
+            200: OpenApiResponse(
+                response=ApplicationHotelSerializer,
+                description="Заявка на отель обновлена",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationHotelErrorIdSerializer,
+                description="Заявка на отель не найдена",
+            ),
         },
     ),
     destroy=extend_schema(
         summary="Удаление заявки на отель",
         description="Полное удаление заявки на отель",
-        tags=[application_settings["name"]],
-        parameters=[application_id],
+        parameters=[APPLICATION_ID],
         responses={
-            204: OpenApiResponse(description="Заявка удалена"),
-            404: OpenApiResponse(description="Заявка не найдена"),
+            204: OpenApiResponse(
+                description="Заявка удалена",
+            ),
+            404: OpenApiResponse(
+                response=ApplicationHotelErrorIdSerializer,
+                description="Заявка на отель не найдена",
+            ),
         },
     ),
 )
-class ApplicationHotelViewSet(viewsets.ModelViewSet):
+class ApplicationHotelViewSet(ApplicationBaseViewSet):
     queryset = ApplicationHotel.objects.all()
     pagination_class = CustomLOPagination
-
-    def get_object(self):
-        try:
-            return super().get_object()
-        except Http404:
-            raise NotFound(detail="Заявка на отель не найдена")
+    model = ApplicationHotel
+    error_message = APPLICATION_HOTEL_ERROR
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

@@ -2,19 +2,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from all_fixture.fixture_views import (
-    flight_arrival_city,
-    flight_arrival_country,
-    flight_arrival_date,
-    flight_departure_city,
-    flight_departure_country,
-    flight_departure_date,
-    flight_id,
-    flight_settings,
-    limit,
-    offset,
-)
 from all_fixture.pagination import CustomLOPagination
+from all_fixture.views_fixture import (
+    FLIGHT_ARRIVAL_CITY,
+    FLIGHT_ARRIVAL_COUNTRY,
+    FLIGHT_ARRIVAL_DATE,
+    FLIGHT_DEPARTURE_CITY,
+    FLIGHT_DEPARTURE_COUNTRY,
+    FLIGHT_DEPARTURE_DATE,
+    FLIGHT_ID,
+    FLIGHT_SETTINGS,
+    LIMIT,
+    OFFSET,
+)
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 
@@ -23,16 +23,16 @@ from flights.serializers import FlightSerializer
     list=extend_schema(
         summary="Список рейсов",
         description="Получение списка всех рейсов",
-        tags=[flight_settings["name"]],
+        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[
-            limit,
-            offset,
-            flight_departure_country,
-            flight_departure_city,
-            flight_departure_date,
-            flight_arrival_country,
-            flight_arrival_city,
-            flight_arrival_date,
+            LIMIT,
+            OFFSET,
+            FLIGHT_DEPARTURE_COUNTRY,
+            FLIGHT_DEPARTURE_CITY,
+            FLIGHT_DEPARTURE_DATE,
+            FLIGHT_ARRIVAL_COUNTRY,
+            FLIGHT_ARRIVAL_CITY,
+            FLIGHT_ARRIVAL_DATE,
         ],
         responses={
             200: FlightSerializer(many=True),
@@ -43,7 +43,7 @@ from flights.serializers import FlightSerializer
         summary="Добавление рейса",
         description="Создание новой рейса",
         request=FlightSerializer,
-        tags=[flight_settings["name"]],
+        tags=[FLIGHT_SETTINGS["name"]],
         responses={
             201: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -52,8 +52,8 @@ from flights.serializers import FlightSerializer
     retrieve=extend_schema(
         summary="Информация о рейсе",
         description="Получение информации о рейсе через идентификатор",
-        tags=[flight_settings["name"]],
-        parameters=[flight_id],
+        tags=[FLIGHT_SETTINGS["name"]],
+        parameters=[FLIGHT_ID],
         responses={
             200: FlightSerializer,
             404: OpenApiResponse(description="Заявка не найдена"),
@@ -63,8 +63,8 @@ from flights.serializers import FlightSerializer
         summary="Полное обновление рейса",
         description="Обновление всех полей рейса",
         request=FlightSerializer,
-        tags=[flight_settings["name"]],
-        parameters=[flight_id],
+        tags=[FLIGHT_SETTINGS["name"]],
+        parameters=[FLIGHT_ID],
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -75,8 +75,8 @@ from flights.serializers import FlightSerializer
         summary="Частичное обновление рейса",
         description="Обновление отдельных полей рейса",
         request=FlightSerializer,
-        tags=[flight_settings["name"]],
-        parameters=[flight_id],
+        tags=[FLIGHT_SETTINGS["name"]],
+        parameters=[FLIGHT_ID],
         responses={
             200: FlightSerializer,
             400: OpenApiResponse(description="Ошибка валидации"),
@@ -86,8 +86,8 @@ from flights.serializers import FlightSerializer
     destroy=extend_schema(
         summary="Удаление рейса",
         description="Полное удаление рейса",
-        tags=[flight_settings["name"]],
-        parameters=[flight_id],
+        tags=[FLIGHT_SETTINGS["name"]],
+        parameters=[FLIGHT_ID],
         responses={
             204: OpenApiResponse(description="Рейса удален"),
             404: OpenApiResponse(description="Рейс не найден"),

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Any
 
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ImageField, ModelSerializer
@@ -107,7 +107,7 @@ class RoomDetailSerializer(RoomBaseSerializer):
             "calendar_dates",
         )
 
-    def get_calendar_dates(self, obj: Room) -> List[Dict[str, Any]]:
+    def get_calendar_dates(self, obj: Room) -> list[dict[str, Any]]:
         calendar_dates = obj.calendar_dates.all().order_by("start_date").distinct()
         context = self.context.copy()
         context["room"] = obj

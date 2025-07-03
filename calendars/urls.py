@@ -2,7 +2,6 @@ from django.urls import path
 
 from calendars.views import PriceCalendarViewSet
 
-
 urlpatterns = [
     path(
         "<int:hotel_id>/price_calendars/",

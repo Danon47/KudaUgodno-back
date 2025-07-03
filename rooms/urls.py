@@ -2,7 +2,6 @@ from django.urls import path
 
 from rooms.views import RoomPhotoViewSet, RoomViewSet
 
-
 urlpatterns = [
     path(
         "<int:hotel_id>/rooms/",

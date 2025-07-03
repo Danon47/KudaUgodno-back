@@ -3,8 +3,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.choices import (
+    ContactPriorityChoices,
+    CurrencyChoices,
+    LanguageChoices,
+    RoleChoices,
+)
+from all_fixture.views_fixture import NULLABLE
 from users.managers import CustomUserManager
 
 

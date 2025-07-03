@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from flights.models import Flight
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
@@ -92,7 +92,10 @@ class Tour(models.Model):
         decimal_places=2,
         verbose_name="Стоимость тура",
         help_text="Введите стоимость тура",
-        validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("9999999.99"))],
+        validators=[
+            MinValueValidator(Decimal("0")),
+            MaxValueValidator(Decimal("9999999.99")),
+        ],
         **NULLABLE,
     )
     stock = models.ForeignKey(
@@ -143,7 +146,10 @@ class TourDocument(models.Model):
         blank=True,
     )
     document = models.FileField(
-        upload_to="tour/documents", verbose_name="Документы", help_text="Загрузите документы по туру", **NULLABLE
+        upload_to="tour/documents",
+        verbose_name="Документы",
+        help_text="Загрузите документы по туру",
+        **NULLABLE,
     )
 
     class Meta:
@@ -166,7 +172,10 @@ class TourStock(models.Model):
         "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("99999.99"))],
+        validators=[
+            MinValueValidator(Decimal("0.01")),
+            MaxValueValidator(Decimal("99999.99")),
+        ],
     )
     end_date = models.DateField(verbose_name="Дата окончания скидки", help_text="Введите дату окончания скидки")
 

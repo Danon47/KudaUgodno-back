@@ -1,5 +1,3 @@
-from typing import Dict
-
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -12,7 +10,7 @@ from rest_framework.serializers import (
     SlugRelatedField,
 )
 
-from all_fixture.fixture_views import decimal_ivalid
+from all_fixture.errors.list_error import DECIMAL_INVALID
 from flights.serializers import FlightSerializer
 from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
@@ -34,7 +32,7 @@ class TourSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость тура",
-        error_messages=decimal_ivalid,
+        error_messages=DECIMAL_INVALID,
     )
 
     class Meta:
@@ -109,7 +107,7 @@ class TourPopularSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость минимального популярного тура",
-        error_messages=decimal_ivalid,
+        error_messages=DECIMAL_INVALID,
     )
 
     class Meta:
@@ -144,14 +142,14 @@ class TourShortSerializer(ModelSerializer):
         coerce_to_string=False,
         required=False,
         help_text="Стоимость горящего тура",
-        error_messages=decimal_ivalid,
+        error_messages=DECIMAL_INVALID,
     )
 
     class Meta:
         model = Tour
         fields = ("hotel", "price", "start_date", "end_date", "guests", "tour_operator")
 
-    def get_guests(self, obj) -> Dict[str, int]:
+    def get_guests(self, obj) -> dict[str, int]:
         return {
             "number_of_adults": obj.number_of_adults,
             "number_of_children": obj.number_of_children,

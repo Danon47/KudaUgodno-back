@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from promocodes.views import PromoCodeCheckView, PromocodesModelViewSet, PromocodesPhotoModelViewSet
 
-
 router = DefaultRouter()
 router.register(r"promocodes", PromocodesModelViewSet, basename="promocodes")
 router.register(r"promocodesphoto", PromocodesPhotoModelViewSet, basename="promocodesphoto")

@@ -1,7 +1,7 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from users.models import User
 
 
@@ -25,7 +25,10 @@ class Guest(PersonBase):
         verbose_name="Серия/номер российского паспорта",
         help_text="Формат: XXXX XXXXXX",
         validators=[
-            RegexValidator(regex=r"^[0-9]{4} [0-9]{6}$", message="Введите серия/номер в формате: XXXX XXXXXX")
+            RegexValidator(
+                regex=r"^[0-9]{4} [0-9]{6}$",
+                message="Введите серия/номер в формате: XXXX XXXXXX",
+            )
         ],
         **NULLABLE,
     )
@@ -34,7 +37,10 @@ class Guest(PersonBase):
         verbose_name="Серия/номер иностранного паспорта",
         help_text="Формат: XX XXXXXXXX",
         validators=[
-            RegexValidator(regex=r"^[0-9]{2} [0-9]{7}$", message="Введите серия/номер в формате: XX XXXXXXXX")
+            RegexValidator(
+                regex=r"^[0-9]{2} [0-9]{7}$",
+                message="Введите серия/номер в формате: XX XXXXXXXX",
+            )
         ],
         **NULLABLE,
     )
