@@ -8,6 +8,8 @@ from all_fixture.errors.list_error import (
     GUEST_ERROR,
     GUEST_USER_ERROR,
     INSURANCE_ERROR,
+    TOUR_ERROR,
+    TOUR_STOCK_ERROR,
 )
 
 
@@ -45,3 +47,19 @@ class GuestErrorUserSerializer(Serializer):
 
 class InsurancesErrorIdSerializer(Serializer):
     detail = CharField(default=INSURANCE_ERROR)
+
+
+class TourErrorBaseSerializer(Serializer):
+    detail = CharField()
+
+
+class TourErrorSerializer(Serializer):
+    detail = CharField(default=TOUR_ERROR)
+
+
+class TourStockErrorBaseSerializer(Serializer):
+    detail = CharField()
+
+
+class TourStockErrorSerializer(Serializer):
+    detail = CharField(default=TOUR_STOCK_ERROR)

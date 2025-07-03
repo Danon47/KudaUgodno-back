@@ -3,14 +3,14 @@ from rest_framework.routers import DefaultRouter
 
 from tours.apps import ToursConfig
 from tours.views import (
-    HotelAutocomplete,
-    RoomAutocomplete,
     TourFiltersView,
     TourHotView,
     TourPopularView,
+    ToursAutocompleteHotel,
+    ToursAutocompleteRoom,
+    ToursAutocompleteTypeOfMeal,
     TourStockViewSet,
     TourViewSet,
-    TypeOfMealAutocomplete,
 )
 
 app_name = ToursConfig.name
@@ -36,7 +36,19 @@ urlpatterns = [
         TourPopularView.as_view({"get": "list"}),
         name="tour-populars",
     ),
-    path("hotel-autocomplete/", HotelAutocomplete.as_view(), name="hotel_autocomplete"),
-    path("room-autocomplete/", RoomAutocomplete.as_view(), name="room_autocomplete"),
-    path("type-of-meal-autocomplete/", TypeOfMealAutocomplete.as_view(), name="type_of_meal_autocomplete"),
+    path(
+        "tours/autocomplete/hotels/",
+        ToursAutocompleteHotel.as_view(),
+        name="tour_autocomplete_hotels",
+    ),
+    path(
+        "tours/autocomplete/rooms/",
+        ToursAutocompleteRoom.as_view(),
+        name="tour_autocomplete_rooms",
+    ),
+    path(
+        "tours/autocomplete/type-of-meals/",
+        ToursAutocompleteTypeOfMeal.as_view(),
+        name="tour_autocomplete_type_of_meals",
+    ),
 ] + router.urls
