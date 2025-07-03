@@ -1,109 +1,221 @@
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+import logging
+
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import viewsets
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
-from all_fixture.views_fixture import GUEST_ID, GUEST_SETTINGS
+from all_fixture.errors.list_error import (
+    GUEST_ERROR,
+    GUEST_PERMISSION_ERROR,
+    GUEST_USER_ERROR,
+)
+from all_fixture.errors.serializers_error import (
+    GuestErrorAuthSerializer,
+    GuestErrorBaseSerializer,
+    GuestErrorUserSerializer,
+)
+from all_fixture.views_fixture import GUEST_ID, GUEST_SETTINGS, ID_USER
 from guests.models import Guest
 from guests.serializers import GuestDetailSerializer, GuestSerializer
+from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
+class UserRelatedViewSet(viewsets.ModelViewSet):
+    user_lookup_field = "user_id"
+    error_message = None
+
+    def get_user(self):
+        if not hasattr(self, "_user_id"):
+            user_id = self.kwargs.get(self.user_lookup_field)
+            try:
+                return User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                raise NotFound({"detail": GUEST_USER_ERROR}) from None
+        return self._user_id
+
+    def check_permissions_for_user(self, user):
+        """Проверяет, может ли текущий пользователь работать с указанным user_id."""
+        if user is None or self.request.user.is_superuser:
+            return
+        if user.id != self.request.user.id:
+            logger.warning(f"Пользователь {self.request.user.id} пытался получить доступ к данным user_id={user.id}")
+            raise PermissionDenied({"detail": GUEST_PERMISSION_ERROR}) from None
+
+
+@extend_schema(tags=[GUEST_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список гостей",
         description="Получение списка всех гостей. Доступен только авторизованным пользователям.",
-        tags=[GUEST_SETTINGS["name"]],
+        parameters=[ID_USER],
         responses={
-            200: GuestSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
-            401: OpenApiResponse(description="Пользователь не авторизован"),
+            200: OpenApiResponse(
+                response=GuestSerializer(many=True),
+                description="Успешное получение всех гостей",
+            ),
+            401: OpenApiResponse(
+                response=GuestErrorAuthSerializer,
+                description="Ошибка: Пользователь не авторизирован",
+            ),
+            404: OpenApiResponse(
+                response=GuestErrorUserSerializer,
+                description="Ошибка: Турист не найден",
+            ),
         },
     ),
     create=extend_schema(
         summary="Добавление Гостя",
         description="Создание нового Гостя. Доступно только авторизованным пользователям.",
         request=GuestDetailSerializer,
-        tags=[GUEST_SETTINGS["name"]],
+        parameters=[ID_USER],
         responses={
-            201: GuestSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            401: OpenApiResponse(description="Пользователь не авторизован"),
+            201: OpenApiResponse(
+                response=GuestSerializer,
+                description="Успешное создание гостя",
+            ),
+            401: OpenApiResponse(
+                response=GuestErrorAuthSerializer,
+                description="Ошибка: Пользователь не авторизирован",
+            ),
+            404: OpenApiResponse(
+                response=GuestErrorUserSerializer,
+                description="Ошибка: Турист не найден",
+            ),
         },
     ),
     retrieve=extend_schema(
         summary="Информация о Госте",
         description="Получение информации о Госте через идентификатор. Доступно только авторизованным пользователям.",
-        tags=[GUEST_SETTINGS["name"]],
-        parameters=[GUEST_ID],
+        parameters=[ID_USER, GUEST_ID],
         responses={
-            200: GuestSerializer,
-            404: OpenApiResponse(description="Гость не найден"),
-            401: OpenApiResponse(description="Пользователь не авторизован"),
+            200: OpenApiResponse(
+                response=GuestSerializer,
+                description="Успешное получение информации о госте",
+            ),
+            401: OpenApiResponse(
+                response=GuestErrorAuthSerializer,
+                description="Ошибка: Пользователь не авторизирован",
+            ),
+            404: OpenApiResponse(
+                response=GuestErrorBaseSerializer,
+                description="Ошибка при удалении гостя",
+                examples=[
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Гость не найден",
+                        value={"detail": GUEST_ERROR},
+                    ),
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Турист не найден",
+                        value={"detail": GUEST_USER_ERROR},
+                    ),
+                ],
+            ),
         },
     ),
     update=extend_schema(
         summary="Полное обновление Гостя",
         description="Обновление всех полей Гостя. Доступно только авторизованным пользователям.",
         request=GuestDetailSerializer,
-        tags=[GUEST_SETTINGS["name"]],
-        parameters=[GUEST_ID],
+        parameters=[ID_USER, GUEST_ID],
         responses={
-            200: GuestSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Гость не найден"),
-            401: OpenApiResponse(description="Пользователь не авторизован"),
+            200: OpenApiResponse(
+                response=GuestSerializer,
+                description="Гость успешно обновлен",
+            ),
+            401: OpenApiResponse(
+                response=GuestErrorAuthSerializer,
+                description="Ошибка: Пользователь не авторизирован",
+            ),
+            404: OpenApiResponse(
+                response=GuestErrorBaseSerializer,
+                description="Ошибка при удалении гостя",
+                examples=[
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Гость не найден",
+                        value={"detail": GUEST_ERROR},
+                    ),
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Турист не найден",
+                        value={"detail": GUEST_USER_ERROR},
+                    ),
+                ],
+            ),
         },
     ),
     destroy=extend_schema(
         summary="Удаление Гостя",
         description="Полное удаление Гостя. Доступно только авторизованным пользователям.",
-        tags=[GUEST_SETTINGS["name"]],
-        parameters=[GUEST_ID],
+        parameters=[ID_USER, GUEST_ID],
         responses={
-            204: OpenApiResponse(description="Гость удален"),
-            404: OpenApiResponse(description="Гость не найден"),
-            401: OpenApiResponse(description="Пользователь не авторизован"),
+            204: OpenApiResponse(
+                description="Гость удален",
+            ),
+            401: OpenApiResponse(
+                response=GuestErrorAuthSerializer,
+                description="Ошибка: Пользователь не авторизирован",
+            ),
+            404: OpenApiResponse(
+                response=GuestErrorBaseSerializer,
+                description="Ошибка при удалении гостя",
+                examples=[
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Гость не найден",
+                        value={"detail": GUEST_ERROR},
+                    ),
+                    OpenApiExample(
+                        response_only=True,
+                        name="Ошибка: Турист не найден",
+                        value={"detail": GUEST_USER_ERROR},
+                    ),
+                ],
+            ),
         },
     ),
 )
-class GuestViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+class GuestViewSet(UserRelatedViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = Guest.objects.none()
-
-    http_method_names = ["get", "post", "put", "delete", "head", "options", "trace"]
+    error_message = GUEST_ERROR
 
     def get_queryset(self):
-        user_id = self.kwargs.get("user_id")
+        """Фильтрует гостей по user_id или возвращает всех для суперпользователя."""
+        user = self.get_user()
 
         if self.request.user.is_superuser:
-            # Админ может видеть всех гостей, опционально по user_id
-            if user_id is not None:
-                return Guest.objects.filter(user_owner_id=user_id)
+            if user is not None:
+                return Guest.objects.filter(user_owner=user)
             return Guest.objects.all()
 
-        # Обычный пользователь видит только своих гостей
-        if user_id is not None and int(user_id) != self.request.user.id:
-            return Guest.objects.none()  # Нельзя получить чужих гостей
-
+        self.check_permissions_for_user(user)
         return Guest.objects.filter(user_owner=self.request.user)
 
-    def get_object(self):
-        try:
-            return Guest.objects.get(pk=self.kwargs["pk"], user_owner_id=self.kwargs["user_id"])
-        except Guest.DoesNotExist:
-            raise NotFound("Гость не найден") from None
-
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
+        if self.action in ("create", "update", "partial_update"):
             return GuestDetailSerializer
         return GuestSerializer
 
     def perform_create(self, serializer):
-        # Привязываем к user_id из URL (если админ) или к текущему пользователю
-        user_id = self.kwargs.get("user_id")
+        user = self.get_user()
+        serializer.save(user_owner=user)
 
-        # Безопасность: обычные пользователи не могут создавать гостя другому юзеру
-        if not self.request.user.is_superuser and int(user_id) != self.request.user.id:
-            raise PermissionDenied("Нельзя создавать гостя другому пользователю")
-
-        serializer.save(user_owner_id=user_id)
+    def get_object(self):
+        user = self.get_user()
+        try:
+            return Guest.objects.select_related("user_owner").get(
+                pk=self.kwargs["pk"], user_owner=user or self.request.user
+            )
+        except Guest.DoesNotExist:
+            raise NotFound({"detail": self.error_message}) from None
