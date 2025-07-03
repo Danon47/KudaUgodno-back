@@ -1,4 +1,4 @@
-from rest_framework.serializers import CharField, Serializer
+from rest_framework.serializers import CharField, ListField, Serializer
 
 from all_fixture.errors.list_error import (
     APPLICATION_HOTEL_ERROR,
@@ -7,7 +7,12 @@ from all_fixture.errors.list_error import (
     GUEST_AUTH_ERROR,
     GUEST_ERROR,
     GUEST_USER_ERROR,
+    HOTEL_ID_ERROR,
     INSURANCE_ERROR,
+    PHOTO_ERROR,
+    PHOTO_FILE_ERROR,
+    ROOM_DATE_ERROR,
+    ROOM_ID_ERROR,
     TOUR_ERROR,
     TOUR_STOCK_ERROR,
 )
@@ -63,3 +68,31 @@ class TourStockErrorBaseSerializer(Serializer):
 
 class TourStockErrorSerializer(Serializer):
     detail = CharField(default=TOUR_STOCK_ERROR)
+
+
+class RoomBaseEroorSerializer(Serializer):
+    detail = CharField()
+
+
+class RoomErrorIdSerializer(Serializer):
+    detail = CharField(default=ROOM_ID_ERROR)
+
+
+class RoomPhotoErrorIdSerializer(Serializer):
+    detail = CharField(default=PHOTO_ERROR)
+
+
+class RoomPhotoErrorFileSerializer(Serializer):
+    photo = ListField(child=CharField(), default=[PHOTO_FILE_ERROR])
+
+
+class RoomDateErrorBaseSerializer(Serializer):
+    detail = CharField()
+
+
+class RoomDateErrorHotelIdSerializer(Serializer):
+    dateil = CharField(default=HOTEL_ID_ERROR)
+
+
+class RoomDateErrorSerializer(Serializer):
+    dateil = CharField(default=ROOM_DATE_ERROR)

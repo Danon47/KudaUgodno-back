@@ -38,6 +38,10 @@ ROOM_PHOTO_SETTINGS = {
     "name": "Фотографии номера",
     "description": "Методы для работы с фотографиями номеров",
 }
+ROOM_RULES_SETTINGS = {
+    "name": "Правила номеров",
+    "description": "Методы для работы с правилами номеров",
+}
 FLIGHT_SETTINGS = {
     "name": "Рейсы",
     "description": "Методы для работы с рейсами",
