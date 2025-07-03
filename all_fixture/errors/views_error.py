@@ -5,11 +5,20 @@ from all_fixture.errors.list_error import (
     DECIMAL_ERROR,
     FLIGHT_ERROR,
     HOTEL_ID_ERROR,
+    HOTEL_LONGITUDE_MAX_ERROR,
+    HOTEL_LONGITUDE_MIN_ERROR,
+    HOTEL_MAX_DISTANCE_ERROR,
+    HOTEL_MAX_STAR_ERROR,
+    HOTEL_RATING_MAX_ERROR,
+    HOTEL_RATING_MIN_ERROR,
+    HOTEL_WIDTH_MAX_ERROR,
+    HOTEL_WIDTH_MIN_ERROR,
     MAILING_EMAIL_ERROR,
     MAILING_ID_ERROR,
     MIN_ERROR,
     PHOTO_ERROR,
     ROOM_ID_ERROR,
+    TIME_ERROR,
     TOUR_MAX_PRICE_ERROR,
     TOUR_STOCK_DISCOUNT_MAX_ERROR,
     TOUR_STOCK_DISCOUNT_MIN_ERROR,
@@ -17,11 +26,14 @@ from all_fixture.errors.list_error import (
     TYPE_OF_MEAL_ERROR,
 )
 from all_fixture.errors.serializers_error import (
+    HotelBaseErrorSerializer,
+    HotelPhotoErrorBaseSerializer,
     MailingErrorSerializer,
     RoomBaseEroorSerializer,
     RoomDateErrorBaseSerializer,
     TourErrorBaseSerializer,
     TourStockErrorBaseSerializer,
+    TypeOfMealErrorIdSerializer,
 )
 
 MAILING_400 = OpenApiResponse(
@@ -485,6 +497,179 @@ ROOM_PHOTO_DESTROY_404 = OpenApiResponse(
             response_only=True,
             name="Ошибка: Фотография в номере не найдена",
             value={"detail": PHOTO_ERROR},
+        ),
+    ],
+)
+
+HOTEL_UPDATE_404 = OpenApiResponse(
+    response=HotelBaseErrorSerializer,
+    description="Ошибки при обновлении отеля",
+    examples=[
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Кол-во звёзд не может быть меньше 0.",
+            value={"star_category": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Кол-во звёзд не может быть больше 5.",
+            value={"star_category": [HOTEL_MAX_STAR_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до вокзала не может быть меньше 0.",
+            value={"distance_to_the_station": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до вокзала не может быть больше 200000.",
+            value={"distance_to_the_station": [HOTEL_MAX_DISTANCE_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до моря не может быть меньше 0.",
+            value={"distance_to_the_sea": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до моря не может быть больше 200000.",
+            value={"distance_to_the_sea": [HOTEL_MAX_DISTANCE_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до центра не может быть меньше 0.",
+            value={"distance_to_the_center": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до центра не может быть больше 200000.",
+            value={"distance_to_the_center": [HOTEL_MAX_DISTANCE_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до метро не может быть меньше 0.",
+            value={"distance_to_the_metro": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до метро не может быть больше 200000.",
+            value={"distance_to_the_metro": [HOTEL_MAX_DISTANCE_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до аэропорта не может быть меньше 0.",
+            value={"distance_to_the_airport": [MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Расстояние до аэропорта не может быть больше 200000.",
+            value={"distance_to_the_airport": [HOTEL_MAX_DISTANCE_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Неправильный формат времени заезда",
+            value={"check_in_time": [TIME_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Неправильный формат времени выезда",
+            value={"check_out_time": [TIME_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Рейтинг не может быть меньше 0.0",
+            value={"user_rating": [HOTEL_RATING_MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Рейтинг не может быть больше 10.0",
+            value={"user_rating": [HOTEL_RATING_MAX_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Широта не может быть меньше -90.",
+            value={"width": [HOTEL_WIDTH_MAX_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Широта не может быть больше 90.",
+            value={"width": [HOTEL_WIDTH_MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Долгота не может быть меньше -180.",
+            value={"longitude": [HOTEL_LONGITUDE_MIN_ERROR]},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Долгота не может быть больше 180.",
+            value={"longitude": [HOTEL_LONGITUDE_MAX_ERROR]},
+        ),
+    ],
+)
+
+HOTEL_PHOTO_DESTROY_404 = OpenApiResponse(
+    response=HotelPhotoErrorBaseSerializer,
+    description="Ошибки при удалении фотографии в отеле",
+    examples=[
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Отель не найден",
+            value={"detail": HOTEL_ID_ERROR},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Фотография в отеле не найдена",
+            value={"detail": PHOTO_ERROR},
+        ),
+    ],
+)
+TYPE_OF_MEAL_RETRIEVE_404 = OpenApiResponse(
+    response=TypeOfMealErrorIdSerializer,
+    description="Ошибки при получении типа питания в отеле",
+    examples=[
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Отель не найден",
+            value={"detail": HOTEL_ID_ERROR},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Тип питания в отеле не найден",
+            value={"detail": TYPE_OF_MEAL_ERROR},
+        ),
+    ],
+)
+TYPE_OF_MEAL_UPDATE_404 = OpenApiResponse(
+    response=TypeOfMealErrorIdSerializer,
+    description="Ошибки при обновлении типа питания в отеле",
+    examples=[
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Отель не найден",
+            value={"detail": HOTEL_ID_ERROR},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Тип питания в отеле не найден",
+            value={"detail": TYPE_OF_MEAL_ERROR},
+        ),
+    ],
+)
+
+TYPE_OF_MEAL_DESTROY_404 = OpenApiResponse(
+    response=TypeOfMealErrorIdSerializer,
+    description="Ошибки при удалении типа питания в отеле",
+    examples=[
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Отель не найден",
+            value={"detail": HOTEL_ID_ERROR},
+        ),
+        OpenApiExample(
+            response_only=True,
+            name="Ошибка: Тип питания в отеле не найден",
+            value={"detail": TYPE_OF_MEAL_ERROR},
         ),
     ],
 )

@@ -15,6 +15,8 @@ from all_fixture.errors.list_error import (
     ROOM_ID_ERROR,
     TOUR_ERROR,
     TOUR_STOCK_ERROR,
+    TYPE_OF_MEAL_ERROR,
+    TYPE_OF_MEAL_NAME_ERROR,
 )
 
 
@@ -91,8 +93,40 @@ class RoomDateErrorBaseSerializer(Serializer):
 
 
 class RoomDateErrorHotelIdSerializer(Serializer):
-    dateil = CharField(default=HOTEL_ID_ERROR)
+    detail = CharField(default=HOTEL_ID_ERROR)
 
 
 class RoomDateErrorSerializer(Serializer):
-    dateil = CharField(default=ROOM_DATE_ERROR)
+    detail = CharField(default=ROOM_DATE_ERROR)
+
+
+class HotelBaseErrorSerializer(Serializer):
+    detail = CharField()
+
+
+class HotelErrorIdSerializer(Serializer):
+    detail = CharField(default=HOTEL_ID_ERROR)
+
+
+class HotelPhotoErrorBaseSerializer(Serializer):
+    detail = CharField()
+
+
+class HotelPhotoErrorIdSerializer(Serializer):
+    detail = CharField(default=PHOTO_ERROR)
+
+
+class HotelPhotoErrorFileSerializer(Serializer):
+    photo = ListField(child=CharField(), default=[PHOTO_FILE_ERROR])
+
+
+class TypeOfMealErrorBaseSerializer(Serializer):
+    detail = CharField()
+
+
+class TypeOfMealErrorIdSerializer(Serializer):
+    detail = CharField(default=TYPE_OF_MEAL_ERROR)
+
+
+class TypeOfMealErrorNameSerializer(Serializer):
+    detail = CharField(default=TYPE_OF_MEAL_NAME_ERROR)

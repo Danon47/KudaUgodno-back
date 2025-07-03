@@ -22,7 +22,6 @@ class Hotel(models.Model):
         max_length=100,
         verbose_name="Название отеля",
         help_text="Название отеля",
-        # unique=True,
     )
     star_category = models.IntegerField(
         verbose_name="Категория отеля",
@@ -151,6 +150,10 @@ class Hotel(models.Model):
         verbose_name="Пользовательская оценка",
         default=0.0,
         help_text="Пользовательская оценка",
+        validators=[
+            MinValueValidator(Decimal("0.0")),
+            MaxValueValidator(Decimal("10.0")),
+        ],
         **NULLABLE,
     )
     type_of_rest = models.CharField(
@@ -176,6 +179,7 @@ class Hotel(models.Model):
     width = models.FloatField(
         verbose_name="Широта",
         help_text="Широта (от -90 до 90)",
+        default="45.554477",
         validators=[
             MinValueValidator(Decimal("-90.0")),
             MaxValueValidator(Decimal("90.0")),
@@ -185,19 +189,13 @@ class Hotel(models.Model):
     longitude = models.FloatField(
         verbose_name="Долгота",
         help_text="Долгота (от -180 до 180)",
+        default="39.833333",
         validators=[
             MinValueValidator(Decimal("-180.0")),
             MaxValueValidator(Decimal("180.0")),
         ],
         **NULLABLE,
     )
-    # created_by = models.ForeignKey(
-    #     User,
-    #     on_delete=models.SET_NULL,
-    #     verbose_name="Создал отель",
-    #     help_text="Создал отель",
-    #     **NULLABLE,
-    # )
 
     class Meta:
         verbose_name = "Отель"
@@ -300,6 +298,7 @@ class TypeOfMeal(models.Model):
         verbose_name = "Тип питания"
         verbose_name_plural = "Типы питания"
         constraints = [models.UniqueConstraint(fields=["hotel", "name"], name="unique_type_of_meal_in_hotel")]
+        indexes = [models.Index(fields=["hotel", "name"])]
 
     def __str__(self):
         return f"{self.name} ({self.price})"

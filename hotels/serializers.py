@@ -1,6 +1,8 @@
 from datetime import datetime
+from decimal import Decimal
 
 from drf_spectacular.utils import extend_schema_field
+from rest_framework.fields import TimeField
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -13,6 +15,18 @@ from rest_framework.serializers import (
     SerializerMethodField,
 )
 
+from all_fixture.errors.list_error import (
+    HOTEL_LONGITUDE_MAX_ERROR,
+    HOTEL_LONGITUDE_MIN_ERROR,
+    HOTEL_MAX_DISTANCE_ERROR,
+    HOTEL_MAX_STAR_ERROR,
+    HOTEL_RATING_MAX_ERROR,
+    HOTEL_RATING_MIN_ERROR,
+    HOTEL_WIDTH_MAX_ERROR,
+    HOTEL_WIDTH_MIN_ERROR,
+    MIN_ERROR,
+    TIME_ERROR,
+)
 from hotels.models import Hotel, HotelPhoto, HotelRules, HotelWhatAbout
 from hotels.validators import DateValidator
 from rooms.serializers import RoomDetailSerializer
@@ -26,7 +40,10 @@ class HotelBaseSerializer(ModelSerializer):
 
     class Meta:
         model = Hotel
-        fields = ("id", "name")
+        fields = (
+            "id",
+            "name",
+        )
 
     def create(self, validated_data):
         return Hotel.objects.create(**validated_data)
@@ -39,7 +56,10 @@ class HotelRulesSerializer(ModelSerializer):
 
     class Meta:
         model = HotelRules
-        fields = ("name", "description")
+        fields = (
+            "name",
+            "description",
+        )
 
 
 class HotelDetailSerializer(ModelSerializer):
@@ -49,10 +69,92 @@ class HotelDetailSerializer(ModelSerializer):
     по добавлению отеля в архив методом PATCH.
     """
 
-    rules = HotelRulesSerializer(many=True, source="hotels_rules", required=False)
-    user_rating = FloatField(required=False)
-    width = DecimalField(required=False, max_digits=11, decimal_places=6)
-    longitude = DecimalField(required=False, max_digits=11, decimal_places=6)
+    rules = HotelRulesSerializer(
+        many=True,
+        source="hotels_rules",
+        required=False,
+    )
+    star_category = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=5,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_STAR_ERROR},
+    )
+    user_rating = FloatField(
+        required=False,
+        min_value=Decimal("0.0"),
+        max_value=Decimal("10.0"),
+        error_messages={
+            "min_value": HOTEL_RATING_MIN_ERROR,
+            "max_value": HOTEL_RATING_MAX_ERROR,
+        },
+    )
+    width = DecimalField(
+        required=False,
+        max_digits=11,
+        decimal_places=6,
+        min_value=Decimal("-90.0"),
+        max_value=Decimal("90.0"),
+        error_messages={
+            "min_value": HOTEL_WIDTH_MIN_ERROR,
+            "max_value": HOTEL_WIDTH_MAX_ERROR,
+        },
+    )
+    longitude = DecimalField(
+        required=False,
+        max_digits=11,
+        decimal_places=6,
+        min_value=Decimal("-180.0"),
+        max_value=Decimal("180.0"),
+        error_messages={
+            "min_value": HOTEL_LONGITUDE_MIN_ERROR,
+            "max_value": HOTEL_LONGITUDE_MAX_ERROR,
+        },
+    )
+    check_in_time = TimeField(
+        input_formats=["%H:%M"],
+        format="%H:%M",
+        error_messages={
+            "invalid": TIME_ERROR,
+        },
+    )
+    check_out_time = TimeField(
+        input_formats=["%H:%M"],
+        format="%H:%M",
+        error_messages={
+            "invalid": TIME_ERROR,
+        },
+    )
+    distance_to_the_station = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=200000,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+    )
+    distance_to_the_sea = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=200000,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+    )
+    distance_to_the_center = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=200000,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+    )
+    distance_to_the_metro = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=200000,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+    )
+    distance_to_the_airport = IntegerField(
+        required=False,
+        min_value=0,
+        max_value=200000,
+        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+    )
 
     class Meta:
         model = Hotel
@@ -109,8 +211,15 @@ class HotelPhotoSerializer(ModelSerializer):
 
     class Meta:
         model = HotelPhoto
-        fields = ("id", "photo", "hotel")
-        read_only_fields = ("id", "hotel")
+        fields = (
+            "id",
+            "photo",
+            "hotel",
+        )
+        read_only_fields = (
+            "id",
+            "hotel",
+        )
 
 
 class HotelListWithPhotoSerializer(HotelDetailSerializer):
@@ -135,18 +244,13 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
     Метод GET(list), GET id (retrieve).
     """
 
-    rooms = RoomDetailSerializer(many=True, read_only=True)
-    # created_by = SerializerMethodField()
+    rooms = RoomDetailSerializer(
+        many=True,
+        read_only=True,
+    )
 
     class Meta(HotelListWithPhotoSerializer.Meta):
-        fields = HotelListWithPhotoSerializer.Meta.fields + (
-            "rooms",
-            # "created_by",
-        )
-
-    # def get_created_by(self, obj):
-    #     # Например, возвращаем email пользователя
-    #     return obj.created_by.email if obj.created_by else None
+        fields = HotelListWithPhotoSerializer.Meta.fields + ("rooms",)
 
 
 class HotelShortPhotoSerializer(ModelSerializer):
@@ -169,12 +273,23 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
     Сериализатор для списка популярных туров.
     """
 
-    hotels_count = IntegerField(min_value=0, required=True)
-    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    hotels_count = IntegerField(
+        min_value=0,
+        required=True,
+    )
+    min_price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        coerce_to_string=False,
+    )
 
     class Meta:
         model = Hotel
-        fields = HotelShortPhotoSerializer.Meta.fields + ("country", "min_price", "hotels_count")
+        fields = HotelShortPhotoSerializer.Meta.fields + (
+            "country",
+            "min_price",
+            "hotels_count",
+        )
 
 
 class HotelShortSerializer(HotelShortPhotoSerializer):
@@ -206,7 +321,10 @@ class HotelWhatAboutFullSerializer(ModelSerializer):
 
     class Meta:
         model = HotelWhatAbout
-        fields = ("name_set", "hotel")
+        fields = (
+            "name_set",
+            "hotel",
+        )
 
 
 class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
@@ -251,8 +369,6 @@ class HotelFiltersRequestSerializer(Serializer):
     Сериализатор для параметров расширенного поиска (все поля необязательные).
     """
 
-    # Параметры фильтрации верхнего поиска
-    hotel_city = CharField(required=False)
     check_in_date = DateField(
         required=False,
         input_formats=["%Y-%m-%d"],
@@ -263,14 +379,40 @@ class HotelFiltersRequestSerializer(Serializer):
         input_formats=["%Y-%m-%d"],
         error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
     )
-    guests = IntegerField(min_value=1, required=False)
-
-    # Параметры фильтрации отеля
-    city = CharField(required=False)
-    type_of_rest = CharField(required=False)
-    place = CharField(required=False)
-    price_gte = IntegerField(min_value=1, required=False)
-    price_lte = IntegerField(min_value=0, required=False)
-    user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, max_value=5, required=False)
-    validators = [DateValidator(check_in_field="check_in_date", check_out_field="check_out_date")]
+    guests = IntegerField(
+        min_value=1,
+        required=False,
+    )
+    city = CharField(
+        required=False,
+    )
+    type_of_rest = CharField(
+        required=False,
+    )
+    place = CharField(
+        required=False,
+    )
+    price_gte = IntegerField(
+        min_value=1,
+        required=False,
+    )
+    price_lte = IntegerField(
+        min_value=0,
+        required=False,
+    )
+    user_rating = FloatField(
+        min_value=0,
+        max_value=10,
+        required=False,
+    )
+    star_category = IntegerField(
+        min_value=0,
+        max_value=5,
+        required=False,
+    )
+    validators = [
+        DateValidator(
+            check_in_field="check_in_date",
+            check_out_field="check_out_date",
+        )
+    ]
