@@ -7,6 +7,7 @@ from all_fixture.errors.list_error import (
     GUEST_AUTH_ERROR,
     GUEST_ERROR,
     GUEST_USER_ERROR,
+    INSURANCE_ERROR,
 )
 
 
@@ -40,3 +41,7 @@ class GuestErrorAuthSerializer(Serializer):
 
 class GuestErrorUserSerializer(Serializer):
     detail = CharField(default=GUEST_USER_ERROR)
+
+
+class InsurancesErrorIdSerializer(Serializer):
+    detail = CharField(default=INSURANCE_ERROR)
