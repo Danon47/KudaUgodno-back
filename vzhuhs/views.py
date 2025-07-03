@@ -29,14 +29,7 @@ logger = logging.getLogger(__name__)
                 type=str,
                 location=OpenApiParameter.QUERY,
                 description="Фильтр по городу вылета",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="id",
-                type=int,
-                location=OpenApiParameter.QUERY,
-                description="Фильтр по ID Вжуха",
-                required=False,
+                required=True,
             ),
         ],
     ),
@@ -44,15 +37,9 @@ logger = logging.getLogger(__name__)
 )
 class VzhuhViewSet(ReadOnlyModelViewSet):
     """
-    Представление только для чтения (ReadOnly) опубликованных объектов модели Vzhuh.
+    - Возвращает только записи с `is_published=True`.
 
-    - Использует сериализатор `VzhuhSerializer`
-
-    - Возвращает только записи с `is_published=True`
-
-    - Эндпоинт отображается в Swagger как "Список Вжухов"
-
-    - Добавлена фильтрация по `departure_city` - городу отправления
+    - Добавлена фильтрация по `departure_city` - городу отправления, поле обязательное.
     """
 
     queryset = Vzhuh.objects.none()
