@@ -56,10 +56,22 @@ class Flight(models.Model):
         verbose_name="Аэропорт прибытия",
         help_text="Введите аэропорт прибытия",
     )
-    departure_date = models.DateField(verbose_name="Дата вылета", help_text="Введите дату вылета")
-    departure_time = models.TimeField(verbose_name="Время вылета", help_text="Введите время вылета")
-    arrival_date = models.DateField(verbose_name="Дата прибытия", help_text="Введите дату прибытия")
-    arrival_time = models.TimeField(verbose_name="Время прибытия", help_text="Введите время прибытия")
+    departure_date = models.DateField(
+        verbose_name="Дата вылета",
+        help_text="Введите дату вылета",
+    )
+    departure_time = models.TimeField(
+        verbose_name="Время вылета",
+        help_text="Введите время вылета",
+    )
+    arrival_date = models.DateField(
+        verbose_name="Дата прибытия",
+        help_text="Введите дату прибытия",
+    )
+    arrival_time = models.TimeField(
+        verbose_name="Время прибытия",
+        help_text="Введите время прибытия",
+    )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,

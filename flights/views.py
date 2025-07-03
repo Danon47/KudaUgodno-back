@@ -1,7 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.exceptions import NotFound
 
+from all_fixture.errors.list_error import FLIGHT_ERROR
+from all_fixture.errors.serializers_error import FlightErrorIdSerializer
 from all_fixture.pagination import CustomLOPagination
 from all_fixture.views_fixture import (
     FLIGHT_ARRIVAL_CITY,
@@ -19,11 +22,11 @@ from flights.models import Flight
 from flights.serializers import FlightSerializer
 
 
+@extend_schema(tags=[FLIGHT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список рейсов",
         description="Получение списка всех рейсов",
-        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[
             LIMIT,
             OFFSET,
@@ -35,62 +38,82 @@ from flights.serializers import FlightSerializer
             FLIGHT_ARRIVAL_DATE,
         ],
         responses={
-            200: FlightSerializer(many=True),
-            400: OpenApiResponse(description="Ошибка запроса"),
+            200: OpenApiResponse(
+                response=FlightSerializer(many=True),
+                description="Успешное получение всех рейсов",
+            ),
         },
     ),
     create=extend_schema(
         summary="Добавление рейса",
         description="Создание новой рейса",
-        request=FlightSerializer,
-        tags=[FLIGHT_SETTINGS["name"]],
+        request={"multipart/form-data": FlightSerializer},
         responses={
-            201: FlightSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
+            201: OpenApiResponse(
+                response=FlightSerializer,
+                description="Успешное создание рейса",
+            ),
         },
     ),
     retrieve=extend_schema(
         summary="Информация о рейсе",
         description="Получение информации о рейсе через идентификатор",
-        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[FLIGHT_ID],
         responses={
-            200: FlightSerializer,
-            404: OpenApiResponse(description="Заявка не найдена"),
+            200: OpenApiResponse(
+                response=FlightSerializer,
+                description="Успешное получение информации о рейсе",
+            ),
+            404: OpenApiResponse(
+                response=FlightErrorIdSerializer,
+                description="Ошибка: рейс не найден",
+            ),
         },
     ),
     update=extend_schema(
         summary="Полное обновление рейса",
         description="Обновление всех полей рейса",
         request=FlightSerializer,
-        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[FLIGHT_ID],
         responses={
-            200: FlightSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рейс не найден"),
+            200: OpenApiResponse(
+                response=FlightSerializer,
+                description="Успешное обновление рейса",
+            ),
+            404: OpenApiResponse(
+                response=FlightErrorIdSerializer,
+                description="Ошибка: рейс не найден",
+            ),
         },
     ),
     partial_update=extend_schema(
         summary="Частичное обновление рейса",
         description="Обновление отдельных полей рейса",
         request=FlightSerializer,
-        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[FLIGHT_ID],
         responses={
-            200: FlightSerializer,
-            400: OpenApiResponse(description="Ошибка валидации"),
-            404: OpenApiResponse(description="Рейс не найден"),
+            200: OpenApiResponse(
+                response=FlightSerializer,
+                description="Успешное обновление рейса",
+            ),
+            404: OpenApiResponse(
+                response=FlightErrorIdSerializer,
+                description="Ошибка: рейс не найден",
+            ),
         },
     ),
     destroy=extend_schema(
         summary="Удаление рейса",
         description="Полное удаление рейса",
-        tags=[FLIGHT_SETTINGS["name"]],
         parameters=[FLIGHT_ID],
         responses={
-            204: OpenApiResponse(description="Рейса удален"),
-            404: OpenApiResponse(description="Рейс не найден"),
+            204: OpenApiResponse(
+                description="Успешное удаление рейса",
+            ),
+            404: OpenApiResponse(
+                response=FlightErrorIdSerializer,
+                description="Ошибка: рейс не найден",
+            ),
         },
     ),
 )
@@ -108,3 +131,9 @@ class FlightViewSet(viewsets.ModelViewSet):
         "arrival_date",
         "flight_number",
     )
+
+    def get_object(self):
+        try:
+            return Flight.objects.get(pk=self.kwargs["pk"])
+        except Flight.DoesNotExist:
+            raise NotFound(FLIGHT_ERROR) from None

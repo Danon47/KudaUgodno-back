@@ -3,6 +3,7 @@ from rest_framework.serializers import CharField, Serializer
 from all_fixture.errors.list_error import (
     APPLICATION_HOTEL_ERROR,
     APPLICATION_TOUR_ERROR,
+    FLIGHT_ERROR,
 )
 
 
@@ -16,3 +17,7 @@ class ApplicationHotelErrorIdSerializer(Serializer):
 
 class ApplicationTourErrorIdSerializer(Serializer):
     detail = CharField(default=APPLICATION_TOUR_ERROR)
+
+
+class FlightErrorIdSerializer(Serializer):
+    detail = CharField(default=FLIGHT_ERROR)
