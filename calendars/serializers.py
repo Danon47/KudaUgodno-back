@@ -97,5 +97,5 @@ class CalendarDateSerializer(ModelSerializer):
 
     def validate(self, data):
         if data["start_date"] > data["end_date"]:
-            raise ValidationError("Дата окончания должна быть позже даты начала")
+            raise ValidationError("Дата окончания должна быть позже даты начала") from None
         return data
