@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -48,18 +49,20 @@ class TourSerializer(ModelSerializer):
     start_date = DateField(
         format="%Y-%m-%d",
         input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": DATE_ERROR},
+        error_messages={
+            "invalid": DATE_ERROR,
+        },
     )
     end_date = DateField(
         format="%Y-%m-%d",
         input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": DATE_ERROR},
+        error_messages={
+            "invalid": DATE_ERROR,
+        },
     )
-
     price = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
         required=False,
         help_text="Стоимость тура",
         min_value=Decimal("0.00"),
@@ -93,8 +96,15 @@ class TourSerializer(ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("created_at", "updated_at")
-        validators = [StartDateValidator(), EndDateValidator(), PriceValidator()]
+        read_only_fields = (
+            "created_at",
+            "updated_at",
+        )
+        validators = [
+            StartDateValidator(),
+            EndDateValidator(),
+            PriceValidator(),
+        ]
 
         extra_kwargs = {
             "flight_to": {
@@ -162,11 +172,17 @@ class TourListSerializer(TourSerializer):
     """
 
     hotel = HotelListWithPhotoSerializer()
-    rooms = RoomDetailSerializer(many=True, read_only=True)
-    type_of_meals = TypeOfMealSerializer(many=True, read_only=True)
     tour_operator = SerializerMethodField()
     flight_to = FlightSerializer()
     flight_from = FlightSerializer()
+    rooms = RoomDetailSerializer(
+        many=True,
+        read_only=True,
+    )
+    type_of_meals = TypeOfMealSerializer(
+        many=True,
+        read_only=True,
+    )
 
     class Meta(TourSerializer.Meta):
         fields = TourSerializer.Meta.fields
@@ -181,11 +197,13 @@ class TourPopularSerializer(ModelSerializer):
     """
 
     photo = SerializerMethodField()
-    tours_count = IntegerField(min_value=0, required=True)
+    tours_count = IntegerField(
+        min_value=0,
+        required=True,
+    )
     price = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
         required=False,
         help_text="Стоимость минимального популярного тура",
         error_messages=DECIMAL_INVALID,
@@ -193,7 +211,12 @@ class TourPopularSerializer(ModelSerializer):
 
     class Meta:
         model = Tour
-        fields = ("arrival_country", "photo", "price", "tours_count")
+        fields = (
+            "arrival_country",
+            "photo",
+            "price",
+            "tours_count",
+        )
 
     def get_photo(self, obj) -> str:
         """
@@ -220,7 +243,6 @@ class TourShortSerializer(ModelSerializer):
     price = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
         required=False,
         help_text="Стоимость горящего тура",
         error_messages=DECIMAL_INVALID,
@@ -228,9 +250,26 @@ class TourShortSerializer(ModelSerializer):
 
     class Meta:
         model = Tour
-        fields = ("hotel", "price", "start_date", "end_date", "guests", "tour_operator")
+        fields = (
+            "hotel",
+            "price",
+            "start_date",
+            "end_date",
+            "guests",
+            "tour_operator",
+        )
 
-    def get_guests(self, obj) -> dict[str, int]:
+    @extend_schema_field(
+        {
+            "type": "string",
+            "format": "string",
+            "example": {
+                "number_of_adults": 2,
+                "number_of_children": 1,
+            },
+        }
+    )
+    def get_guests(self, obj: Tour):
         return {
             "number_of_adults": obj.number_of_adults,
             "number_of_children": obj.number_of_children,
@@ -240,31 +279,73 @@ class TourShortSerializer(ModelSerializer):
 class TourStockSerializer(ModelSerializer):
     class Meta:
         model = TourStock
-        fields = ("id", "active_stock", "end_date", "discount_amount")
+        fields = (
+            "id",
+            "active_stock",
+            "end_date",
+            "discount_amount",
+        )
 
 
 class TourFiltersRequestSerializer(Serializer):
     """Сериализатор для параметров расширенного поиска (все поля необязательные)."""
 
     # Параметры фильтрации верхнего поиска
-    departure_city = CharField(required=False)
-    arrival_city = CharField(required=False)
+    departure_city = CharField(
+        required=False,
+    )
+    arrival_city = CharField(
+        required=False,
+    )
     start_date = DateField(
         required=False,
         input_formats=["%Y-%m-%d"],
         error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
     )
-    nights = IntegerField(min_value=1, required=False)
-    guests = IntegerField(min_value=1, required=False)
+    nights = IntegerField(
+        min_value=1,
+        required=False,
+    )
+    guests = IntegerField(
+        min_value=1,
+        required=False,
+    )
 
     # Параметры фильтрации
-    city = CharField(required=False)
-    type_of_rest = CharField(required=False)
-    place = CharField(required=False)
-    price_gte = IntegerField(min_value=0, required=False)
-    price_lte = IntegerField(min_value=0, required=False)
-    user_rating = FloatField(min_value=0, max_value=10, required=False)
-    star_category = IntegerField(min_value=0, max_value=5, required=False)
-    distance_to_the_airport = IntegerField(min_value=0, required=False)
-    tour_operator = CharField(required=False)
-    validators = [StartDateValidator()]
+    city = CharField(
+        required=False,
+    )
+    type_of_rest = CharField(
+        required=False,
+    )
+    place = CharField(
+        required=False,
+    )
+    price_gte = IntegerField(
+        min_value=0,
+        required=False,
+    )
+    price_lte = IntegerField(
+        min_value=0,
+        required=False,
+    )
+    user_rating = FloatField(
+        min_value=0,
+        max_value=10,
+        required=False,
+    )
+    star_category = IntegerField(
+        min_value=0,
+        max_value=5,
+        required=False,
+    )
+    distance_to_the_airport = IntegerField(
+        min_value=0,
+        required=False,
+    )
+    tour_operator = CharField(
+        required=False,
+    )
+    validators = [
+        StartDateValidator(),
+    ]

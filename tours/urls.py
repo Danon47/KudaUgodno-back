@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from tours.apps import ToursConfig
 from tours.views import (
-    TourFiltersView,
     TourHotView,
     TourPopularView,
     ToursAutocompleteHotel,
@@ -21,11 +20,6 @@ router.register("stocks", TourStockViewSet, basename="tours_stocks")
 
 
 urlpatterns = [
-    path(
-        "tours/filters/",
-        TourFiltersView.as_view({"get": "filters"}),
-        name="tour-filters",
-    ),
     path(
         "tours/hots/",
         TourHotView.as_view({"get": "list"}),
