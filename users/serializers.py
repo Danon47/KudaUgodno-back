@@ -65,7 +65,11 @@ class CompanyUserSerializer(BaseUserSerializer):
 
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
     documents = serializers.FileField(required=False, allow_null=True)
-    role = serializers.CharField(default=RoleChoices.TOUR_OPERATOR)
+    role = serializers.ChoiceField(
+        choices=[(RoleChoices.TOUR_OPERATOR, "Туроператор"), (RoleChoices.HOTELIER, "Отельер")],
+        default=RoleChoices.TOUR_OPERATOR,
+        help_text="Роль компании: TOUR_OPERATOR или HOTELIER",
+    )
 
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ("company_name", "documents")
