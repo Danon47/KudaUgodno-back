@@ -52,6 +52,13 @@ class UserSerializer(BaseUserSerializer):
             "preferred_contact_channel",
         )
 
+    def validate_role(self, value):
+        user = self.context["request"].user
+        if not user.is_authenticated or not user.is_superuser:
+            if value != RoleChoices.USER:
+                raise serializers.ValidationError("Вы не можете задать роль, отличную от USER.")
+        return value
+
 
 class CompanyUserSerializer(BaseUserSerializer):
     """Сериализатор для Туроператоров и Отельеров."""
@@ -88,10 +95,11 @@ class CompanyUserSerializer(BaseUserSerializer):
         return instance
 
     def validate(self, data):
-        """Валидация полей в зависимости от роли."""
-        role = data.get("role", RoleChoices.USER)
+        role = data.get("role", RoleChoices.TOUR_OPERATOR)
         if role == RoleChoices.USER:
             raise serializers.ValidationError("Обычный пользователь не может иметь company_name и documents.")
+        if role not in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            raise serializers.ValidationError("Вы можете задать только роль 'TOUR_OPERATOR' или 'HOTELIER'.")
         return data
 
 
