@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema_field
-from rest_framework.fields import DecimalField, SerializerMethodField
+from rest_framework.fields import DecimalField, SerializerMethodField, IntegerField
 from rest_framework.serializers import ImageField, ModelSerializer
 
 from all_fixture.errors.list_error import TYPE_OF_MEAL_ERROR
@@ -203,13 +203,14 @@ class RoomDetailSerializer(RoomBaseSerializer):
         max_digits=12,
         decimal_places=2,
         read_only=True,
-        default="15000.00",
     )
     total_price_with_discount = DecimalField(
         max_digits=12,
         decimal_places=2,
         read_only=True,
-        default="12000.00",
+    )
+    nights = IntegerField(
+        read_only=True,
     )
 
     class Meta(RoomBaseSerializer.Meta):
@@ -219,13 +220,18 @@ class RoomDetailSerializer(RoomBaseSerializer):
             "calendar_dates",
             "total_price_without_discount",
             "total_price_with_discount",
+            "nights",
         )
 
     @extend_schema_field(field=RoomCalendarDateSerializer(many=True))
     def get_calendar_dates(self, obj: Room):
         request = self.context.get("request")
-        start_date_str = request.query_params.get("date_range_after") if request else None
-        end_date_str = request.query_params.get("date_range_before") if request else None
+        start_date_str = (
+            request.query_params.get("date_range_after") if request else None
+        )
+        end_date_str = (
+            request.query_params.get("date_range_before") if request else None
+        )
         calendar_dates = obj.calendar_dates.all()
 
         if start_date_str and end_date_str:

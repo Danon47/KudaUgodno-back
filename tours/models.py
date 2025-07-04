@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from all_fixture.views_fixture import NULLABLE
+from all_fixture.views_fixture import DISCOUNT, NULLABLE
 from flights.models import Flight
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
@@ -15,8 +15,14 @@ class Tour(models.Model):
     Модель для хранения информации о турах.
     """
 
-    start_date = models.DateField(verbose_name="Дата начала тура", help_text="Введите дату начала тура")
-    end_date = models.DateField(verbose_name="Дата окончания тура", help_text="Введите дату окончания тура")
+    start_date = models.DateField(
+        verbose_name="Дата начала тура",
+        help_text="Введите дату начала тура",
+    )
+    end_date = models.DateField(
+        verbose_name="Дата окончания тура",
+        help_text="Введите дату окончания тура",
+    )
     flight_to = models.ForeignKey(
         Flight,
         on_delete=models.SET_NULL,
@@ -86,7 +92,11 @@ class Tour(models.Model):
         help_text="Выберите типы питания, который есть в этом отеле для этого тура",
         blank=True,
     )
-    transfer = models.BooleanField(verbose_name="Трансфер", default=False, help_text="Отметьте наличие трансфера")
+    transfer = models.BooleanField(
+        verbose_name="Трансфер",
+        default=False,
+        help_text="Отметьте наличие трансфера",
+    )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -168,8 +178,7 @@ class TourStock(models.Model):
     )
     discount_amount = models.DecimalField(
         verbose_name="Величина скидки",
-        help_text="Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - "
-        "это уже величина, к примеру 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей",
+        help_text=DISCOUNT,
         max_digits=10,
         decimal_places=2,
         validators=[

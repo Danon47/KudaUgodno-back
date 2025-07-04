@@ -291,7 +291,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Безопасность куки и CSRF (важно при работе с куками и кросс-доменом)
-CSRF_COOKIE_HTTPONLY = False  # Оставляем False, чтобы фронт мог читать CSRF токен, если понадобится
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = not DEBUG  # В проде — True, только по HTTPS
