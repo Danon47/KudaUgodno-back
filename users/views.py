@@ -585,8 +585,14 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         permission_classes=[IsAuthenticated],
     )
     def fetch_me(self, request):
-        """Проверяет токен и возвращает текущего пользователя."""
+        """Проверяет токен и возвращает текущего пользователя.
+
+        Для пользователей с ролью USER используется UserSerializer,
+        для остальных ролей - CompanyUserSerializer.
+        """
         user = request.user
+
+        # Выбираем сериализатор в зависимости от роли пользователя
         if user.role == RoleChoices.USER:
             serializer = UserSerializer(user, context={"request": request})
         else:
