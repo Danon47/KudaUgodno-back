@@ -206,15 +206,38 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    # Поставить позже актуальное время, сейчас для теста 30 дней стоит
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
-    "ROTATE_REFRESH_TOKENS": True,
-    # Обязательно для logout API
+    # Жизнь access-токена
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    # Жизнь refresh-токена
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    # Не создавать новый refresh при обновлении access
+    "ROTATE_REFRESH_TOKENS": False,
+    # Отозвать старый refresh после ротации, если она включена
     "BLACKLIST_AFTER_ROTATION": True,
+    # Обновлять поле last_login при входе
+    "UPDATE_LAST_LOGIN": True,
+    # Алгоритм шифрования JWT
     "ALGORITHM": "HS256",
+    # Ключ подписи токена
     "SIGNING_KEY": SECRET_KEY,
+    # Публичный ключ (используется при RS алгоритмах)
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    # Тип токена в заголовке Authorization
     "AUTH_HEADER_TYPES": ("Bearer",),
+    # Имя заголовка
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    # Поле идентификатора пользователя
+    "USER_ID_FIELD": "id",
+    # Ключ внутри токена для ID
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    # Тип токена (access/refresh)
+    "TOKEN_TYPE_CLAIM": "token_type",
+    # JWT ID, используется для blacklist
+    "JTI_CLAIM": "jti",
 }
 
 SPECTACULAR_SETTINGS = {
