@@ -587,7 +587,12 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def fetch_me(self, request):
         """Проверяет токен и возвращает текущего пользователя."""
         user = request.user
-        serializer = UserSerializer(user, context={"request": request})
+
+        if user.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            serializer = CompanyUserSerializer(user, context={"request": request})
+        else:
+            serializer = UserSerializer(user, context={"request": request})
+
         return Response(
             {
                 "message": "Токен активен",
