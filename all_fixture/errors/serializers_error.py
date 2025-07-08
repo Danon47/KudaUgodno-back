@@ -14,7 +14,6 @@ from all_fixture.errors.list_error import (
     ROOM_DATE_ERROR,
     ROOM_ID_ERROR,
     TOUR_ERROR,
-    TOUR_STOCK_ERROR,
     TYPE_OF_MEAL_ERROR,
     TYPE_OF_MEAL_NAME_ERROR,
 )
@@ -62,14 +61,6 @@ class TourErrorBaseSerializer(Serializer):
 
 class TourErrorSerializer(Serializer):
     detail = CharField(default=TOUR_ERROR)
-
-
-class TourStockErrorBaseSerializer(Serializer):
-    detail = CharField()
-
-
-class TourStockErrorSerializer(Serializer):
-    detail = CharField(default=TOUR_STOCK_ERROR)
 
 
 class RoomBaseEroorSerializer(Serializer):
