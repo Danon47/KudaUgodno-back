@@ -20,8 +20,6 @@ from all_fixture.errors.list_error import (
     ROOM_ID_ERROR,
     TIME_ERROR,
     TOUR_MAX_PRICE_ERROR,
-    TOUR_STOCK_DISCOUNT_MAX_ERROR,
-    TOUR_STOCK_DISCOUNT_MIN_ERROR,
     TOUROPERATOR_ERROR,
     TYPE_OF_MEAL_ERROR,
 )
@@ -32,7 +30,6 @@ from all_fixture.errors.serializers_error import (
     RoomBaseEroorSerializer,
     RoomDateErrorBaseSerializer,
     TourErrorBaseSerializer,
-    TourStockErrorBaseSerializer,
     TypeOfMealErrorIdSerializer,
 )
 
@@ -179,29 +176,6 @@ TOUR_UPDATE_400 = OpenApiResponse(
             response_only=True,
             name="Ошибка: Ввода стоимости",
             value={"price": DECIMAL_ERROR},
-        ),
-    ],
-)
-
-
-TOUR_STOCK_400 = OpenApiResponse(
-    response=TourStockErrorBaseSerializer,
-    description="Ошибки валидации",
-    examples=[
-        OpenApiExample(
-            response_only=True,
-            name="Ошибка: Размер скидки меньше чем 0.01",
-            value={"discount_amount": TOUR_STOCK_DISCOUNT_MIN_ERROR},
-        ),
-        OpenApiExample(
-            response_only=True,
-            name="Ошибка: Размер скидки больше чем 99999.99",
-            value={"discount_amount": TOUR_STOCK_DISCOUNT_MAX_ERROR},
-        ),
-        OpenApiExample(
-            response_only=True,
-            name="Ошибка: Не правильный формат даты",
-            value={"end_date": DATE_ERROR},
         ),
     ],
 )
