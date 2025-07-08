@@ -780,7 +780,14 @@ class Command(BaseCommand):
 
             # Выбираем случайное количество номеров (от 1 до 3, если доступно)
             available_rooms = list(hotel.rooms.all())
-            num_rooms = random.randint(1, min(3, len(available_rooms))) if available_rooms else 0
+            num_rooms = (
+                random.randint(
+                    1,
+                    min(3, len(available_rooms)),
+                )
+                if available_rooms
+                else 0
+            )
             selected_rooms = random.sample(available_rooms, num_rooms) if num_rooms > 0 else []
 
             # Выбираем типы питания: по одному на каждый номер, с возможностью повторов
