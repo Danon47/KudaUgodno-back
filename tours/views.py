@@ -11,15 +11,11 @@ from rest_framework import status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from all_fixture.errors.list_error import TOUR_ERROR, TOUR_STOCK_ERROR
-from all_fixture.errors.serializers_error import (
-    TourErrorSerializer,
-    TourStockErrorSerializer,
-)
+from all_fixture.errors.list_error import TOUR_ERROR
+from all_fixture.errors.serializers_error import TourErrorSerializer
 from all_fixture.errors.views_descriptions import DESCRIPTION_POPULAR_TOURS
 from all_fixture.errors.views_error import (
     TOUR_CREATE_400,
-    TOUR_STOCK_400,
     TOUR_UPDATE_400,
 )
 from all_fixture.pagination import CustomLOPagination
@@ -44,21 +40,18 @@ from all_fixture.views_fixture import (
     TOUR_PRICE_LTE,
     TOUR_SETTINGS,
     TOUR_START_DATE,
-    TOUR_STOCK_ID,
-    TOUR_STOCK_SETTINGS,
 )
 from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
 from tours.filters import TourFilter
-from tours.models import Tour, TourStock
+from tours.models import Tour
 from tours.serializers import (
     TourListSerializer,
     TourPatchSerializer,
     TourPopularSerializer,
     TourSerializer,
     TourShortSerializer,
-    TourStockSerializer,
 )
 
 
@@ -211,9 +204,15 @@ class TourViewSet(viewsets.ModelViewSet):
                 .order_by("arrival_country")
             )
             # Применение фильтров
-            filterset = self.filterset_class(self.request.query_params, queryset=queryset)
+            filterset = self.filterset_class(
+                self.request.query_params,
+                queryset=queryset,
+            )
             if not filterset.is_valid():
-                return Response({"errors": filterset.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"errors": filterset.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             return filterset.qs
         return queryset
 
@@ -222,93 +221,6 @@ class TourViewSet(viewsets.ModelViewSet):
             return Tour.objects.get(pk=self.kwargs["pk"])
         except Tour.DoesNotExist:
             raise NotFound(TOUR_ERROR) from None
-
-
-@extend_schema(tags=[TOUR_STOCK_SETTINGS["name"]])
-@extend_schema_view(
-    list=extend_schema(
-        summary="Список всех акций в турах",
-        description="Получение списка всех акций в турах",
-        parameters=[LIMIT, OFFSET],
-        responses={
-            200: OpenApiResponse(
-                response=TourStockSerializer(many=True),
-                description="Успешное получение списка акций в туре",
-            ),
-        },
-    ),
-    create=extend_schema(
-        summary="Добавление акции в туре",
-        description="Создание новой акции в туре",
-        request={"multipart/form-data": TourStockSerializer},
-        responses={
-            201: OpenApiResponse(
-                response=TourStockSerializer,
-                description="Успешное создание акции в туре",
-            ),
-            400: TOUR_STOCK_400,
-        },
-    ),
-    retrieve=extend_schema(
-        summary="Информация о акции в туре",
-        description="Получение информации о акции в туре через идентификатор",
-        parameters=[TOUR_STOCK_ID],
-        responses={
-            200: OpenApiResponse(
-                response=TourStockSerializer,
-                description="Успешное получение акции в туре",
-            ),
-            404: OpenApiResponse(
-                response=TourStockErrorSerializer,
-                description="Ошибка: Акция в туре не найдена",
-            ),
-        },
-    ),
-    update=extend_schema(
-        summary="Полное обновление акции в туре",
-        description="Обновление всех полей акции в туре",
-        request=TourStockSerializer,
-        parameters=[TOUR_STOCK_ID],
-        responses={
-            200: OpenApiResponse(
-                response=TourStockSerializer,
-                description="Успешное обновление акции в туре",
-            ),
-            400: TOUR_STOCK_400,
-            404: OpenApiResponse(
-                response=TourStockErrorSerializer,
-                description="Ошибка: Акция в туре не найдена",
-            ),
-        },
-    ),
-    destroy=extend_schema(
-        summary="Удаление акции в туре",
-        description="Полное удаление акции в туре",
-        parameters=[TOUR_STOCK_ID],
-        responses={
-            204: OpenApiResponse(
-                description="Успешное удаление акции в туре",
-            ),
-            404: OpenApiResponse(
-                response=TourStockErrorSerializer,
-                description="Ошибка: Акция в туре не найдена",
-            ),
-        },
-    ),
-    partial_update=extend_schema(
-        exclude=True,
-    ),
-)
-class TourStockViewSet(viewsets.ModelViewSet):
-    queryset = TourStock.objects.all()
-    serializer_class = TourStockSerializer
-    pagination_class = CustomLOPagination
-
-    def get_object(self):
-        try:
-            return TourStock.objects.get(pk=self.kwargs["pk"])
-        except TourStock.DoesNotExist:
-            raise NotFound({"detail": TOUR_STOCK_ERROR}) from None
 
 
 @extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
@@ -325,6 +237,7 @@ class TourStockViewSet(viewsets.ModelViewSet):
 class TourHotView(viewsets.ModelViewSet):
     """Горящие туры по одному из каждой страны по минимальной цене."""
 
+    queryset = Tour.objects.none()
     serializer_class = TourShortSerializer
     pagination_class = CustomLOPagination
 
@@ -341,14 +254,14 @@ class TourHotView(viewsets.ModelViewSet):
         )
 
         queryset = (
-            Tour.objects.filter(is_active=True, stock__active_stock=True)
+            Tour.objects.filter(is_active=True, discount_amount__isnull=True)
             .annotate(
                 number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
                 number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
                 country_rank=Window(
                     expression=RowNumber(),
                     partition_by=[F("arrival_country")],
-                    order_by=F("price").asc(),
+                    order_by=F("total_price").asc(),
                 ),
             )
             .filter(country_rank=1)
@@ -372,13 +285,17 @@ class TourHotView(viewsets.ModelViewSet):
 class TourPopularView(viewsets.ModelViewSet):
     """Туры шести стран."""
 
+    queryset = Tour.objects.none()
     serializer_class = TourPopularSerializer
 
     def get_queryset(self):
         """Получение тура по одному из шести страны с минимальной ценой."""
 
         country_tour_count = (
-            Tour.objects.filter(is_active=True, arrival_country=OuterRef("arrival_country"))
+            Tour.objects.filter(
+                is_active=True,
+                arrival_country=OuterRef("arrival_country"),
+            )
             .values("arrival_country")
             .annotate(count=Count("id"))
             .values("count")
@@ -391,11 +308,11 @@ class TourPopularView(viewsets.ModelViewSet):
                 country_rank=Window(
                     expression=RowNumber(),
                     partition_by=[F("arrival_country")],
-                    order_by=F("price").asc(),
+                    order_by=F("total_price").asc(),
                 ),
             )
             .filter(country_rank=1)
-            .order_by("price")[:6]
+            .order_by("total_price")[:6]
         )
 
         return queryset

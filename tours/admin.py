@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from tours.forms import TourAdminForm
-from tours.models import Tour, TourDocument, TourStock
+from tours.models import Tour, TourDocument
 
 
 @admin.register(Tour)
@@ -16,8 +16,8 @@ class TourAdmin(admin.ModelAdmin):
         "get_tour_operator_name",
         "arrival_city",
         "hotel",
-        "price",
         "get_rooms",
+        "total_price",
         "transfer",
         "is_active",
     )
@@ -40,8 +40,3 @@ class TourAdmin(admin.ModelAdmin):
 @admin.register(TourDocument)
 class TourDocumentAdmin(admin.ModelAdmin):
     list_display = ("id", "tour", "document")
-
-
-@admin.register(TourStock)
-class TourStockAdmin(admin.ModelAdmin):
-    list_display = ("id", "active_stock", "end_date", "discount_amount")

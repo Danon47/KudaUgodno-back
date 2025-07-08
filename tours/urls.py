@@ -8,7 +8,6 @@ from tours.views import (
     ToursAutocompleteHotel,
     ToursAutocompleteRoom,
     ToursAutocompleteTypeOfMeal,
-    TourStockViewSet,
     TourViewSet,
 )
 
@@ -16,7 +15,6 @@ app_name = ToursConfig.name
 
 router = DefaultRouter()
 router.register("tours", TourViewSet, basename="tours")
-router.register("stocks", TourStockViewSet, basename="tours_stocks")
 
 
 urlpatterns = [

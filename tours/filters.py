@@ -40,11 +40,11 @@ class TourFilter(FilterSet):
         lookup_expr="exact",
     )
     price_gte = NumberFilter(
-        field_name="price",
+        field_name="total_price",
         lookup_expr="gte",
     )
     price_lte = NumberFilter(
-        field_name="price",
+        field_name="total_price",
         lookup_expr="lte",
     )
     user_rating = NumberFilter(
