@@ -453,8 +453,8 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data["email"]
-        code = serializer.validated_data["code"]
+        email = serializer.validated_data["email"].strip().lower()
+        code = str(serializer.validated_data["code"]).strip()
 
         user = authenticate(email=email, password=str(code))
 
