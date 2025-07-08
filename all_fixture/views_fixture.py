@@ -18,10 +18,6 @@ TOUR_SETTINGS = {
     "name": "Туры",
     "description": "Методы для работы с турами",
 }
-TOUR_STOCK_SETTINGS = {
-    "name": "Акции в туре",
-    "description": "Методы для работы с акциями в туре",
-}
 HOTEL_SETTINGS = {
     "name": "Отели",
     "description": "Методы для работы с отелями",
@@ -118,14 +114,6 @@ TOUR_ID = OpenApiParameter(
     name="id",
     type=int,
     description="ID Тура",
-    required=True,
-)
-# ID акции тура
-TOUR_STOCK_ID = OpenApiParameter(
-    location=OpenApiParameter.PATH,
-    name="id",
-    type=int,
-    description="ID Акции тура",
     required=True,
 )
 # Город вылета
