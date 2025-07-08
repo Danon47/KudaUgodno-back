@@ -35,7 +35,7 @@ from flights.serializers import FlightSerializer
 from hotels.serializers import HotelListWithPhotoSerializer, HotelShortSerializer
 from hotels.serializers_type_of_meals import TypeOfMealSerializer
 from rooms.serializers import RoomDetailSerializer
-from tours.models import Tour, TourStock
+from tours.models import Tour
 from tours.validators import EndDateValidator, PriceValidator, StartDateValidator
 
 
@@ -60,7 +60,7 @@ class TourSerializer(ModelSerializer):
             "invalid": DATE_ERROR,
         },
     )
-    price = DecimalField(
+    total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
         required=False,
@@ -90,11 +90,17 @@ class TourSerializer(ModelSerializer):
             "hotel",
             "rooms",
             "type_of_meals",
-            "price",
             "transfer",
-            "is_active",
+            "discount_amount",
+            "discount_start_date",
+            "discount_end_date",
+            "markup_amount",
+            "publish_start_date",
+            "publish_end_date",
+            "total_price",
             "created_at",
             "updated_at",
+            "is_active",
         )
         read_only_fields = (
             "created_at",
@@ -276,21 +282,9 @@ class TourShortSerializer(ModelSerializer):
         }
 
 
-class TourStockSerializer(ModelSerializer):
-    class Meta:
-        model = TourStock
-        fields = (
-            "id",
-            "active_stock",
-            "end_date",
-            "discount_amount",
-        )
-
-
 class TourFiltersRequestSerializer(Serializer):
     """Сериализатор для параметров расширенного поиска (все поля необязательные)."""
 
-    # Параметры фильтрации верхнего поиска
     departure_city = CharField(
         required=False,
     )
@@ -310,8 +304,6 @@ class TourFiltersRequestSerializer(Serializer):
         min_value=1,
         required=False,
     )
-
-    # Параметры фильтрации
     city = CharField(
         required=False,
     )

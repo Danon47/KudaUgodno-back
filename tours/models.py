@@ -1,8 +1,6 @@
-from decimal import Decimal
-
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from all_fixture.validators.models import MIN_0_MAX_9KK, MIN_0_MAX_99K
 from all_fixture.views_fixture import DISCOUNT, NULLABLE
 from flights.models import Flight
 from hotels.models import Hotel, TypeOfMeal
@@ -93,27 +91,52 @@ class Tour(models.Model):
         blank=True,
     )
     transfer = models.BooleanField(
-        verbose_name="Трансфер",
+        verbose_name="Использовать трансфер отельера",
         default=False,
-        help_text="Отметьте наличие трансфера",
+        help_text="Отметьте использовать трансфер отельера",
     )
-    price = models.DecimalField(
+    total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name="Стоимость тура",
-        help_text="Введите стоимость тура",
-        validators=[
-            MinValueValidator(Decimal("0")),
-            MaxValueValidator(Decimal("9999999.99")),
-        ],
+        verbose_name="Итоговая стоимость тура",
+        help_text="Введите итоговую стоимость тура",
+        validators=MIN_0_MAX_9KK,
         **NULLABLE,
     )
-    stock = models.ForeignKey(
-        "TourStock",
-        related_name="tour_stock",
-        on_delete=models.SET_NULL,
-        verbose_name="Акция в туре",
-        help_text="Акция в туре",
+    discount_amount = models.DecimalField(
+        verbose_name="Размер скидки на тур",
+        help_text=DISCOUNT,
+        max_digits=10,
+        decimal_places=2,
+        validators=MIN_0_MAX_99K,
+        **NULLABLE,
+    )
+    discount_start_date = models.DateField(
+        verbose_name="Дата начала скидки",
+        help_text="Введите дату начала скидки",
+        **NULLABLE,
+    )
+    discount_end_date = models.DateField(
+        verbose_name="Дата окончания скидки",
+        help_text="Введите дату окончания скидки",
+        **NULLABLE,
+    )
+    markup_amount = models.DecimalField(
+        verbose_name="Наценка на тур",
+        help_text=DISCOUNT,
+        max_digits=10,
+        decimal_places=2,
+        validators=MIN_0_MAX_99K,
+        **NULLABLE,
+    )
+    publish_start_date = models.DateField(
+        verbose_name="Дата публикации тура",
+        help_text="Введите дату публикации тура",
+        **NULLABLE,
+    )
+    publish_end_date = models.DateField(
+        verbose_name="Дата снятия тура с публикации",
+        help_text="Введите дату снятия тура с публикации",
         **NULLABLE,
     )
     created_at = models.DateTimeField(
@@ -168,29 +191,3 @@ class TourDocument(models.Model):
 
     def __str__(self):
         return f"Документы по туру {self.tour}"
-
-
-class TourStock(models.Model):
-    active_stock = models.BooleanField(
-        default=False,
-        verbose_name="Есть ли акция на тур?",
-        help_text="Да/Нет",
-    )
-    discount_amount = models.DecimalField(
-        verbose_name="Величина скидки",
-        help_text=DISCOUNT,
-        max_digits=10,
-        decimal_places=2,
-        validators=[
-            MinValueValidator(Decimal("0.01")),
-            MaxValueValidator(Decimal("99999.99")),
-        ],
-    )
-    end_date = models.DateField(verbose_name="Дата окончания скидки", help_text="Введите дату окончания скидки")
-
-    class Meta:
-        verbose_name = "Акция на тур"
-        verbose_name_plural = "Акции на туры"
-
-    def __str__(self):
-        return f"Акция на тур {self.discount_amount}% до {self.end_date}"
