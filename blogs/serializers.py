@@ -12,7 +12,7 @@ from blogs.models import (
     Theme,
 )
 
-# ───────────────────────────── базовые сериализаторы ─────────────────────────────
+# ───────────────────────────── базовые справочники ──────────────────────────────
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -20,7 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = "__all__"
+        fields = ["id", "name", "slug"]
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -28,63 +28,91 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = "__all__"
+        fields = ["id", "name", "slug"]
 
 
 class CountrySerializer(serializers.ModelSerializer):
-    """Страна статьи."""
+    """Страна публикации статьи."""
 
     class Meta:
         model = Country
-        fields = "__all__"
+        fields = ["id", "name", "slug"]
 
 
 class ThemeSerializer(serializers.ModelSerializer):
-    """Тема статьи."""
+    """Тематика статьи."""
 
     class Meta:
         model = Theme
-        fields = "__all__"
+        fields = ["id", "name", "slug"]
 
 
 class ArticleImageSerializer(serializers.ModelSerializer):
-    """Фото статьи."""
+    """Изображение, прикреплённое к статье."""
 
     class Meta:
         model = ArticleImage
-        fields = "__all__"
+        fields = ["id", "article", "image", "order"]
+        read_only_fields = ["id"]
 
 
 # ───────────────────────────── комментарии и лайки ──────────────────────────────
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
-    """Лайк или дизлайк к комментарию."""
+    """Реакция на комментарий (лайк / дизлайк)."""
 
     class Meta:
         model = CommentLike
-        fields = "__all__"
-        read_only_fields = ("user", "created_at")
+        fields = ["id", "comment", "user", "is_like", "created_at", "updated_at"]
+        read_only_fields = ["id", "user", "created_at", "updated_at"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Комментарий к статье, рекурсивно выводит ответы и лайки."""
+    """
+    Комментарий с рекурсивной выдачей вложенных ответов и подсчётом реакций.
+    """
 
     author = serializers.StringRelatedField(read_only=True)
     replies = serializers.SerializerMethodField()
-    likes_count = serializers.SerializerMethodField()
-    dislikes_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField(read_only=True)
+    dislikes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Comment
-        fields = "__all__"
+        fields = [
+            "id",
+            "article",
+            "author",
+            "parent",
+            "text",
+            "replies",
+            "likes_count",
+            "dislikes_count",
+            "created_at",
+            "updated_at",
+            "is_active",
+        ]
+        read_only_fields = [
+            "id",
+            "author",
+            "replies",
+            "likes_count",
+            "dislikes_count",
+            "created_at",
+            "updated_at",
+        ]
 
     # ───────── helpers ─────────
 
     def get_replies(self, obj):
-        """Вложенные ответы."""
-        replies = Comment.objects.filter(parent=obj)
-        return CommentSerializer(replies, many=True).data
+        """Рекурсивно возвращает ответы (глубина ≤ 2)."""
+        current_depth = self.context.get("depth", 0)
+        if current_depth >= 2:
+            return []  # прерываем вложенность
+
+        replies_qs = Comment.objects.filter(parent=obj)
+        return CommentSerializer(replies_qs, many=True, context={"depth": current_depth + 1}).data
 
     def get_likes_count(self, obj):
         return obj.likes.filter(is_like=True).count()
@@ -93,11 +121,11 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.likes.filter(is_like=False).count()
 
 
-# ───────────────────────────── основной сериализатор ────────────────────────────
+# ───────────────────────────── основная сущность ────────────────────────────────
 
 
 class ArticleSerializer(serializers.ModelSerializer):
-    """Статья."""
+    """Подробная информация о статье со связанными сущностями."""
 
     images = ArticleImageSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -112,10 +140,40 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # запрещённые слова
+        # Валидаторы на запрещённые слова
         self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
         self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
 
     class Meta:
         model = Article
-        fields = "__all__"
+        fields = [
+            "id",
+            "title",
+            "content",
+            "pub_date",
+            "short_description",
+            "is_published",
+            "is_moderated",
+            "views_count",
+            "rating",
+            "created_at",
+            "updated_at",
+            "category",
+            "tags",
+            "country",
+            "theme",
+            "author",
+            "images",
+            "comments",
+        ]
+        read_only_fields = [
+            "id",
+            "is_published",
+            "is_moderated",
+            "views_count",
+            "rating",
+            "created_at",
+            "updated_at",
+            "images",
+            "comments",
+        ]

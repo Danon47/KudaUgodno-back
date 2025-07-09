@@ -1,16 +1,17 @@
-from datetime import datetime
-
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.request import Request
 from rest_framework.response import Response
 
+from blogs.filters import ArticleFilter
 from blogs.models import (
     Article,
     ArticleImage,
     Category,
     Comment,
     CommentLike,
+    Country,
     Tag,
     Theme,
 )
@@ -20,7 +21,9 @@ from blogs.serializers import (
     CategorySerializer,
     CommentLikeSerializer,
     CommentSerializer,
+    CountrySerializer,
     TagSerializer,
+    ThemeSerializer,
 )
 from blogs.tasks import send_moderation_notification
 
@@ -50,77 +53,53 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
 
 
+class CountryViewSet(viewsets.ModelViewSet):
+    """CRUD-endpoint стран (чтение всем, изменение авторизованным)."""
+
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class ThemeViewSet(viewsets.ModelViewSet):
+    """CRUD-endpoint тем статей (только админ)."""
+
+    queryset = Theme.objects.all()
+    serializer_class = ThemeSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
 class ArticleViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint статей."""
+    """
+    CRUD-endpoint статей.
+
+    Фильтрация через `ArticleFilter`:
+    • date_from / date_to  — диапазон публикации (YYYY-MM-DD)
+    • popularity=asc|desc  — сортировка по просмотрам
+    • country              — список стран через запятую
+    • theme_id             — ID темы
+    """
 
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
+    filterset_class = ArticleFilter
+    queryset = Article.objects.all()
 
-    # ───────────────────────── фильтрация списка статей ──────────────────────────
+    # ─────────────────────── доп. логика выборки ────────────────────────────────
 
-    def get_queryset(self):  # noqa: C901  — сложность > 12
-        """
-        Поддерживаемые query-параметры:
-        • date_from / date_to  – диапазон публикации (YYYY-MM-DD);
-        • popularity=asc|desc  – сортировка по просмотрам;
-        • country              – список стран через запятую;
-        • theme_id             – ID темы.
-        Обычному пользователю показываем только опубликованные и проверенные статьи.
-        """
-        qs = Article.objects.all()
-
-        # 1️⃣ дата публикации
-        date_filters: dict[str, datetime] = {}
-        date_from = self.request.query_params.get("date_from")
-        date_to = self.request.query_params.get("date_to")
-        try:
-            if date_from:
-                date_filters["pub_date__gte"] = datetime.strptime(date_from, "%Y-%m-%d").date()
-            if date_to:
-                date_filters["pub_date__lte"] = datetime.strptime(date_to, "%Y-%m-%d").date()
-            if date_filters:
-                qs = qs.filter(**date_filters)
-        except ValueError as err:
-            raise APIException("Неверный формат даты. Используйте YYYY-MM-DD.") from err
-
-        # 2️⃣ популярность
-        popularity = self.request.query_params.get("popularity")
-        if popularity:
-            if popularity not in {"asc", "desc"}:
-                raise APIException("popularity должен быть 'asc' или 'desc'.")
-            qs = qs.order_by("-views_count" if popularity == "desc" else "views_count")
-
-        # 3️⃣ страна
-        country = self.request.query_params.get("country")
-        if country:
-            try:
-                countries = [c.strip() for c in country.split(",")]
-                qs = qs.filter(countries__name__in=countries)
-            except ValueError as err:
-                raise APIException(f"Ошибка фильтрации по стране: {err}") from err
-
-        # 4️⃣ тема
-        theme_id_param = self.request.query_params.get("theme_id")
-        if theme_id_param:
-            try:
-                theme_id = int(theme_id_param)
-            except ValueError as err:
-                raise APIException("theme_id должен быть числом.") from err
-            if not Theme.objects.filter(id=theme_id).exists():
-                raise APIException("Тема с указанным ID не найдена.") from None
-            qs = qs.filter(theme_id=theme_id)
-
-        # 5️⃣ права доступа
+    def get_queryset(self):
+        """Фильтруем, затем скрываем неопубликованное от обычных пользователей."""
+        qs = self.filter_queryset(super().get_queryset())
         user = self.request.user
         return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
 
-    # ───────────────────────────── CRUD-overrides ────────────────────────────────
+    # ───────────────────────────── CRUD-overrides ───────────────────────────────
 
     def perform_create(self, serializer):
         """
-        • Автор — текущий пользователь;
-        • статья создаётся как неопубликованная и немодерированная;
-        • отправляем задачу уведомления модератору.
+        • Автор — текущий пользователь.
+        • Статья создаётся как неопубликованная и немодерированная.
+        • Уведомляем модераторов асинхронной задачей.
         """
         article = serializer.save(author=self.request.user, is_published=False, is_moderated=False)
         send_moderation_notification.delay(article.id)
@@ -150,7 +129,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint комментариев."""
+    """CRUD-endpoint комментариев (чтение всем, запись авторизованным)."""
 
     queryset = Comment.objects.filter(is_active=True)
     serializer_class = CommentSerializer
@@ -161,14 +140,23 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class CommentLikeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint лайков/дизлайков комментариев."""
+    """CRUD-endpoint реакций (лайк/дизлайк) на комментарии."""
 
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        request: Request = self.request
+        try:
+            comment_id = int(request.data["comment"])
+            is_like = bool(request.data.get("is_like", True))
+        except (KeyError, ValueError) as err:
+            raise ValidationError("Требуется JSON: {'comment': int, 'is_like': bool}") from err
+
+        # заменяем предыдущую реакцию пользователя
+        CommentLike.objects.filter(user=request.user, comment_id=comment_id).delete()
+        serializer.save(user=request.user, comment_id=comment_id, is_like=is_like)
 
 
 class ArticleImageViewSet(viewsets.ModelViewSet):

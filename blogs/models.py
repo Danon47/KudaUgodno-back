@@ -12,13 +12,13 @@ class SlugNameModel(models.Model):
     name = models.CharField(
         max_length=100,
         verbose_name="Название",
-        help_text="Укажите название",
+        help_text="Укажите название, не больше 100 символов",
     )
     slug = models.SlugField(
         max_length=100,
         unique=True,
         verbose_name="Slug",
-        help_text="Уникальный идентификатор для URL",
+        help_text="Уникальный идентификатор для URL, не больше 100 символов",
     )
 
     class Meta:
@@ -28,37 +28,37 @@ class SlugNameModel(models.Model):
         return self.name
 
 
-class Category(models.Model):
+class Category(SlugNameModel):
     """Модель категории для статей блога."""
 
-    class Meta:
+    class Meta(SlugNameModel.Meta):
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
         ordering = ["name"]
 
 
-class Tag(models.Model):
+class Tag(SlugNameModel):
     """Модель тега для статей блога."""
 
-    class Meta:
+    class Meta(SlugNameModel.Meta):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
         ordering = ["name"]
 
 
-class Country(models.Model):
+class Country(SlugNameModel):
     """Модель страна."""
 
-    class Meta:
+    class Meta(SlugNameModel.Meta):
         verbose_name = "Страна"
         verbose_name_plural = "Страны"
         ordering = ["name"]
 
 
-class Theme(models.Model):
+class Theme(SlugNameModel):
     """Модель тема статьи."""
 
-    class Meta:
+    class Meta(SlugNameModel.Meta):
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
         ordering = ["name"]
@@ -197,7 +197,15 @@ class Comment(models.Model):
         default=True,
         verbose_name="Активен",
         help_text="Активен",
-    )  # для модерации (можно скрывать комментарии)
+    )
+
+    @property
+    def likes_count(self) -> int:
+        return self.likes.filter(is_like=True).count()
+
+    @property
+    def dislikes_count(self):
+        return self.likes.filter(is_like=False).count()
 
     class Meta:
         verbose_name = "Комментарий"
@@ -220,8 +228,8 @@ class CommentLike(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name="Пользователь",
-        help_text="Пользователь",
+        verbose_name="Комментарии пользователя",
+        help_text="Комментарии пользователя",
     )
     is_like = models.BooleanField(
         default=True,
