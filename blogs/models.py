@@ -23,6 +23,7 @@ class SlugNameModel(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -34,7 +35,6 @@ class Category(SlugNameModel):
     class Meta(SlugNameModel.Meta):
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-        ordering = ["name"]
 
 
 class Tag(SlugNameModel):
@@ -43,7 +43,6 @@ class Tag(SlugNameModel):
     class Meta(SlugNameModel.Meta):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
-        ordering = ["name"]
 
 
 class Country(SlugNameModel):
@@ -52,7 +51,6 @@ class Country(SlugNameModel):
     class Meta(SlugNameModel.Meta):
         verbose_name = "Страна"
         verbose_name_plural = "Страны"
-        ordering = ["name"]
 
 
 class Theme(SlugNameModel):
@@ -61,7 +59,6 @@ class Theme(SlugNameModel):
     class Meta(SlugNameModel.Meta):
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
-        ordering = ["name"]
 
 
 class Article(models.Model):
