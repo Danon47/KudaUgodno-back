@@ -1,6 +1,12 @@
-from rest_framework import permissions, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.permissions import (
+    AllowAny,
+    IsAdminUser,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -15,6 +21,7 @@ from blogs.models import (
     Tag,
     Theme,
 )
+from blogs.permissions import IsAuthorOrAdmin
 from blogs.serializers import (
     ArticleImageSerializer,
     ArticleSerializer,
@@ -27,16 +34,7 @@ from blogs.serializers import (
 )
 from blogs.tasks import send_moderation_notification
 
-# ─────────────────────────── вспомогательная функция ────────────────────────────
-
-
-def _check_permissions(request, instance) -> None:
-    """Разрешаем изменение/удаление только автору либо суперпользователю."""
-    if instance.author != request.user and not request.user.is_superuser:
-        raise PermissionDenied("Вы не можете редактировать или удалять эту статью.")
-
-
-# ─────────────────────────────────── ViewSets ────────────────────────────────────
+# ──────────────────────────── ViewSets справочников ────────────────────────────
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -54,11 +52,11 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class CountryViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint стран (чтение всем, изменение авторизованным)."""
+    """CRUD-endpoint стран (чтение всем, запись авторизованным)."""
 
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class ThemeViewSet(viewsets.ModelViewSet):
@@ -66,7 +64,10 @@ class ThemeViewSet(viewsets.ModelViewSet):
 
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminUser]
+
+
+# ───────────────────────────── основная сущность ────────────────────────────────
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -74,58 +75,80 @@ class ArticleViewSet(viewsets.ModelViewSet):
     CRUD-endpoint статей.
 
     Фильтрация через `ArticleFilter`:
-    • date_from / date_to  — диапазон публикации (YYYY-MM-DD)
-    • popularity=asc|desc  — сортировка по просмотрам
-    • country              — список стран через запятую
-    • theme_id             — ID темы
+      • date_from / date_to  — интервал публикации (YYYY-MM-DD)
+      • popularity           — asc / desc
+      • country              — CSV-список стран
+      • theme_id             — ID темы
     """
 
-    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ArticleSerializer
-    filterset_class = ArticleFilter
     queryset = Article.objects.all()
+    filterset_class = ArticleFilter
 
-    # ─────────────────────── доп. логика выборки ────────────────────────────────
+    # базовые пермишены (детально корректируются в get_permissions)
+    permission_classes = [IsAuthenticated]
+
+    # ─────────────────────── выборка с учётом статуса ───────────────────────────
 
     def get_queryset(self):
-        """Фильтруем, затем скрываем неопубликованное от обычных пользователей."""
         qs = self.filter_queryset(super().get_queryset())
         user = self.request.user
         return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
 
-    # ───────────────────────────── CRUD-overrides ───────────────────────────────
+    # ───────────────────────────── permissions matrix ───────────────────────────
+
+    def get_permissions(self):
+        if self.action in {"update", "partial_update", "destroy"}:
+            classes = [IsAuthorOrAdmin]
+        elif self.action == "create":
+            classes = [IsAuthenticated]
+        else:
+            classes = [AllowAny]
+        return [p() for p in classes]
+
+    # ─────────────────────────────── CRUD-overrides ─────────────────────────────
 
     def perform_create(self, serializer):
-        """
-        • Автор — текущий пользователь.
-        • Статья создаётся как неопубликованная и немодерированная.
-        • Уведомляем модераторов асинхронной задачей.
-        """
-        article = serializer.save(author=self.request.user, is_published=False, is_moderated=False)
+        """Сохраняем автора, ставим неопубликованной, уведомляем модераторов."""
+        article = serializer.save(
+            author=self.request.user,
+            is_published=False,
+            is_moderated=False,
+        )
         send_moderation_notification.delay(article.id)
 
-    def update(self, request, *args, **kwargs):
-        _check_permissions(request, self.get_object())
-        return super().update(request, *args, **kwargs)
+    # ───────────────────────────── дополнительное действие ──────────────────────
 
-    def partial_update(self, request, *args, **kwargs):
-        _check_permissions(request, self.get_object())
-        return super().partial_update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        _check_permissions(request, self.get_object())
-        return super().destroy(request, *args, **kwargs)
-
-    # ───────────────────────────── дополнительные действия ──────────────────────
-
-    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
     def moderate(self, request, pk=None):
-        """Админ помечает статью как проверенную и опубликованную."""
+        """Админ помечает статью как прошедшую модерацию и опубликованную."""
         article = self.get_object()
         article.is_moderated = True
         article.is_published = True
         article.save(update_fields=["is_moderated", "is_published"])
         return Response({"message": "Статья успешно проверена"}, status=status.HTTP_200_OK)
+
+    # ─────────────────────────── вспом. проверка прав ───────────────────────────
+
+    @staticmethod
+    def _check_owner(request, instance):
+        if instance.author != request.user and not request.user.is_superuser:
+            raise PermissionDenied("Вы не можете редактировать или удалять эту статью.")
+
+    def update(self, request, *args, **kwargs):
+        self._check_owner(request, self.get_object())
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        self._check_owner(request, self.get_object())
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self._check_owner(request, self.get_object())
+        return super().destroy(request, *args, **kwargs)
+
+
+# ───────────────────────── комментарии и реакции ───────────────────────────────
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -133,18 +156,18 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     queryset = Comment.objects.filter(is_active=True)
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
 class CommentLikeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint реакций (лайк/дизлайк) на комментарии."""
+    """CRUD-endpoint реакций (лайк / дизлайк) на комментарии."""
 
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         request: Request = self.request
@@ -154,9 +177,12 @@ class CommentLikeViewSet(viewsets.ModelViewSet):
         except (KeyError, ValueError) as err:
             raise ValidationError("Требуется JSON: {'comment': int, 'is_like': bool}") from err
 
-        # заменяем предыдущую реакцию пользователя
+        # заменяем прежнюю реакцию пользователя
         CommentLike.objects.filter(user=request.user, comment_id=comment_id).delete()
         serializer.save(user=request.user, comment_id=comment_id, is_like=is_like)
+
+
+# ─────────────────────────── изображения статьи ────────────────────────────────
 
 
 class ArticleImageViewSet(viewsets.ModelViewSet):

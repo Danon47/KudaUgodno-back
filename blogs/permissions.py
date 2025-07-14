@@ -3,10 +3,7 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 class IsAuthorOrAdmin(BasePermission):
     """
-    Разрешает доступ:
-    - Чтение (GET, HEAD, OPTIONS): всем
-    - Изменения: только автору или superuser
-    - Удаление: только автору или superuser
+    Разрешает доступ только автору объекта или администратору.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -14,7 +11,5 @@ class IsAuthorOrAdmin(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        if not hasattr(obj, "user_can_edit"):
-            return request.user.is_superuser
-
-        return obj.user_can_edit(request.user)
+        # Для изменений разрешаем только автору или админу
+        return obj.author == request.user or request.user.is_superuser
