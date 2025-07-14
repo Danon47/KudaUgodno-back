@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework.fields import (
+    ImageField,
+)
 
 from all_fixture.validators.validators import ForbiddenWordValidator
 from blogs.models import (
@@ -49,6 +52,8 @@ class ThemeSerializer(serializers.ModelSerializer):
 
 class ArticleImageSerializer(serializers.ModelSerializer):
     """Изображение, прикреплённое к статье."""
+
+    image = ImageField()
 
     class Meta:
         model = ArticleImage
