@@ -1,38 +1,44 @@
-import django_filters
+from django_filters import (
+    CharFilter,
+    ChoiceFilter,
+    DateFilter,
+    FilterSet,
+    NumberFilter,
+)
 from rest_framework.exceptions import APIException
 
 from blogs.models import Article, Theme
 
 
-class ArticleFilter(django_filters.FilterSet):
-    """Фильтры для списка статей."""
+class ArticleFilter(FilterSet):
+    """Набор фильтров для списка статей."""
 
-    date_from = django_filters.DateFilter(
+    date_from = DateFilter(
         field_name="pub_date",
         lookup_expr="gte",
         label="Дата от (ГГГГ-ММ-ДД)",
         method="filter_date_from",
-        help_text="Фильтр статей, опубликованных после указанной даты",
+        help_text="Статьи, опубликованные после указанной даты",
     )
-    date_to = django_filters.DateFilter(
+    date_to = DateFilter(
         field_name="pub_date",
         lookup_expr="lte",
         label="Дата до (ГГГГ-ММ-ДД)",
         method="filter_date_to",
-        help_text="Фильтр статей, опубликованных до указанной даты",
+        help_text="Статьи, опубликованные до указанной даты",
     )
-    popularity = django_filters.ChoiceFilter(
+    popularity = ChoiceFilter(
         choices=[("asc", "По возрастанию"), ("desc", "По убыванию")],
         method="filter_popularity",
         label="Сортировка по популярности",
-        help_text="Сортировка по количеству просмотров (asc/desc)",
+        help_text="asc — меньше просмотров → больше; desc — наоборот",
     )
-    country = django_filters.CharFilter(
+    country = CharFilter(
         method="filter_country",
-        label="Страны (через запятую)",
-        help_text="Фильтр по странам (названия через запятую)",
+        label="Страны (CSV)",
+        help_text="Список стран через запятую",
     )
-    theme_id = django_filters.NumberFilter(
+    theme_id = NumberFilter(
         field_name="theme",
         method="filter_theme",
         label="ID темы",
@@ -47,7 +53,6 @@ class ArticleFilter(django_filters.FilterSet):
 
     @staticmethod
     def filter_date_from(queryset, name, value):  # noqa: ARG003
-        """Статьи от указанной даты (YYYY-MM-DD)."""
         try:
             return queryset.filter(pub_date__gte=value)
         except ValueError as err:
@@ -55,17 +60,15 @@ class ArticleFilter(django_filters.FilterSet):
 
     @staticmethod
     def filter_date_to(queryset, name, value):  # noqa: ARG003
-        """Статьи до указанной даты (YYYY-MM-DD)."""
         try:
             return queryset.filter(pub_date__lte=value)
         except ValueError as err:
             raise APIException("Неверный формат даты. Используйте YYYY-MM-DD.") from err
 
-    # ────────────────────────── популярность / просмотры ─────────────────────────
+    # ────────────────────────── популярность / просмотры ─────────────────────
 
     @staticmethod
     def filter_popularity(queryset, name, value):  # noqa: ARG003
-        """Сортировка по количеству просмотров."""
         if value == "asc":
             return queryset.order_by("views_count")
         if value == "desc":
@@ -76,7 +79,6 @@ class ArticleFilter(django_filters.FilterSet):
 
     @staticmethod
     def filter_country(queryset, name, value):  # noqa: ARG003
-        """Фильтрация по списку стран (CSV)."""
         try:
             countries = [c.strip() for c in value.split(",")]
             return queryset.filter(countries__name__in=countries)
@@ -86,7 +88,6 @@ class ArticleFilter(django_filters.FilterSet):
     # ─────────────────────────────── тема ────────────────────────────────────
 
     def filter_theme(self, queryset, name, value):  # noqa: ARG003
-        """Фильтрация по теме статьи."""
         if not Theme.objects.filter(id=value).exists():
             raise APIException("Тема с указанным ID не найдена.") from None
         return queryset.filter(theme_id=value)
@@ -96,8 +97,8 @@ class ArticleFilter(django_filters.FilterSet):
     @property
     def qs(self):
         """
-        Обычным пользователям показываем только опубликованные
-        и прошедшие модерацию статьи; админы видят всё.
+        Обычным пользователям показываем только опубликованные и
+        прошедшие модерацию статьи; администраторы видят всё.
         """
         qs = super().qs
         user = self.request.user
