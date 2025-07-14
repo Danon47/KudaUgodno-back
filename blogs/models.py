@@ -133,7 +133,11 @@ class Article(models.Model):
         help_text="Страны",
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="Автор статьи", **NULLABLE, help_text="Автор статьи"
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Автор статьи",
+        **NULLABLE,
+        help_text="Автор статьи",
     )
     theme = models.ForeignKey(
         Theme,
