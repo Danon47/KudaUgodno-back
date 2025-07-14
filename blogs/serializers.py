@@ -50,6 +50,9 @@ class ThemeSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug"]
 
 
+# ─────────────────────────── изображения к статье ──────────────────────────────
+
+
 class ArticleImageSerializer(serializers.ModelSerializer):
     """Изображение, прикреплённое к статье."""
 
@@ -69,8 +72,8 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommentLike
-        fields = ["id", "comment", "user", "is_like", "created_at", "updated_at"]
-        read_only_fields = ["id", "user", "created_at", "updated_at"]
+        fields = ("id", "comment", "user", "is_like", "created_at", "updated_at")
+        read_only_fields = ("id", "user", "created_at", "updated_at")
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -85,7 +88,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = [
+        fields = (
             "id",
             "article",
             "author",
@@ -97,8 +100,8 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "is_active",
-        ]
-        read_only_fields = [
+        )
+        read_only_fields = (
             "id",
             "author",
             "replies",
@@ -106,7 +109,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "dislikes_count",
             "created_at",
             "updated_at",
-        ]
+        )
 
     # ───────── helpers ─────────
 
@@ -151,7 +154,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = [
+        fields = (
             "id",
             "title",
             "content",
@@ -170,8 +173,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             "author",
             "images",
             "comments",
-        ]
-        read_only_fields = [
+        )
+        read_only_fields = (
             "id",
             "is_published",
             "is_moderated",
@@ -181,4 +184,4 @@ class ArticleSerializer(serializers.ModelSerializer):
             "updated_at",
             "images",
             "comments",
-        ]
+        )
