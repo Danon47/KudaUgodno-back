@@ -31,7 +31,10 @@ from mailings.serializers import MailingSerializer
         description="Добавление и отправка рассылки в письме на главной странице",
         request={"multipart/form-data": MailingSerializer},
         responses={
-            201: OpenApiResponse(response=MailingSerializer, description="Успешное создание рассылки"),
+            201: OpenApiResponse(
+                response=MailingSerializer,
+                description="Успешное создание рассылки",
+            ),
             400: MAILING_400,
         },
     ),
@@ -40,7 +43,10 @@ from mailings.serializers import MailingSerializer
         description="Получение полной информации о конкретном рассылке по ID",
         parameters=[MAILING_ID],
         responses={
-            200: OpenApiResponse(response=MailingSerializer, description="Успешное получение рассылки"),
+            200: OpenApiResponse(
+                response=MailingSerializer,
+                description="Успешное получение рассылки",
+            ),
             404: MAILING_404,
         },
     ),
@@ -50,7 +56,10 @@ from mailings.serializers import MailingSerializer
         request={"multipart/form-data": MailingSerializer},
         parameters=[MAILING_ID],
         responses={
-            200: OpenApiResponse(response=MailingSerializer, description="Успешное полное обновление"),
+            200: OpenApiResponse(
+                response=MailingSerializer,
+                description="Успешное полное обновление",
+            ),
             400: MAILING_400,
             404: MAILING_404,
         },
@@ -61,7 +70,10 @@ from mailings.serializers import MailingSerializer
         request={"multipart/form-data": MailingSerializer},
         parameters=[MAILING_ID],
         responses={
-            200: OpenApiResponse(response=MailingSerializer, description="Успешное частичное обновление"),
+            200: OpenApiResponse(
+                response=MailingSerializer,
+                description="Успешное частичное обновление",
+            ),
             400: MAILING_400,
             404: MAILING_404,
         },
@@ -112,7 +124,10 @@ class MailingViewSet(viewsets.ModelViewSet):
                 headers=headers,
             )
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def destroy(self, request, *args, **kwargs):
         """Мягкое удаление рассылки."""

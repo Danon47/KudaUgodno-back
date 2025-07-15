@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from all_fixture.views_fixture import DISCOUNT_SETTINGS
 from promocodes.models import Promocode, PromocodePhoto
 from promocodes.serializers import (
     PromoCodeCheckSerializer,
@@ -11,6 +12,7 @@ from promocodes.serializers import (
 )
 
 
+@extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         responses={
@@ -27,7 +29,7 @@ from promocodes.serializers import (
     destroy=extend_schema(exclude=True),
 )
 class PromocodesModelViewSet(viewsets.ModelViewSet):
-    queryset = Promocode.objects.all()
+    queryset = Promocode.objects.filter(is_active=True)
     serializer_class = PromocodeSerializer
 
 
@@ -44,6 +46,7 @@ class PromocodesPhotoModelViewSet(viewsets.ModelViewSet):
     serializer_class = PromocodePhotoSerializer
 
 
+@extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     post=extend_schema(
         request=PromoCodeCheckSerializer,

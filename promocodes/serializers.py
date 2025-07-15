@@ -13,11 +13,18 @@ class PromocodePhotoSerializer(ModelSerializer):
 
     class Meta:
         model = PromocodePhoto
-        fields = ("id", "image")
+        fields = (
+            "id",
+            "image",
+        )
 
 
 class PromocodeSerializer(ModelSerializer):
-    discount_amount = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    discount_amount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="0.17",
+    )
 
     class Meta:
         model = Promocode
@@ -36,7 +43,10 @@ class PromocodeSerializer(ModelSerializer):
 
 
 class PromocodeListSerializer(PromocodeSerializer):
-    image = PromocodePhotoSerializer(many=True, source="promocode_image")
+    image = PromocodePhotoSerializer(
+        many=True,
+        source="promocode_image",
+    )
 
     class Meta(PromocodeSerializer.Meta):
         fields = PromocodeSerializer.Meta.fields + ("image",)
@@ -65,9 +75,9 @@ class PromoCodeCheckSerializer(Serializer):
                 raise ValidationError("Промокод не действует на данный тур.")
             tour = get_object_or_404(Tour, id=tour_id)
             return {
-                "tour_price": tour.price,
+                "tour_price": tour.total_price,
                 "discount_amount": promo.discount_amount,
-                "total_price": promo.apply_discount(tour.price),
+                "total_price": promo.apply_discount(tour.total_price),
             }
 
         elif hotel_id:
