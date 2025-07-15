@@ -78,7 +78,10 @@ class HotelDetailSerializer(ModelSerializer):
         required=False,
         min_value=0,
         max_value=5,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_STAR_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_STAR_ERROR,
+        },
     )
     user_rating = FloatField(
         required=False,
@@ -89,27 +92,25 @@ class HotelDetailSerializer(ModelSerializer):
             "max_value": HOTEL_RATING_MAX_ERROR,
         },
     )
-    width = DecimalField(
+    width = FloatField(
         required=False,
-        max_digits=11,
-        decimal_places=6,
         min_value=Decimal("-90.0"),
         max_value=Decimal("90.0"),
         error_messages={
             "min_value": HOTEL_WIDTH_MIN_ERROR,
             "max_value": HOTEL_WIDTH_MAX_ERROR,
         },
+        default="55.980955",
     )
-    longitude = DecimalField(
+    longitude = FloatField(
         required=False,
-        max_digits=11,
-        decimal_places=6,
         min_value=Decimal("-180.0"),
         max_value=Decimal("180.0"),
         error_messages={
             "min_value": HOTEL_LONGITUDE_MIN_ERROR,
             "max_value": HOTEL_LONGITUDE_MAX_ERROR,
         },
+        default="37.409003",
     )
     check_in_time = TimeField(
         input_formats=["%H:%M"],
@@ -117,6 +118,7 @@ class HotelDetailSerializer(ModelSerializer):
         error_messages={
             "invalid": TIME_ERROR,
         },
+        default="14:00",
     )
     check_out_time = TimeField(
         input_formats=["%H:%M"],
@@ -124,36 +126,52 @@ class HotelDetailSerializer(ModelSerializer):
         error_messages={
             "invalid": TIME_ERROR,
         },
+        default="12:00",
     )
     distance_to_the_station = IntegerField(
         required=False,
         min_value=0,
         max_value=200000,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_DISTANCE_ERROR,
+        },
     )
     distance_to_the_sea = IntegerField(
         required=False,
         min_value=0,
         max_value=200000,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_DISTANCE_ERROR,
+        },
     )
     distance_to_the_center = IntegerField(
         required=False,
         min_value=0,
         max_value=200000,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_DISTANCE_ERROR,
+        },
     )
     distance_to_the_metro = IntegerField(
         required=False,
         min_value=0,
         max_value=200000,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_DISTANCE_ERROR,
+        },
     )
     distance_to_the_airport = IntegerField(
         required=False,
         min_value=0,
         max_value=200000,
-        error_messages={"min_value": MIN_ERROR, "max_value": HOTEL_MAX_DISTANCE_ERROR},
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": HOTEL_MAX_DISTANCE_ERROR,
+        },
     )
 
     class Meta:
@@ -260,12 +278,14 @@ class HotelShortPhotoSerializer(ModelSerializer):
         model = Hotel
         fields = ("photo",)
 
-    def get_photo(self, obj: Hotel) -> str:
-        request = self.context.get("request")
-        first_photo = obj.hotel_photos.first()
-        if first_photo:
-            return request.build_absolute_uri(first_photo.photo.url) if request else first_photo.photo.url
-        return None
+    @extend_schema_field(ImageField())
+    def get_photo(self, obj: Hotel):
+        photo = obj.hotel_photos.all()[:10]
+        return HotelPhotoSerializer(
+            photo,
+            many=True,
+            context=self.context,
+        ).data
 
 
 class HotelPopularSerializer(HotelShortPhotoSerializer):
@@ -280,7 +300,7 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
     min_price = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
+        default="25000.00",
     )
 
     class Meta:
@@ -295,36 +315,34 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
 class HotelShortSerializer(HotelShortPhotoSerializer):
     class Meta:
         model = Hotel
-        fields = HotelShortPhotoSerializer.Meta.fields + (
+        fields = (
             "id",
             "country",
             "city",
+            "distance_to_the_station",
+            "distance_to_the_sea",
             "distance_to_the_center",
             "distance_to_the_metro",
+            "distance_to_the_airport",
             "star_category",
+            "amenities_common",
             "name",
             "user_rating",
-        )
+            "width",
+            "longitude",
+        ) + HotelShortPhotoSerializer.Meta.fields
 
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
-    min_price = DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    min_price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="25000.00",
+    )
 
     class Meta(HotelShortSerializer.Meta):
         model = Hotel
         fields = HotelShortSerializer.Meta.fields + ("min_price",)
-
-
-class HotelWhatAboutFullSerializer(ModelSerializer):
-    hotel = HotelShortSerializer(many=True, read_only=True)
-    name_set = CharField(read_only=True)
-
-    class Meta:
-        model = HotelWhatAbout
-        fields = (
-            "name_set",
-            "hotel",
-        )
 
 
 class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
@@ -337,7 +355,10 @@ class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
 
     class Meta(HotelShortWithPriceSerializer.Meta):
         model = Hotel
-        fields = HotelShortWithPriceSerializer.Meta.fields + ("nights", "guests")
+        fields = HotelShortWithPriceSerializer.Meta.fields + (
+            "nights",
+            "guests",
+        )
 
     @extend_schema_field(int)
     def get_nights(self, obj) -> int:
@@ -372,12 +393,16 @@ class HotelFiltersRequestSerializer(Serializer):
     check_in_date = DateField(
         required=False,
         input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
+        error_messages={
+            "invalid": "Некорректный формат даты. Используйте YYYY-MM-DD",
+        },
     )
     check_out_date = DateField(
         required=False,
         input_formats=["%Y-%m-%d"],
-        error_messages={"invalid": "Некорректный формат даты. Используйте YYYY-MM-DD"},
+        error_messages={
+            "invalid": "Некорректный формат даты. Используйте YYYY-MM-DD",
+        },
     )
     guests = IntegerField(
         min_value=1,
@@ -410,9 +435,23 @@ class HotelFiltersRequestSerializer(Serializer):
         max_value=5,
         required=False,
     )
-    validators = [
-        DateValidator(
-            check_in_field="check_in_date",
-            check_out_field="check_out_date",
+
+    class Meta:
+        validators = [
+            DateValidator(
+                check_in_field="check_in_date",
+                check_out_field="check_out_date",
+            )
+        ]
+
+
+class HotelWhatAboutFullSerializer(ModelSerializer):
+    hotel = HotelShortSerializer(many=True, read_only=True)
+    name_set = CharField(read_only=True)
+
+    class Meta:
+        model = HotelWhatAbout
+        fields = (
+            "name_set",
+            "hotel",
         )
-    ]

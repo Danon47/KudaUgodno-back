@@ -108,7 +108,10 @@ class RoomRelatedViewSet(BaseErrorHandlingMixin, viewsets.ModelViewSet):
     def get_object(self):
         room = self.get_room()
         try:
-            return self.model.objects.select_related("room").get(room_id=room.id, id=self.kwargs["pk"])
+            return self.model.objects.select_related("room").get(
+                room_id=room.id,
+                id=self.kwargs["pk"],
+            )
         except self.model.DoesNotExist:
             raise NotFound(self.error_message) from None
 
@@ -202,7 +205,13 @@ class RoomViewSet(HotelRelatedMixin, BaseErrorHandlingMixin, viewsets.ModelViewS
         return RoomDetailSerializer
 
     def get_queryset(self):
-        return Room.objects.filter(hotel_id=self.kwargs["hotel_id"])
+        return Room.objects.filter(hotel_id=self.kwargs["hotel_id"]).prefetch_related(
+            "room_photos",
+            "rules",
+            "type_of_meals",
+            "calendar_dates",
+            "calendar_dates__calendar_prices",
+        )
 
     def perform_create(self, serializer):
         hotel = get_object_or_404(Hotel, id=self.kwargs["hotel_id"])

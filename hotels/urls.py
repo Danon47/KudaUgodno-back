@@ -2,7 +2,6 @@ from django.urls import path
 
 from hotels.apps import HotelsConfig
 from hotels.views import (
-    HotelFiltersView,
     HotelPhotoViewSet,
     HotelsHotView,
     HotelsPopularView,
@@ -61,11 +60,6 @@ urlpatterns = [
             }
         ),
         name="hotels-type-of-meals-destroy",
-    ),
-    path(
-        "hotels/filters/",
-        HotelFiltersView.as_view({"get": "filters"}),
-        name="hotels-filters",
     ),
     path(
         "hotels/hots/",
