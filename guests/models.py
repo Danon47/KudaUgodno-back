@@ -6,11 +6,27 @@ from users.models import User
 
 
 class PersonBase(models.Model):
-    firstname = models.CharField(max_length=50, verbose_name="Имя")
-    lastname = models.CharField(max_length=50, verbose_name="Фамилия")
-    surname = models.CharField(max_length=50, verbose_name="Отчество", **NULLABLE)
-    date_born = models.DateField(verbose_name="Дата рождения", help_text="Формат: DD-MM-YYYY")
-    citizenship = models.CharField(max_length=100, verbose_name="Гражданство")
+    firstname = models.CharField(
+        max_length=50,
+        verbose_name="Имя",
+    )
+    lastname = models.CharField(
+        max_length=50,
+        verbose_name="Фамилия",
+    )
+    surname = models.CharField(
+        max_length=50,
+        verbose_name="Отчество",
+        **NULLABLE,
+    )
+    date_born = models.DateField(
+        verbose_name="Дата рождения",
+        help_text="Формат: YYYY-MM-DD",
+    )
+    citizenship = models.CharField(
+        max_length=100,
+        verbose_name="Гражданство",
+    )
 
     class Meta:
         abstract = True

@@ -207,8 +207,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # Поставить позже актуальное время, сейчас для теста 30 дней стоит
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=7),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     # Обязательно для logout API
     "BLACKLIST_AFTER_ROTATION": True,

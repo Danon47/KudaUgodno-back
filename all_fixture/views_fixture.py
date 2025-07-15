@@ -336,6 +336,20 @@ HOTEL_CHECK_OUT = OpenApiParameter(
     description="Дата выезда (YYYY-MM-DD)",
     required=False,
 )
+# Дата начала фильтрации в отеле номеров
+HOTEL_START_DATE = OpenApiParameter(
+    name="start_date",
+    type=str,
+    description="Дата выезда (YYYY-MM-DD)",
+    required=False,
+)
+# Дата окончания фильтрации в отеле номеров
+HOTEL_END_DATE = OpenApiParameter(
+    name="end_date",
+    type=str,
+    description="Дата выезда (YYYY-MM-DD)",
+    required=False,
+)
 # Количество гостей в отеле(Обязательный)
 HOTEL_GUESTS = OpenApiParameter(
     name="guests",

@@ -97,11 +97,7 @@ class HotelFilter(FilterSet):
                 price__lte=self.price_lte,
             )
         subquery = (
-            CalendarPrice.objects.filter(
-                room__hotel=OuterRef(
-                    "pk",
-                ),
-            )
+            CalendarPrice.objects.filter(room__hotel=OuterRef("pk"))
             .filter(filters)
             .order_by("price")
             .values("price")[:1]

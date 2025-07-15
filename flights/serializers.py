@@ -1,14 +1,24 @@
-from rest_framework import serializers
+from rest_framework.fields import DecimalField, TimeField
 from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueTogetherValidator
 
 from all_fixture.validators.validators import DateValidator
 from flights.models import Flight
 
 
 class FlightSerializer(ModelSerializer):
-    """
-    Сериализатор для модели Flight.
-    """
+    departure_time = TimeField(default="13:00")
+    arrival_time = TimeField(default="15:00")
+    price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="8000.00",
+    )
+    price_for_child = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="4000.00",
+    )
 
     class Meta:
         model = Flight
@@ -34,7 +44,7 @@ class FlightSerializer(ModelSerializer):
         )
 
         validators = [
-            serializers.UniqueTogetherValidator(
+            UniqueTogetherValidator(
                 fields=["flight_number", "departure_date"],
                 queryset=Flight.objects.all(),  # Валидатор для проверки уникальности рейса в конкретную дату
             ),

@@ -1,7 +1,7 @@
 services:
   db:
     container_name: kuda_ugodno_backend_db
-    image: postgres:17.2
+    image: postgres:17.5
     restart: unless-stopped
     env_file:
       - .env

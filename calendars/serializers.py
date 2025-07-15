@@ -1,7 +1,9 @@
 import logging
+from decimal import Decimal
 
 from django.db import transaction
-from rest_framework.serializers import DecimalField, ModelSerializer, ValidationError
+from rest_framework.fields import DecimalField
+from rest_framework.serializers import ModelSerializer, ValidationError
 
 from calendars.models import CalendarDate, CalendarPrice
 
@@ -12,12 +14,18 @@ class CalendarPriceSerializer(ModelSerializer):
     price = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
+        help_text="Цена",
+        min_value=Decimal("0.00"),
+        max_value=Decimal("99999999.00"),
+        default="5000.00",
     )
 
     class Meta:
         model = CalendarPrice
-        fields = ("room", "price")
+        fields = (
+            "room",
+            "price",
+        )
 
 
 class CalendarDateSerializer(ModelSerializer):
@@ -27,7 +35,10 @@ class CalendarDateSerializer(ModelSerializer):
     discount_amount = DecimalField(
         max_digits=10,
         decimal_places=2,
-        coerce_to_string=False,
+        help_text="Цена",
+        min_value=Decimal("0.00"),
+        max_value=Decimal("99999999.00"),
+        default="0.17",
     )
 
     class Meta:
@@ -69,13 +80,20 @@ class CalendarDateSerializer(ModelSerializer):
 
         try:
             with transaction.atomic():
-                instance.start_date = validated_data.get("start_date", instance.start_date)
+                instance.start_date = validated_data.get(
+                    "start_date",
+                    instance.start_date,
+                )
                 instance.end_date = validated_data.get("end_date", instance.end_date)
                 instance.available_for_booking = validated_data.get(
-                    "available_for_booking", instance.available_for_booking
+                    "available_for_booking",
+                    instance.available_for_booking,
                 )
                 instance.discount = validated_data.get("discount", instance.discount)
-                instance.discount_amount = validated_data.get("discount_amount", instance.discount_amount)
+                instance.discount_amount = validated_data.get(
+                    "discount_amount",
+                    instance.discount_amount,
+                )
                 instance.save()
                 # Удаляем старые записи
                 instance.calendar_prices.all().delete()
@@ -98,4 +116,11 @@ class CalendarDateSerializer(ModelSerializer):
     def validate(self, data):
         if data["start_date"] > data["end_date"]:
             raise ValidationError("Дата окончания должна быть позже даты начала") from None
+        discount = data.get("discount", False)
+        discount_amount = data.get("discount_amount")
+        if discount:
+            if discount_amount is None:
+                raise ValidationError("Поле discount_amount обязательно, если discount=True") from None
+            if discount_amount <= 0:
+                raise ValidationError("Поле discount_amount должно быть положительным числом") from None
         return data
