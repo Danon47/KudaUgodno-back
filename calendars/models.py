@@ -32,7 +32,11 @@ class CalendarDate(models.Model):
         help_text="Доступность категории для бронирования в этот период",
         default=True,
     )
-    discount = models.BooleanField(verbose_name="Акция", help_text="Применяется ли скидка на период", default=False)
+    discount = models.BooleanField(
+        verbose_name="Акция",
+        help_text="Применяется ли скидка на период",
+        default=False,
+    )
     discount_amount = models.DecimalField(
         verbose_name="Размер скидки",
         help_text=DISCOUNT,
@@ -45,6 +49,9 @@ class CalendarDate(models.Model):
     class Meta:
         verbose_name = "Календарь стоимости номеров"
         verbose_name_plural = "Календари стоимости номеров"
+        indexes = [
+            models.Index(fields=["start_date", "end_date"], name="idx_calendardate_dates"),
+        ]
 
     def __str__(self):
         return f"{self.start_date} - {self.end_date}"
@@ -62,7 +69,6 @@ class CalendarPrice(models.Model):
         verbose_name="Календарь стоимости номеров",
         help_text="Календарь стоимости номеров",
     )
-
     room = models.ForeignKey(
         "rooms.Room",
         on_delete=models.CASCADE,
@@ -85,6 +91,9 @@ class CalendarPrice(models.Model):
     class Meta:
         verbose_name = "Категория номера"
         verbose_name_plural = "Категории номеров"
+        indexes = [
+            models.Index(fields=["room", "calendar_date"], name="idx_calendarprice_room"),
+        ]
 
     def __str__(self):
         return f"{self.room} - {self.price}"
