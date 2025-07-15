@@ -68,17 +68,27 @@ class ArticleImageSerializer(serializers.ModelSerializer):
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
-    """Реакция на комментарий (лайк / дизлайк)."""
+    """
+    Реакция (лайк / дизлайк) на комментарий.
+
+    Используется для:
+    • создания новой реакции (POST);
+    • удаления/обновления существующей реакции (DELETE / PATCH).
+
+    Особенности:
+    • 1 пользователь → 1 реакция на конкретный комментарий
+      (при повторной реакции старая заменяется новой).
+    """
 
     class Meta:
         model = CommentLike
-        fields = ("id", "comment", "user", "is_like", "created_at", "updated_at")
-        read_only_fields = ("id", "user", "created_at", "updated_at")
+        fields = ["id", "comment", "user", "is_like", "created_at", "updated_at"]
+        read_only_fields = ["id", "user", "created_at", "updated_at"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """
-    Комментарий с рекурсивной выдачей вложенных ответов и подсчётом реакций.
+    Комментарий с вложенными ответами (до 2-го уровня) и счётчиками реакций.
     """
 
     author = serializers.StringRelatedField(read_only=True)
@@ -88,7 +98,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = (
+        fields = [
             "id",
             "article",
             "author",
@@ -100,8 +110,8 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "is_active",
-        )
-        read_only_fields = (
+        ]
+        read_only_fields = [
             "id",
             "author",
             "replies",
@@ -109,23 +119,24 @@ class CommentSerializer(serializers.ModelSerializer):
             "dislikes_count",
             "created_at",
             "updated_at",
-        )
+        ]
 
     # ───────── helpers ─────────
 
     def get_replies(self, obj):
-        """Рекурсивно возвращает ответы (глубина ≤ 2)."""
-        current_depth = self.context.get("depth", 0)
-        if current_depth >= 2:
-            return []  # прерываем вложенность
+        """Возвращает вложенные ответы, глубина ≤ 2."""
+        depth = self.context.get("depth", 0)
+        if depth >= 2:
+            return []
+        qs = Comment.objects.filter(parent=obj)
+        return CommentSerializer(qs, many=True, context={"depth": depth + 1}).data
 
-        replies_qs = Comment.objects.filter(parent=obj)
-        return CommentSerializer(replies_qs, many=True, context={"depth": current_depth + 1}).data
-
-    def get_likes_count(self, obj):
+    @staticmethod
+    def get_likes_count(obj):
         return obj.likes.filter(is_like=True).count()
 
-    def get_dislikes_count(self, obj):
+    @staticmethod
+    def get_dislikes_count(obj):
         return obj.likes.filter(is_like=False).count()
 
 
