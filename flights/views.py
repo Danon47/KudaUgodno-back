@@ -14,6 +14,7 @@ from all_fixture.views_fixture import (
     FLIGHT_DEPARTURE_COUNTRY,
     FLIGHT_DEPARTURE_DATE,
     FLIGHT_ID,
+    FLIGHT_NUMBER,
     FLIGHT_SETTINGS,
     LIMIT,
     OFFSET,
@@ -36,6 +37,7 @@ from flights.serializers import FlightSerializer
             FLIGHT_ARRIVAL_COUNTRY,
             FLIGHT_ARRIVAL_CITY,
             FLIGHT_ARRIVAL_DATE,
+            FLIGHT_NUMBER,
         ],
         responses={
             200: OpenApiResponse(
