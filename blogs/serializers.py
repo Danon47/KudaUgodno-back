@@ -15,8 +15,6 @@ from blogs.models import (
     Theme,
 )
 
-# ───────────────────────────── базовые справочники ──────────────────────────────
-
 
 class CategorySerializer(serializers.ModelSerializer):
     """Категория статьи."""
@@ -70,14 +68,6 @@ class ArticleImageSerializer(serializers.ModelSerializer):
 class CommentLikeSerializer(serializers.ModelSerializer):
     """
     Реакция (лайк / дизлайк) на комментарий.
-
-    Используется для:
-    • создания новой реакции (POST);
-    • удаления/обновления существующей реакции (DELETE / PATCH).
-
-    Особенности:
-    • 1 пользователь → 1 реакция на конкретный комментарий
-      (при повторной реакции старая заменяется новой).
     """
 
     class Meta:
@@ -124,7 +114,6 @@ class CommentSerializer(serializers.ModelSerializer):
     # ───────── helpers ─────────
 
     def get_replies(self, obj):
-        """Возвращает вложенные ответы, глубина ≤ 2."""
         depth = self.context.get("depth", 0)
         if depth >= 2:
             return []
@@ -187,12 +176,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             "id",
-            "is_published",
-            "is_moderated",
-            "views_count",
-            "rating",
             "created_at",
             "updated_at",
-            "images",
-            "comments",
         )
