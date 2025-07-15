@@ -10,7 +10,6 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
@@ -35,6 +34,7 @@ from all_fixture.errors.views_error import (
 )
 from all_fixture.pagination import CustomLOPagination
 from all_fixture.views_fixture import (
+    DISCOUNT_SETTINGS,
     FILTER_CITY,
     FILTER_PLACE,
     FILTER_STAR_CATEGORY,
@@ -62,7 +62,6 @@ from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
 from hotels.serializers import (
     HotelBaseSerializer,
     HotelDetailSerializer,
-    HotelFiltersRequestSerializer,
     HotelFiltersResponseSerializer,
     HotelListRoomAndPhotoSerializer,
     HotelPhotoSerializer,
@@ -97,7 +96,10 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
     def get_object(self):
         hotel = self.get_hotel()
         try:
-            return self.model.objects.select_related("hotel").get(hotel_id=hotel.id, id=self.kwargs["pk"])
+            return self.model.objects.select_related("hotel").get(
+                hotel_id=hotel.id,
+                id=self.kwargs["pk"],
+            )
         except self.model.DoesNotExist:
             raise NotFound(self.error_message) from None
 
@@ -106,11 +108,24 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     list=extend_schema(
         summary="Список отелей",
-        description="Получение списка всех отелей с пагинацией",
-        parameters=[OFFSET, LIMIT],
+        description="Получение списка всех отелей с пагинацией и возможностью фильтрации.",
+        parameters=[
+            LIMIT,
+            OFFSET,
+            HOTEL_CHECK_IN,
+            HOTEL_CHECK_OUT,
+            HOTEL_GUESTS,
+            FILTER_CITY,
+            FILTER_TYPE_OF_REST,
+            FILTER_PLACE,
+            HOTEL_PRICE_GTE,
+            HOTEL_PRICE_LTE,
+            FILTER_USER_RATING,
+            FILTER_STAR_CATEGORY,
+        ],
         responses={
             200: OpenApiResponse(
-                response=HotelListRoomAndPhotoSerializer(many=True),
+                response=HotelFiltersResponseSerializer(many=True),
                 description="Успешное получение списка отелей",
             ),
         },
@@ -142,7 +157,21 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(
         summary="Детали отеля",
         description="Получение полной информации об отеле",
-        parameters=[ID_HOTEL],
+        parameters=[
+            ID_HOTEL,
+            # HOTEL_START_DATE,
+            # HOTEL_END_DATE,
+            # HOTEL_CHECK_IN,
+            # HOTEL_CHECK_OUT,
+            # HOTEL_GUESTS,
+            # FILTER_CITY,
+            # FILTER_TYPE_OF_REST,
+            # FILTER_PLACE,
+            # HOTEL_PRICE_GTE,
+            # HOTEL_PRICE_LTE,
+            # FILTER_USER_RATING,
+            # FILTER_STAR_CATEGORY,
+        ],
         responses={
             200: OpenApiResponse(
                 response=HotelListRoomAndPhotoSerializer,
@@ -189,14 +218,53 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     pagination_class = CustomLOPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = HotelFilter
 
     def get_serializer_class(self):
-        if self.action == "create":
-            return HotelBaseSerializer
-        elif self.action in ["list", "retrieve"]:
+        if self.action == "list":
+            return HotelFiltersResponseSerializer
+        elif self.action == "retrieve":
             return HotelListRoomAndPhotoSerializer
+        elif self.action == "create":
+            return HotelBaseSerializer
         else:
             return HotelDetailSerializer
+
+    def get_serializer_context(self):
+        """Передача контекста в сериализатор для фильтрации."""
+        context = super().get_serializer_context()
+        if self.action == "list":
+            context.update(
+                {
+                    "guests": self.request.query_params.get("guests", 1),
+                    "check_in_date": self.request.query_params.get(
+                        "check_in_date",
+                        None,
+                    ),
+                    "check_out_date": self.request.query_params.get(
+                        "check_out_date",
+                        None,
+                    ),
+                }
+            )
+        return context
+
+    def get_queryset(self):
+        """Применение фильтров к списку отелей."""
+        queryset = super().get_queryset()
+        if self.action == "list":
+            filterset = self.filterset_class(
+                self.request.query_params,
+                queryset=queryset,
+            )
+            if not filterset.is_valid():
+                return Response(
+                    {"errors": filterset.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return filterset.qs
+        return queryset
 
     def get_object(self):
         try:
@@ -205,75 +273,12 @@ class HotelViewSet(viewsets.ModelViewSet):
             raise NotFound(HOTEL_ID_ERROR) from None
 
 
-@extend_schema_view(
-    filters=extend_schema(
-        summary="Фильтрация отелей",
-        description="Расширенная фильтрация отелей",
-        parameters=[
-            LIMIT,
-            OFFSET,
-            HOTEL_CHECK_IN,
-            HOTEL_CHECK_OUT,
-            HOTEL_GUESTS,
-            FILTER_CITY,
-            FILTER_TYPE_OF_REST,
-            FILTER_PLACE,
-            HOTEL_PRICE_GTE,
-            HOTEL_PRICE_LTE,
-            FILTER_USER_RATING,
-            FILTER_STAR_CATEGORY,
-        ],
-        tags=[HOTEL_SETTINGS["name"]],
-        responses={
-            200: OpenApiResponse(
-                response=HotelFiltersResponseSerializer(many=True),
-                description="Успешно отфильтрованные отели",
-            ),
-            400: OpenApiResponse(description="Ошибка валидации"),
-        },
-    ),
-)
-class HotelFiltersView(viewsets.ModelViewSet):
-    """Расширенный поиск отелей с дополнительными фильтрами по отелям и другим параметрам."""
-
-    queryset = Hotel.objects.filter(is_active=True)
-    serializer_class = HotelFiltersResponseSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = HotelFilter
-    pagination_class = CustomLOPagination
-    http_method_names = ["get"]
-
-    def get_serializer_context(self):
-        """Передача данных в сериализатор для обработки перед response."""
-        context = super().get_serializer_context()
-        context.update(
-            {
-                "guests": self.request.query_params.get("guests", 1),
-                "check_in_date": self.request.query_params.get("check_in_date", None),
-                "check_out_date": self.request.query_params.get("check_out_date", None),
-            }
-        )
-
-        return context
-
-    @action(detail=False, methods=["get"])
-    def filters(self, request):
-        """Получение данных по фильтрам."""
-        request_serializer = HotelFiltersRequestSerializer(data=request.query_params)
-        if not request_serializer.is_valid():
-            return Response(
-                {"errors": request_serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        return self.list(request)
-
-
+@extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список акционных отелей",
         description="Получение списка всех акционных отелей",
         parameters=[LIMIT, OFFSET],
-        tags=[HOTEL_SETTINGS["name"]],
         responses={
             200: HotelShortWithPriceSerializer(many=True),
         },
@@ -316,12 +321,11 @@ class HotelsHotView(viewsets.ModelViewSet):
         return queryset
 
 
+@extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список популярных отелей",
         description="Получение списка шести популярных отелей",
-        parameters=[LIMIT, OFFSET],
-        tags=[HOTEL_SETTINGS["name"]],
         responses={
             200: HotelPopularSerializer(many=True),
         },
@@ -331,13 +335,15 @@ class HotelsPopularView(viewsets.ModelViewSet):
     """Отели шести стран."""
 
     serializer_class = HotelPopularSerializer
-    pagination_class = CustomLOPagination
     http_method_names = ["get"]
 
     def get_queryset(self):
         """Получение запроса с отелями по одному из шести стран с минимальной ценой."""
         min_price_subquery = (
-            CalendarPrice.objects.filter(calendar_date__available_for_booking=True, room__hotel=OuterRef("pk"))
+            CalendarPrice.objects.filter(
+                calendar_date__available_for_booking=True,
+                room__hotel=OuterRef("pk"),
+            )
             .order_by("price")
             .values("price")[:1]
         )
@@ -511,6 +517,7 @@ class TypeOfMealViewSet(HotelRelatedViewSet):
     error_message = TYPE_OF_MEAL_ERROR
 
 
+@extend_schema(tags=[WHAT_ABOUT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список подборок что насчёт ...",
@@ -521,7 +528,6 @@ class TypeOfMealViewSet(HotelRelatedViewSet):
                 description="Успешное получение списка подборок",
             ),
         },
-        tags=[WHAT_ABOUT_SETTINGS["name"]],
     )
 )
 class HotelWarpUpViewSet(viewsets.ModelViewSet):

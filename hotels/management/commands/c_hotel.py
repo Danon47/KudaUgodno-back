@@ -1,5 +1,7 @@
 import os
 import random
+import uuid
+from collections import defaultdict
 from datetime import date, time, timedelta
 
 from django.conf import settings
@@ -17,11 +19,8 @@ from all_fixture.choices import (
     WhatAboutChoices,
 )
 from applications.models import (
-    ApplicationCancellationInsurance,
     ApplicationHotel,
-    ApplicationMedicalInsurance,
     ApplicationTour,
-    ApplicationVisa,
 )
 from calendars.models import CalendarDate, CalendarPrice
 from flights.models import Flight
@@ -35,6 +34,102 @@ from vzhuhs.models import Vzhuh, VzhuhPhoto
 
 class Command(BaseCommand):
     help = "Команда по добавлению рандомной инфы по всем сущностям"
+
+    @staticmethod
+    def calculate_insurance(guest_len):
+        """
+        Функция для расчета страховок (виза, медицинская страховка, страховка от отмены).
+        Возвращает словарь с параметрами страховок.
+        """
+        if random.random() < 0.77:
+            visa_count = None
+            visa_price_per_one = None
+            visa_total_price = None
+        else:
+            visa_count = guest_len
+            visa_price_per_one = round(random.uniform(4000, 6000), 2)
+            visa_total_price = visa_price_per_one * visa_count
+
+        if random.random() < 0.77:
+            med_insurance_count = None
+            med_insurance_price_per_one = None
+            med_insurance_total_price = None
+        else:
+            med_insurance_count = guest_len
+            med_insurance_price_per_one = round(random.uniform(4000, 6000), 2)
+            med_insurance_total_price = med_insurance_price_per_one * med_insurance_count
+
+        if random.random() < 0.77:
+            cancellation_insurance_total = None
+        else:
+            cancellation_insurance_total = round(random.uniform(4000, 6000), 2)
+
+        return {
+            "visa_count": visa_count,
+            "visa_price_per_one": visa_price_per_one,
+            "visa_total_price": visa_total_price,
+            "med_insurance_count": med_insurance_count,
+            "med_insurance_price_per_one": med_insurance_price_per_one,
+            "med_insurance_total_price": med_insurance_total_price,
+            "cancellation_insurance_total": cancellation_insurance_total,
+        }
+
+    @staticmethod
+    def generate_random_date(start_month, end_month, year):
+        """Функиця для генерации случайных дат в диапазоне."""
+        month = random.randint(start_month, end_month)
+        if month == 2:
+            day = random.randint(1, 28)
+        elif month in [4, 6, 9, 11]:
+            day = random.randint(1, 30)
+        else:
+            day = random.randint(1, 31)
+        return date(year=year, month=month, day=day)
+
+    @staticmethod
+    def generate_random_price(min_price=3000, max_price=99999):
+        """Функция для генерации случайных цен в диапазоне от min_price до max_price."""
+        return round(random.uniform(min_price, max_price), 2)
+
+    @staticmethod
+    def generate_discount_amount():
+        """Функция генерации случайного значения discount_amount."""
+        if random.choice([True, False]):
+            return round(random.uniform(0.01, 0.99), 2)
+        else:
+            return round(random.uniform(1000, 5000), 2)
+
+    @staticmethod
+    def generate_arrival_time(dep_time, same_day=True):
+        """Генерирует реалистичное время прибытия"""
+        if same_day:
+            arr_hour = random.randint(dep_time.hour, 23)
+            if arr_hour == dep_time.hour:
+                arr_min = random.randint(dep_time.minute + 1, 59)
+            else:
+                arr_min = random.choice([0, 15, 30, 45])
+        else:
+            arr_hour = random.randint(0, 23)
+            arr_min = random.choice([0, 15, 30, 45])
+
+        return time(arr_hour, arr_min)
+
+    @staticmethod
+    def add_photos_fk(
+        instances,
+        dir_path,
+        photo_model,
+        fk_name,
+        count,
+    ):
+        files = os.listdir(dir_path)
+        for obj in instances:
+            for _ in range(count):
+                filename = random.choice(files)
+                full_path = os.path.join(dir_path, filename)
+                with open(full_path, "rb") as f:
+                    django_file = File(f, name=filename)
+                    photo_model.objects.create(**{fk_name: obj}, photo=django_file)
 
     def handle(self, *args, **kwargs):
         with transaction.atomic():
@@ -61,7 +156,13 @@ class Command(BaseCommand):
             # Создание подборки, что насчёт
             what_abouts = self.create_what_about(hotels)
             # Создание заявок на туры и отели
-            applications = self.create_applications(tours, hotels, rooms, tourists, all_guests)
+            applications = self.create_applications(
+                tours,
+                hotels,
+                rooms,
+                tourists,
+                all_guests,
+            )
             self.create_vzhuhs()
             self.print_success_message(
                 len(tour_operators),
@@ -75,30 +176,6 @@ class Command(BaseCommand):
                 len(what_abouts),
                 len(applications),
             )
-
-    def add_photos_fk(self, instances, dir_path, photo_model, fk_name, count):
-        files = os.listdir(dir_path)
-        for obj in instances:
-            for _ in range(count):
-                filename = random.choice(files)
-                full_path = os.path.join(dir_path, filename)
-                with open(full_path, "rb") as f:
-                    django_file = File(f, name=filename)
-                    photo_model.objects.create(**{fk_name: obj}, photo=django_file)
-
-    def generate_arrival_time(self, dep_time, same_day=True):
-        """Генерирует реалистичное время прибытия"""
-        if same_day:
-            arr_hour = random.randint(dep_time.hour, 23)
-            if arr_hour == dep_time.hour:
-                arr_min = random.randint(dep_time.minute + 1, 59)
-            else:
-                arr_min = random.choice([0, 15, 30, 45])
-        else:
-            arr_hour = random.randint(0, 23)
-            arr_min = random.choice([0, 15, 30, 45])
-
-        return time(arr_hour, arr_min)
 
     def create_admin(self):
         email = os.getenv("ADMIN_EMAIL")
@@ -131,7 +208,7 @@ class Command(BaseCommand):
         operators = []
         for i, (first_name, last_name) in enumerate(name_to_surname.items()):
             company_name = f"ООО Тима {last_name[4:]}"
-            email = f"operator.{i + 1}{random.randint(1, 9999)}@mail.ru"
+            email = f"operator.{i + 1}{uuid.uuid4()}@mail.ru"
             phone_number = f"+7995{random.randint(1000000, 9999999)}"
             user = User.objects.create_user(
                 first_name=first_name,
@@ -154,9 +231,13 @@ class Command(BaseCommand):
         }
         tourists = []
         for i, (first_name, last_name) in enumerate(name_to_surname.items()):
-            email = f"tourists.{i + 1}{random.randint(1, 9999)}@mail.ru"
+            email = f"tourists.{i + 1}{uuid.uuid4()}@mail.ru"
             phone_number = f"+7926{random.randint(1000000, 9999999)}"
-            birth_date = date(random.randint(2000, 2004), random.randint(1, 12), random.randint(1, 28))
+            birth_date = date(
+                random.randint(2000, 2004),
+                random.randint(1, 12),
+                random.randint(1, 28),
+            )
             user = User.objects.create_user(
                 first_name=first_name,
                 last_name=last_name,
@@ -205,10 +286,18 @@ class Command(BaseCommand):
         selected_names = random.sample(list(names_dict.items()), min(num_guests, len(names_dict)))
 
         for first_name, last_name in selected_names:
-            date_born = date(random.randint(1991, 2004), random.randint(1, 12), random.randint(1, 28))
+            date_born = date(
+                random.randint(1991, 2004),
+                random.randint(1, 12),
+                random.randint(1, 28),
+            )
             ru_passport = f"{random.randint(1000, 9999)} {random.randint(100000, 999999)}"
             int_passport = f"{random.randint(10, 99)} {random.randint(1000000, 9999999)}"
-            int_passport_valid = date(random.randint(2025, 2035), random.randint(1, 12), random.randint(1, 28))
+            int_passport_valid = date(
+                random.randint(2025, 2035),
+                random.randint(1, 12),
+                random.randint(1, 28),
+            )
             guest = Guest.objects.create(
                 firstname=first_name,
                 lastname=last_name,
@@ -246,7 +335,11 @@ class Command(BaseCommand):
             "Бухать": "Можно если за Вами следит жена",
         }
         # Пути к тестовым фотографиям отелей
-        hotel_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_hotel")
+        hotel_photos_dir = os.path.join(
+            settings.BASE_DIR,
+            "static",
+            "test_hotel",
+        )
 
         hotels = []
         for i in range(count):
@@ -294,7 +387,13 @@ class Command(BaseCommand):
                     name=rule_name,
                     description=rule_description,
                 )
-        self.add_photos_fk(hotels, hotel_photos_dir, HotelPhoto, "hotel", 5)
+        self.add_photos_fk(
+            hotels,
+            hotel_photos_dir,
+            HotelPhoto,
+            "hotel",
+            5,
+        )
         return hotels
 
     def create_type_of_meals(self, hotels):
@@ -350,7 +449,11 @@ class Command(BaseCommand):
                 type_of_meals.append(type_of_meal)
         return type_of_meals
 
-    def create_test_rooms(self, hotels, count=5):
+    def create_test_rooms(
+        self,
+        hotels,
+        count=5,
+    ):
         room_categories = [choice[0] for choice in RoomCategoryChoices.choices]
         amenities_common = ["WiFi", "ТВ", "Минибар", "Кондиционер"]
         amenities_coffee = ["Кофе машина в номере", "Чайный сет"]
@@ -362,7 +465,11 @@ class Command(BaseCommand):
             "Алкоголь",
         ]
 
-        room_photos_dir = os.path.join(settings.BASE_DIR, "static", "test_room")
+        room_photos_dir = os.path.join(
+            settings.BASE_DIR,
+            "static",
+            "test_room",
+        )
 
         rooms = []
         for hotel in hotels:
@@ -397,13 +504,28 @@ class Command(BaseCommand):
                     double_bed=double_bed,
                     area=random.randint(20, 100),
                     quantity_rooms=random.randint(1, 10),
-                    amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
-                    amenities_coffee=random.sample(amenities_coffee, k=random.randint(0, len(amenities_coffee))),
-                    amenities_bathroom=random.sample(amenities_bathroom, k=random.randint(1, len(amenities_bathroom))),
-                    amenities_view=random.sample(amenities_view, k=random.randint(1, len(amenities_view))),
+                    amenities_common=random.sample(
+                        amenities_common,
+                        k=random.randint(1, len(amenities_common)),
+                    ),
+                    amenities_coffee=random.sample(
+                        amenities_coffee,
+                        k=random.randint(0, len(amenities_coffee)),
+                    ),
+                    amenities_bathroom=random.sample(
+                        amenities_bathroom,
+                        k=random.randint(1, len(amenities_bathroom)),
+                    ),
+                    amenities_view=random.sample(
+                        amenities_view,
+                        k=random.randint(1, len(amenities_view)),
+                    ),
                 )
                 if available_meals:
-                    selected = random.sample(available_meals, k=random.randint(1, len(available_meals)))
+                    selected = random.sample(
+                        available_meals,
+                        k=random.randint(1, len(available_meals)),
+                    )
                     room.type_of_meals.set(selected)
 
                 for rule_name in rules_names:
@@ -414,41 +536,58 @@ class Command(BaseCommand):
 
                 rooms.append(room)
 
-        self.add_photos_fk(rooms, room_photos_dir, RoomPhoto, "room", 6)
+        self.add_photos_fk(
+            rooms,
+            room_photos_dir,
+            RoomPhoto,
+            "room",
+            6,
+        )
 
         return rooms
 
     def create_room_prices(self, hotels):
         for hotel in hotels:
-            rooms = hotel.rooms.all()
+            rooms = list(hotel.rooms.all())
+            num_dates = random.randint(1, 5)
+            current_start_date = self.generate_random_date(
+                start_month=8,
+                end_month=12,
+                year=2025,
+            )
 
-            # Создаем категории с ценами для каждого номера
-            for room in rooms:
-                num_dates = random.randint(1, 5)
-                current_start_date = date(2025, random.randint(6, 12), random.randint(1, 28))
-                for _ in range(num_dates):
-                    discount = random.choice([True, False])
-                    end_date = current_start_date + timedelta(days=random.randint(10, 14))
-                    price = round(random.uniform(2000, 50000), 2)
+            for _ in range(num_dates):
+                discount = random.choice([True, False])
+                end_date = current_start_date + timedelta(days=random.randint(10, 14))
+                discount_amount = self.generate_discount_amount() if discount else None
+                calendar_date = CalendarDate.objects.create(
+                    hotel=hotel,
+                    start_date=current_start_date,
+                    end_date=end_date,
+                    available_for_booking=True,
+                    discount=discount,
+                    discount_amount=discount_amount,
+                )
 
-                    # Генерация discount_amount: либо 0.01-0.99, либо 100-2000
-                    if discount:
-                        if random.choice([True, False]):  # 50% вероятность для каждого диапазона
-                            discount_amount = round(random.uniform(0.01, 0.99), 2)
-                        else:
-                            discount_amount = random.randint(100, 2000)
-                    else:
-                        discount_amount = None
-                    calendar_date = CalendarDate.objects.create(
-                        hotel=hotel,
-                        start_date=current_start_date,
-                        end_date=end_date,
-                        available_for_booking=True,
-                        discount=discount,
-                        discount_amount=discount_amount,
+                num_rooms_for_date = random.randint(
+                    1,
+                    min(10, len(rooms)),
+                )
+                selected_rooms = random.sample(
+                    rooms,
+                    k=num_rooms_for_date,
+                )
+
+                calendar_price = [
+                    CalendarPrice(
+                        calendar_date=calendar_date,
+                        room=room,
+                        price=self.generate_random_price(),
                     )
-                    CalendarPrice.objects.create(calendar_date=calendar_date, room=room, price=price)
-                    current_start_date = end_date + timedelta(days=1)
+                    for room in selected_rooms
+                ]
+                CalendarPrice.objects.bulk_create(calendar_price)
+                current_start_date = end_date + timedelta(days=1)
 
     def create_flights(self):
         """
@@ -538,10 +677,18 @@ class Command(BaseCommand):
             arrival_country = city_to_country.get(city, "Неизвестно")
 
             # --- Рейс туда ---
-            # Дата в мае 2025, случайный день с 1 по 24
-            dep_date = date(2025, 9, random.randint(1, 24))
-            dep_time = time(hour=random.randint(0, 23), minute=random.choice([0, 15, 30, 45]))
+            dep_date = date(
+                year=2025,
+                month=9,
+                day=random.randint(1, 24),
+            )
+            dep_time = time(
+                hour=random.randint(0, 23),
+                minute=random.choice([0, 15, 30, 45]),
+            )
             arrival_time = self.generate_arrival_time(dep_time, same_day=True)
+            price = round(random.uniform(1000, 10000), 2)
+            price_for_child = round(price / 2, 2) if random.random() > 0.3 else None
 
             flight_to = Flight.objects.create(
                 flight_number=random.choice(flight_numbers),
@@ -556,8 +703,8 @@ class Command(BaseCommand):
                 departure_time=dep_time,
                 arrival_date=dep_date,
                 arrival_time=arrival_time,
-                price=round(random.uniform(1000, 10000), 2),
-                price_for_child=(round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None),
+                price=price,
+                price_for_child=price_for_child,
                 service_class=random.choice(service_classes),
                 flight_type=random.choice(flight_types),
                 description=random.choice(descriptions),
@@ -566,8 +713,17 @@ class Command(BaseCommand):
 
             # --- Рейс обратно через 7 дней ---
             return_date = dep_date + timedelta(days=7)
-            return_dep_time = time(hour=random.randint(0, 23), minute=random.choice([0, 15, 30, 45]))
-            return_arrival_time = self.generate_arrival_time(return_dep_time, same_day=True)
+            return_dep_time = time(
+                hour=random.randint(0, 23),
+                minute=random.choice([0, 15, 30, 45]),
+            )
+            return_arrival_time = self.generate_arrival_time(
+                return_dep_time,
+                same_day=True,
+            )
+            # Генерация цены и цены для ребенка для обратного рейса
+            price_back = round(random.uniform(1000, 10000), 2)
+            price_for_child_back = round(price_back / 2, 2) if random.random() > 0.3 else None
 
             flight_back = Flight.objects.create(
                 flight_number=random.choice(flight_numbers),
@@ -582,8 +738,8 @@ class Command(BaseCommand):
                 departure_time=return_dep_time,
                 arrival_date=return_date,
                 arrival_time=return_arrival_time,
-                price=round(random.uniform(1000, 10000), 2),
-                price_for_child=(round(random.uniform(500, 5000), 2) if random.random() > 0.3 else None),
+                price=price_back,
+                price_for_child=price_for_child_back,
                 service_class=random.choice(service_classes),
                 flight_type=random.choice(flight_types),
                 description=random.choice(descriptions),
@@ -592,7 +748,13 @@ class Command(BaseCommand):
 
         return created_flights
 
-    def create_test_tours(self, flights, hotels, rooms, count=50):
+    def create_test_tours(
+        self,
+        flights,
+        hotels,
+        rooms,
+        count=50,
+    ):
         """
         Генерация тестовых туров.
         :param flights: список всех созданных Flight
@@ -678,7 +840,26 @@ class Command(BaseCommand):
                 what_abouts.append(what_about)
         return what_abouts
 
-    def create_applications(self, tours, hotels, rooms, tourists, guests):
+    def create_applications(
+        self,
+        tours,
+        hotels,
+        rooms,
+        tourists,
+        guests,
+    ):
+        """
+        Функция для создания тестовых заявок (ApplicationHotel и ApplicationTour).
+        Возвращает список созданных заявок.
+        """
+        if not tourists or not hotels or not tours:
+            return []  # Проверка на наличие данных
+
+        # Создание словаря гостей по туристам для быстрого доступа
+        guest_map = defaultdict(list)
+        for g in guests:
+            guest_map[g.user_owner].append(g)
+
         applications = []
         wishes_samples = [
             "Нужен ранний заезд",
@@ -694,91 +875,90 @@ class Command(BaseCommand):
 
         for i in range(10):
             tourist = random.choice(tourists)
-            email = f"application.{i + 1}{random.randint(1, 9999)}@mail.ru"
+            user_guests = guest_map[tourist]
+            if not user_guests:
+                continue
+
+            selected_guests = random.sample(
+                user_guests,
+                k=min(
+                    random.randint(2, 4),
+                    len(user_guests),
+                ),
+            )
+            guest_len = len(selected_guests)
+
+            email = f"application.{i + 1}{uuid.uuid4()}@mail.ru"
             phone_number = f"+7915{random.randint(1000000, 9999999)}"
             wishes = random.choice(wishes_samples)
             status = StatusChoices.AWAIT_CONFIRM
 
-            user_guests = [g for g in guests if g.user_owner == tourist]
-            selected_guests = random.sample(user_guests, k=min(random.randint(2, 4), len(user_guests)))
+            # Генерация базовой цены для каждой заявки
+            base_price = round(random.uniform(30000, 150000), 2)
 
-            visa = None
-            visa_price = 0
-            if random.choice([True, False]):
-                visa_price = round(random.uniform(2000, 7000), 2)
-                visa = ApplicationVisa.objects.create(
-                    count=len(selected_guests),
-                    price=visa_price,
-                    total_price=visa_price * len(selected_guests),
-                )
-                visa_price = visa.total_price
+            # Расчет страховок
+            insurance = self.calculate_insurance(guest_len)
 
-            med_insurance = None
-            med_insurance_price = 0
-            if random.choice([True, False]):
-                med_insurance_price = round(random.uniform(4000, 8000), 2)
-                med_insurance = ApplicationMedicalInsurance.objects.create(
-                    count=len(selected_guests),
-                    price=med_insurance_price,
-                    total_price=med_insurance_price * len(selected_guests),
-                )
-                med_insurance_price = med_insurance.total_price
-
-            cancellation_insurance = None
-            cancellation_insurance_price = 0
-            if random.choice([True, False]):
-                cancellation_insurance_price = round(random.uniform(5000, 20000), 2)
-                cancellation_insurance = ApplicationCancellationInsurance.objects.create(
-                    total_price=cancellation_insurance_price
-                )
-                cancellation_insurance_price = cancellation_insurance.total_price
+            # Расчет общей стоимости
+            total_price = (
+                base_price
+                + (insurance["visa_total_price"] or 0)
+                + (insurance["med_insurance_total_price"] or 0)
+                + (insurance["cancellation_insurance_total"] or 0)
+            )
 
             if i < 5:
                 hotel = random.choice(hotels)
-                # Выбираем номер, связанный с отелем
                 valid_rooms = [r for r in rooms if r.hotel == hotel]
-                room = random.choice(valid_rooms) if valid_rooms else random.choice(rooms)
-                base_price = round(random.uniform(30000, 150000), 2)
-                total_price = base_price + visa_price + med_insurance_price + cancellation_insurance_price
+                if not valid_rooms:
+                    continue
+                room = random.choice(valid_rooms)
+
                 application = ApplicationHotel.objects.create(
                     email=email,
                     phone_number=phone_number,
-                    visa=visa,
-                    med_insurance=med_insurance,
-                    cancellation_insurance=cancellation_insurance,
                     wishes=wishes if wishes else None,
                     status=status,
                     hotel=hotel,
                     room=room,
                     price=total_price,
+                    **insurance,
                 )
-                for guest in selected_guests:
-                    application.quantity_guests.add(guest)
             else:
                 tour = random.choice(tours)
-                total_price = tour.price + visa_price + med_insurance_price + cancellation_insurance_price
                 application = ApplicationTour.objects.create(
                     email=email,
                     phone_number=phone_number,
-                    visa=visa,
-                    med_insurance=med_insurance,
-                    cancellation_insurance=cancellation_insurance,
                     wishes=wishes if wishes else None,
                     status=status,
                     tour=tour,
                     price=total_price,
+                    **insurance,
                 )
-                for guest in selected_guests:
-                    application.quantity_guests.add(guest)
+            # Добавление гостей к заявке
+            for guest in selected_guests:
+                application.quantity_guests.add(guest)
+
             applications.append(application)
+
         return applications
 
     def create_vzhuhs(self):
         """Создает записи Вжухов на основе существующих отелей и туров."""
 
         # Получаем все города, для которых есть и отели, и туры
-        hotel_cities = set(Hotel.objects.values_list("city", flat=True).distinct())
-        tour_cities = set(Tour.objects.values_list("arrival_city", flat=True).distinct())
+        hotel_cities = set(
+            Hotel.objects.values_list(
+                "city",
+                flat=True,
+            ).distinct()
+        )
+        tour_cities = set(
+            Tour.objects.values_list(
+                "arrival_city",
+                flat=True,
+            ).distinct()
+        )
         common_cities = hotel_cities.intersection(tour_cities)
 
         # Базовые города вылета
