@@ -157,21 +157,7 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(
         summary="Детали отеля",
         description="Получение полной информации об отеле",
-        parameters=[
-            ID_HOTEL,
-            # HOTEL_START_DATE,
-            # HOTEL_END_DATE,
-            # HOTEL_CHECK_IN,
-            # HOTEL_CHECK_OUT,
-            # HOTEL_GUESTS,
-            # FILTER_CITY,
-            # FILTER_TYPE_OF_REST,
-            # FILTER_PLACE,
-            # HOTEL_PRICE_GTE,
-            # HOTEL_PRICE_LTE,
-            # FILTER_USER_RATING,
-            # FILTER_STAR_CATEGORY,
-        ],
+        parameters=[ID_HOTEL],
         responses={
             200: OpenApiResponse(
                 response=HotelListRoomAndPhotoSerializer,
