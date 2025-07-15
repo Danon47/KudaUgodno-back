@@ -22,7 +22,6 @@ from all_fixture.views_fixture import (
     ROOM_PHOTO_SETTINGS,
     ROOM_SETTINGS,
     TOUR_SETTINGS,
-    TOUR_STOCK_SETTINGS,
     TYPE_OF_MEAL_SETTINGS,
     USER_SETTINGS,
     VZHUH_SETTINGS,
@@ -207,9 +206,9 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # Жизнь access-токена
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=7),
     # Жизнь refresh-токена
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     # Не создавать новый refresh при обновлении access
     "ROTATE_REFRESH_TOKENS": False,
     # Отозвать старый refresh после ротации, если она включена
@@ -260,7 +259,6 @@ SPECTACULAR_SETTINGS = {
         CALENDAR_SETTINGS,
         FLIGHT_SETTINGS,
         TOUR_SETTINGS,
-        TOUR_STOCK_SETTINGS,
         GUEST_SETTINGS,
         APPLICATION_SETTINGS,
         INSURANCE_SETTINGS,
