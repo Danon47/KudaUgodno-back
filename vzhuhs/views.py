@@ -54,12 +54,15 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
         return (
             Vzhuh.objects.prefetch_related(
                 "tours__hotel__hotel_photos",
-                "tours__stock",
                 "hotels__tours",
                 "hotels__hotel_photos",
                 "photos",
             )
-            .filter(is_published=True)
+            .filter(
+                is_published=True,
+                tours__discount_amount__isnull=True,
+            )
+            .distinct()
             .order_by("?")
         )
 

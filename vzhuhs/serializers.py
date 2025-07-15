@@ -1,6 +1,7 @@
 from django.db.models import Min
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from rest_framework.fields import DecimalField
 
 from hotels.models import Hotel
 from hotels.serializers import HotelPhotoSerializer
@@ -38,7 +39,7 @@ class VzhuhHotelShortSerializer(serializers.ModelSerializer):
     """
 
     photo = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Hotel
@@ -51,7 +52,7 @@ class VzhuhHotelShortSerializer(serializers.ModelSerializer):
             "user_rating",
             "name",
             "distance_to_the_sea",
-            "price",
+            "total_price",
         )
 
     @extend_schema_field(serializers.ImageField(allow_null=True))
@@ -61,13 +62,20 @@ class VzhuhHotelShortSerializer(serializers.ModelSerializer):
         """
         return get_first_photo(self, obj, "hotel_photos")
 
-    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
-    def get_price(self, obj: Hotel):
+    @extend_schema_field(
+        serializers.DecimalField(
+            max_digits=10,
+            decimal_places=2,
+            allow_null=True,
+            default="25000.00",
+        )
+    )
+    def get_total_price(self, obj: Hotel):
         """
         Вычисляет минимальную цену по связанным турам отеля, если они есть.
         """
-        min_price = obj.tours.filter(price__isnull=False).aggregate(Min("price"))["price__min"]
-        return min_price
+        total_price = obj.tours.filter(total_price__isnull=False).aggregate(Min("total_price"))["total_price__min"]
+        return total_price
 
 
 class VzhuhTourShortSerializer(serializers.ModelSerializer):
@@ -81,8 +89,17 @@ class VzhuhTourShortSerializer(serializers.ModelSerializer):
     star_category = serializers.IntegerField(source="hotel.star_category")
     user_rating = serializers.FloatField(source="hotel.user_rating")
     name = serializers.CharField(source="hotel.name")
-    sale = serializers.SerializerMethodField()
     number_of_days = serializers.SerializerMethodField()
+    discount_amount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="0.17",
+    )
+    total_price = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="150000.00",
+    )
 
     class Meta:
         model = Tour
@@ -94,8 +111,8 @@ class VzhuhTourShortSerializer(serializers.ModelSerializer):
             "star_category",
             "user_rating",
             "name",
-            "sale",
-            "price",
+            "discount_amount",
+            "total_price",
             "start_date",
             "end_date",
             "number_of_days",
@@ -108,15 +125,6 @@ class VzhuhTourShortSerializer(serializers.ModelSerializer):
         """
         if obj.hotel:
             return get_first_photo(self, obj.hotel, "hotel_photos")
-        return None
-
-    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
-    def get_sale(self, obj):
-        """
-        Возвращает размер скидки, если у тура есть активная акция.
-        """
-        if obj.stock and obj.stock.active_stock:
-            return obj.stock.discount_amount
         return None
 
     @extend_schema_field(serializers.IntegerField(allow_null=True))
