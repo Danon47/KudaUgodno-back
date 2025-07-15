@@ -64,7 +64,7 @@ class TourSerializer(ModelSerializer):
         max_digits=10,
         decimal_places=2,
         required=False,
-        help_text="Стоимость тура",
+        help_text="Итоговая стоимость тура",
         min_value=Decimal("0.00"),
         max_value=Decimal("99999999.00"),
         error_messages={
@@ -72,6 +72,35 @@ class TourSerializer(ModelSerializer):
             "max_value": TOUR_MAX_PRICE_ERROR,
             "invalid": DECIMAL_ERROR,
         },
+        default="150000.00",
+    )
+    discount_amount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        help_text="Величина скидки",
+        min_value=Decimal("0.00"),
+        max_value=Decimal("99999999.00"),
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": TOUR_MAX_PRICE_ERROR,
+            "invalid": DECIMAL_ERROR,
+        },
+        default="5000.00",
+    )
+    markup_amount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        help_text="Наценка на тур",
+        min_value=Decimal("0.00"),
+        max_value=Decimal("99999999.00"),
+        error_messages={
+            "min_value": MIN_ERROR,
+            "max_value": TOUR_MAX_PRICE_ERROR,
+            "invalid": DECIMAL_ERROR,
+        },
+        default="20000.00",
     )
 
     class Meta:
@@ -213,6 +242,7 @@ class TourPopularSerializer(ModelSerializer):
         required=False,
         help_text="Стоимость минимального популярного тура",
         error_messages=DECIMAL_INVALID,
+        default="150000.00",
     )
 
     class Meta:
@@ -252,6 +282,7 @@ class TourShortSerializer(ModelSerializer):
         required=False,
         help_text="Стоимость горящего тура",
         error_messages=DECIMAL_INVALID,
+        default="150000.00",
     )
 
     class Meta:
