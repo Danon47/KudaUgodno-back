@@ -41,6 +41,7 @@ class User(AbstractUser):
         region="RU",
         verbose_name="Телефон",
         help_text="Телефон в формате: +7 (XXX) XXX-XX-XX",
+        unique=True,
     )
     avatar = models.ImageField(
         upload_to="users/",
@@ -135,7 +136,10 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
     class Meta:
-        constraints = [UniqueConstraint(Lower("email"), name="unique_lower_email")]
+        constraints = [
+            UniqueConstraint(Lower("email"), name="unique_lower_email"),
+            UniqueConstraint("phone_number", name="unique_phone_number"),
+        ]
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
         ordering = ("-pk",)
