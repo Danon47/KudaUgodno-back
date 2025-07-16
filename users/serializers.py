@@ -15,6 +15,15 @@ class BaseUserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     avatar = serializers.ImageField(required=False, allow_null=True)
+    phone_number = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Пользователь с таким номером телефона уже существует",
+                lookup="exact",
+            )
+        ]
+    )
 
     class Meta:
         model = User
