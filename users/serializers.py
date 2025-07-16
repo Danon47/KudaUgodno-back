@@ -1,5 +1,6 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
 from all_fixture.validators.validators import ForbiddenWordValidator
@@ -109,12 +110,21 @@ class CompanyUserSerializer(BaseUserSerializer):
 
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(), message="Пользователь с таким email уже существует", lookup="iexact"
+            )
+        ],
+        help_text="Email (регистр игнорируется)",
+    )
 
     def save(self, request):
         user = super().save(request)
+        # теперь User.save() приведёт email к lowercase
         user.username = user.email
-        user.save()
+        user.save(update_fields=["username"])
         return user
 
 
@@ -134,11 +144,14 @@ class EmailCodeResponseSerializer(serializers.Serializer):
 
 
 class VerifyCodeSerializer(serializers.Serializer):
-    """Сериализатор запроса на подтверждение кода.
-    Используется для передачи email и 4-значного кода из письма.
-    """
-
-    email = serializers.EmailField(help_text="Email, на который отправлен код")
+    email = serializers.EmailField(
+        help_text="Email, на который отправлен код",
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(), message="Пользователь с таким email не найден", lookup="iexact"
+            )
+        ],
+    )
     code = serializers.CharField(help_text="Код из письма")
 
 

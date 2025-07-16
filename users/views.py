@@ -449,47 +449,41 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
     def verify(self, request):
-        """Проверка кода, выдача токенов и информации о регистрации."""
         serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data["email"].strip().lower()
-        code = str(serializer.validated_data["code"]).strip()
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
 
         user = authenticate(email=email, password=str(code))
+        if not user:
+            return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user:
-            refresh = RefreshToken.for_user(user)
-            response = Response(
-                {
-                    "role": user.role,
-                    "id": user.id,
-                },
-                status=status.HTTP_200_OK,
-            )
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {"role": user.role, "id": user.id},
+            status=status.HTTP_200_OK,
+        )
 
-            expires = now() + timedelta(days=30)
-            secure = not settings.DEBUG
+        expires = now() + timedelta(days=30)
+        secure = not settings.DEBUG
 
-            response.set_cookie(
-                key="access_token",
-                value=str(refresh.access_token),
-                httponly=True,
-                secure=secure,
-                samesite="Lax",
-                expires=expires,
-            )
-            response.set_cookie(
-                key="refresh_token",
-                value=str(refresh),
-                httponly=True,
-                secure=secure,
-                samesite="Lax",
-                expires=expires,
-            )
-            return response
-
-        return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
+        response.set_cookie(
+            key="access_token",
+            value=str(refresh.access_token),
+            httponly=True,
+            secure=secure,
+            samesite="Lax",
+            expires=expires,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=secure,
+            samesite="Lax",
+            expires=expires,
+        )
 
     @extend_schema(
         summary="Выход из системы (Logout)",
