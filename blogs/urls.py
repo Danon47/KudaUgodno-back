@@ -1,5 +1,6 @@
 from rest_framework import routers
 
+from blogs.apps import BlogsConfig
 from blogs.views import (
     ArticleImageViewSet,
     ArticleViewSet,
@@ -11,7 +12,7 @@ from blogs.views import (
     ThemeViewSet,
 )
 
-app_name = "blogs"
+app_name = BlogsConfig.name
 
 router = routers.DefaultRouter()
 router.register(r"categories", CategoryViewSet, basename="category")
