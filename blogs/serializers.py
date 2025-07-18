@@ -66,9 +66,7 @@ class ArticleImageSerializer(serializers.ModelSerializer):
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
-    """
-    Реакция (лайк / дизлайк) на комментарий.
-    """
+    """Реакция (лайк / дизлайк) на комментарий."""
 
     class Meta:
         model = CommentLike
@@ -77,9 +75,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """
-    Комментарий с вложенными ответами (до 2-го уровня) и счётчиками реакций.
-    """
+    """Комментарий с вложенными ответами (до 2-го уровня) и счётчиками реакций."""
 
     author = serializers.StringRelatedField(read_only=True)
     replies = serializers.SerializerMethodField()
