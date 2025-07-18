@@ -60,7 +60,6 @@ class VzhuhViewSet(ReadOnlyModelViewSet):
             )
             .filter(
                 is_published=True,
-                tours__discount_amount__isnull=True,
             )
             .distinct()
             .order_by("?")
