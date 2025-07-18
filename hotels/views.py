@@ -334,9 +334,12 @@ class HotelsPopularView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Получение запроса с отелями по одному из шести стран с минимальной ценой."""
-        min_price_subquery = (
+
+        today = timezone.now().date()
+        min_price_without_discount_subquery = (
             CalendarPrice.objects.filter(
                 calendar_date__available_for_booking=True,
+                calendar_date__start_date__gte=today,
                 room__hotel=OuterRef("pk"),
             )
             .order_by("price")
@@ -353,18 +356,18 @@ class HotelsPopularView(viewsets.ModelViewSet):
             .prefetch_related("hotel_photos")
             .annotate(
                 hotels_count=Subquery(country_hotel_count),
-                min_price=Subquery(min_price_subquery),
+                min_price_without_discount=Subquery(min_price_without_discount_subquery),
             )
-            .exclude(min_price=None)
+            .exclude(min_price_without_discount=None)
             .annotate(
                 grouped_countries=Window(
                     expression=RowNumber(),
                     partition_by=[F("country")],
-                    order_by=F("min_price").asc(),
+                    order_by=F("min_price_without_discount").asc(),
                 )
             )
             .filter(grouped_countries=1)
-            .order_by("min_price")[:6]
+            .order_by("min_price_without_discount")[:6]
         )
 
         return queryset

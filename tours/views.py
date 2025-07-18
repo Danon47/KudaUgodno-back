@@ -254,7 +254,7 @@ class TourHotView(viewsets.ModelViewSet):
         )
 
         queryset = (
-            Tour.objects.filter(is_active=True, discount_amount__isnull=True)
+            Tour.objects.filter(is_active=True, discount_amount__isnull=False)
             .annotate(
                 number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
                 number_of_children=Subquery(guests_subquery.values("room__number_of_children")),

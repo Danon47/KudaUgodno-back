@@ -787,9 +787,16 @@ class Command(BaseCommand):
             )
 
             operator = random.choice(operators) if operators else None
-            discount_amount = self.generate_discount_amount()
-            discount_start_date = start + timedelta(days=1)
-            discount_end_date = end - timedelta(days=1)
+
+            if random.random() < 0.77:
+                discount_amount = None
+                discount_start_date = None
+                discount_end_date = None
+            else:
+                discount_amount = self.generate_discount_amount()
+                discount_start_date = start + timedelta(days=1)
+                discount_end_date = end - timedelta(days=1)
+
             markup_amount = self.generate_discount_amount()
             publish_start_date = start - timedelta(days=28)
             publish_end_date = end - timedelta(days=1)

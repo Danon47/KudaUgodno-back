@@ -301,7 +301,7 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
         min_value=0,
         required=True,
     )
-    min_price = DecimalField(
+    min_price_without_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="25000.00",
@@ -311,7 +311,7 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
         model = Hotel
         fields = HotelShortPhotoSerializer.Meta.fields + (
             "country",
-            "min_price",
+            "min_price_without_discount",
             "hotels_count",
         )
 

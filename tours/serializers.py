@@ -236,7 +236,7 @@ class TourPopularSerializer(ModelSerializer):
         min_value=0,
         required=True,
     )
-    price = DecimalField(
+    total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
         required=False,
@@ -250,7 +250,7 @@ class TourPopularSerializer(ModelSerializer):
         fields = (
             "arrival_country",
             "photo",
-            "price",
+            "total_price",
             "tours_count",
         )
 
@@ -276,7 +276,7 @@ class TourShortSerializer(ModelSerializer):
         read_only=True,
     )
     guests = SerializerMethodField()
-    price = DecimalField(
+    total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
         required=False,
@@ -289,7 +289,7 @@ class TourShortSerializer(ModelSerializer):
         model = Tour
         fields = (
             "hotel",
-            "price",
+            "total_price",
             "start_date",
             "end_date",
             "guests",
