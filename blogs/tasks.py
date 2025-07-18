@@ -14,7 +14,10 @@ def send_moderation_notification(article_id):
     """Отправляет уведомление администратору о новой статье, ожидающей модерации."""
     try:
         article = Article.objects.get(pk=article_id)
-        message = f"Новая статья '{article.title}' ожидает модерации.  Ссылка: {settings.SITE_URL}/admin/blogs/article/{article.id}/change/"
+        message = (
+            f"Новая статья '{article.title}' ожидает модерации.  "
+            f"Ссылка: {settings.SITE_URL}/admin/blogs/article/{article.id}/change/"
+        )
         send_mail(
             subject="Новая статья для модерации",
             message=message,
