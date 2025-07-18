@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema_field
-from rest_framework.fields import DecimalField, SerializerMethodField, IntegerField
+from rest_framework.fields import DecimalField, IntegerField, SerializerMethodField
 from rest_framework.serializers import ImageField, ModelSerializer
 
-from all_fixture.errors.list_error import TYPE_OF_MEAL_ERROR
 from calendars.models import CalendarDate
-from hotels.serializers_type_of_meals import TypeOfMealSerializer
 from rooms.models import Room, RoomPhoto, RoomRules
 
 
@@ -58,7 +56,6 @@ class RoomBaseSerializer(ModelSerializer):
         fields = (
             "id",
             "category",
-            "type_of_meals",
             "number_of_adults",
             "number_of_children",
             "single_bed",
@@ -71,28 +68,13 @@ class RoomBaseSerializer(ModelSerializer):
             "amenities_view",
             "rules",
         )
-        extra_kwargs = {
-            "type_of_meals": {
-                "error_messages": {
-                    "does_not_exist": TYPE_OF_MEAL_ERROR,
-                    "invalid": "Неверный формат ID типа питания. Ожидается положительное число.",
-                    "null": "ID рейса туда не может быть пустым.",
-                    "blank": "ID рейса туда не может быть пустым.",
-                }
-            }
-        }
 
     def create(self, validated_data):
         # Извлекаем данные о правилах и типе питания из валидированных данных
         rules_data = validated_data.pop("rules", [])
-        type_of_meals = validated_data.pop("type_of_meals", [])
 
         # Создаем объект Room
         room = Room.objects.create(**validated_data)
-
-        # Устанавливаем тип питания, если он передан
-        if type_of_meals:
-            room.type_of_meals.set(type_of_meals)
 
         # Создаем объекты RoomRules и связываем их с Room
         if rules_data:
@@ -112,16 +94,11 @@ class RoomBaseSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         # Извлекаем данные о правилах и типе питания из валидированных данных
         rules_data = validated_data.pop("rules", None)
-        type_of_meals = validated_data.pop("type_of_meals", None)
 
         # Обновляем поля Room
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        # Обновляем тип питания, если он передан
-        if type_of_meals is not None:
-            instance.type_of_meals.set(type_of_meals)
 
         # Если в данных есть правила, обновляем их
         if rules_data is not None:
@@ -191,10 +168,6 @@ class RoomDetailSerializer(RoomBaseSerializer):
         many=True,
         read_only=True,
     )
-    type_of_meals = TypeOfMealSerializer(
-        many=True,
-        read_only=True,
-    )
     rules = RoomRulesSerializer(
         many=True,
         read_only=True,
@@ -226,12 +199,8 @@ class RoomDetailSerializer(RoomBaseSerializer):
     @extend_schema_field(field=RoomCalendarDateSerializer(many=True))
     def get_calendar_dates(self, obj: Room):
         request = self.context.get("request")
-        start_date_str = (
-            request.query_params.get("date_range_after") if request else None
-        )
-        end_date_str = (
-            request.query_params.get("date_range_before") if request else None
-        )
+        start_date_str = request.query_params.get("date_range_after") if request else None
+        end_date_str = request.query_params.get("date_range_before") if request else None
         calendar_dates = obj.calendar_dates.all()
 
         if start_date_str and end_date_str:

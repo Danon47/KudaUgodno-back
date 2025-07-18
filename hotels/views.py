@@ -1,7 +1,8 @@
 from random import choice
 
-from django.db.models import Count, F, OuterRef, Subquery, Window
+from django.db.models import Count, F, Min, OuterRef, Prefetch, Q, Subquery, Window
 from django.db.models.functions import RowNumber
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -237,8 +238,13 @@ class HotelViewSet(viewsets.ModelViewSet):
         return context
 
     def get_queryset(self):
-        """Применение фильтров к списку отелей."""
+        """Применение фильтров и оптимизация запросов к списку отелей."""
         queryset = super().get_queryset()
+
+        # Оптимизируем запрос, если действие требует получения фотографий
+        if self.action in ["list", "retrieve"]:
+            queryset = queryset.prefetch_related("hotel_photos")
+
         if self.action == "list":
             filterset = self.filterset_class(
                 self.request.query_params,
@@ -253,8 +259,10 @@ class HotelViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_object(self):
+        """Оптимизация запроса для получения одного отеля с фотографиями."""
+        queryset = self.get_queryset()
         try:
-            return self.queryset.get(id=self.kwargs["pk"])
+            return queryset.get(id=self.kwargs["pk"])
         except Hotel.DoesNotExist:
             raise NotFound(HOTEL_ID_ERROR) from None
 
@@ -291,6 +299,7 @@ class HotelsHotView(viewsets.ModelViewSet):
 
         queryset = (
             Hotel.objects.filter(is_active=True)
+            .prefetch_related("hotel_photos")
             .annotate(min_price=Subquery(min_price_subquery))
             .exclude(min_price=None)
             .annotate(
@@ -341,6 +350,7 @@ class HotelsPopularView(viewsets.ModelViewSet):
         )
         queryset = (
             Hotel.objects.filter(is_active=True)
+            .prefetch_related("hotel_photos")
             .annotate(
                 hotels_count=Subquery(country_hotel_count),
                 min_price=Subquery(min_price_subquery),
@@ -522,10 +532,27 @@ class HotelWarpUpViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Возвращает случайную подборку
+        Возвращает случайную подборку отелей с минимальными ценами,
+        начиная с текущей даты, с учетом скидок
         """
+        today = timezone.now().date()
         all_ids = list(HotelWhatAbout.objects.values_list("id", flat=True))
         if not all_ids:
             return HotelWhatAbout.objects.none()
+
+        # Выбираем случайную подборку
         random_id = choice(all_ids)
-        return HotelWhatAbout.objects.filter(id=random_id)
+
+        # Находим минимальную цену, начиная с текущей даты
+        # Без ограничения по конечной дате
+        hotels_with_prices = Hotel.objects.annotate(
+            min_price_without_discount=Min(
+                "calendar_dates__calendar_prices__price",
+                filter=Q(calendar_dates__start_date__gte=today, calendar_dates__calendar_prices__price__gt=0),
+            ),
+        )
+        # Создаем префетч для оптимизации запросов
+        prefetch = Prefetch("hotel", queryset=hotels_with_prices)
+
+        # Возвращаем подборку с префетчем отелей и их ценами
+        return HotelWhatAbout.objects.filter(id=random_id).prefetch_related(prefetch)
