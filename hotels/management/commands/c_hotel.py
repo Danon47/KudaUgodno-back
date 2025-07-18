@@ -27,7 +27,7 @@ from flights.models import Flight
 from guests.models import Guest
 from hotels.models import Hotel, HotelPhoto, HotelWhatAbout, TypeOfMeal
 from rooms.models import Room, RoomPhoto
-from tours.models import Tour, TourStock
+from tours.models import Tour
 from users.models import User
 from vzhuhs.models import Vzhuh, VzhuhPhoto
 
@@ -152,7 +152,7 @@ class Command(BaseCommand):
             rooms = self.create_test_rooms(hotels)
             self.create_room_prices(hotels)
             flights = self.create_flights()
-            tours = self.create_test_tours(flights, hotels, rooms)
+            tours = self.create_test_tours(flights, hotels)
             # Создание подборки, что насчёт
             what_abouts = self.create_what_about(hotels)
             # Создание заявок на туры и отели
@@ -283,7 +283,10 @@ class Command(BaseCommand):
             names_dict = name_to_surname_front
 
         num_guests = random.randint(2, 3)
-        selected_names = random.sample(list(names_dict.items()), min(num_guests, len(names_dict)))
+        selected_names = random.sample(
+            list(names_dict.items()),
+            min(num_guests, len(names_dict)),
+        )
 
         for first_name, last_name in selected_names:
             date_born = date(
@@ -360,7 +363,10 @@ class Command(BaseCommand):
                 description=f"Так себе описание отеля под номером {i + 1}",
                 check_in_time=time(random.randint(14, 16), 0),
                 check_out_time=time(random.randint(10, 12), 0),
-                amenities_common=random.sample(amenities_common, k=random.randint(1, len(amenities_common))),
+                amenities_common=random.sample(
+                    amenities_common,
+                    k=random.randint(1, len(amenities_common)),
+                ),
                 amenities_in_the_room=random.sample(
                     amenities_in_the_room,
                     k=random.randint(1, len(amenities_in_the_room)),
@@ -473,8 +479,6 @@ class Command(BaseCommand):
 
         rooms = []
         for hotel in hotels:
-            # Получаем все типы питания, которые мы только что создали
-            available_meals = list(hotel.type_of_meals.all())
             for _iteration_bed in range(count):
                 number_of_adults = random.randint(2, 4)
                 number_of_children = random.randint(0, 4)
@@ -521,13 +525,6 @@ class Command(BaseCommand):
                         k=random.randint(1, len(amenities_view)),
                     ),
                 )
-                if available_meals:
-                    selected = random.sample(
-                        available_meals,
-                        k=random.randint(1, len(available_meals)),
-                    )
-                    room.type_of_meals.set(selected)
-
                 for rule_name in rules_names:
                     room.rules.create(
                         name=rule_name,
@@ -752,14 +749,12 @@ class Command(BaseCommand):
         self,
         flights,
         hotels,
-        rooms,
         count=50,
     ):
         """
         Генерация тестовых туров.
         :param flights: список всех созданных Flight
         :param hotels: список Hotel
-        :param rooms: список Room
         :param count: желаемое число туров
         :return: список созданных Tour
         """
@@ -780,14 +775,7 @@ class Command(BaseCommand):
 
             # Выбираем случайное количество номеров (от 1 до 3, если доступно)
             available_rooms = list(hotel.rooms.all())
-            num_rooms = (
-                random.randint(
-                    1,
-                    min(3, len(available_rooms)),
-                )
-                if available_rooms
-                else 0
-            )
+            num_rooms = random.randint(1, min(3, len(available_rooms))) if available_rooms else 0
             selected_rooms = random.sample(available_rooms, num_rooms) if num_rooms > 0 else []
 
             # Выбираем типы питания: по одному на каждый номер, с возможностью повторов
@@ -799,16 +787,12 @@ class Command(BaseCommand):
             )
 
             operator = random.choice(operators) if operators else None
-
-            # Создаём скидку в половине случаев
-            stock = None
-            if random.random() < 0.5:
-                if random.choice([True, False]):
-                    discount = round(random.uniform(0.01, 0.99), 2)
-                else:
-                    discount = random.randint(100, 2000)
-                end_stock = end - timedelta(days=random.randint(1, 5))
-                stock = TourStock.objects.create(active_stock=True, discount_amount=discount, end_date=end_stock)
+            discount_amount = self.generate_discount_amount()
+            discount_start_date = start + timedelta(days=1)
+            discount_end_date = end - timedelta(days=1)
+            markup_amount = self.generate_discount_amount()
+            publish_start_date = start - timedelta(days=28)
+            publish_end_date = end - timedelta(days=1)
 
             tour = Tour.objects.create(
                 start_date=start,
@@ -822,8 +806,13 @@ class Command(BaseCommand):
                 tour_operator=operator,
                 hotel=hotel,
                 transfer=random.choice([True, False]),
-                price=round(random.uniform(50000, 200000), 2),
-                stock=stock,
+                total_price=round(random.uniform(50000, 200000), 2),
+                discount_amount=discount_amount,
+                discount_start_date=discount_start_date,
+                discount_end_date=discount_end_date,
+                markup_amount=markup_amount,
+                publish_start_date=publish_start_date,
+                publish_end_date=publish_end_date,
                 is_active=random.choice([True, False]),
             )
             tours.append(tour)

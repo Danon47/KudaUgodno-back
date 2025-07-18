@@ -8,16 +8,6 @@ from hotels.models import Hotel
 class HotelFilter(FilterSet):
     """Класс фильтров для расширенного поиска отелей."""
 
-    start_date = DateFilter(
-        field_name="calendar_dates__start_date",
-        lookup_expr="gte",
-        label="Дата начала фильтрации в формате (YYYY-MM-DD)",
-    )
-    end_date = DateFilter(
-        field_name="calendar_dates__end_date",
-        lookup_expr="lte",
-        label="Дата окончания фильтрации в формате (YYYY-MM-DD)",
-    )
     check_in_date = DateFilter(
         method="filter_by_dates",
     )

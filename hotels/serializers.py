@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django.db import transaction
 from drf_spectacular.utils import extend_schema_field
 from rest_framework.fields import TimeField
 from rest_framework.serializers import (
@@ -205,18 +206,25 @@ class HotelDetailSerializer(ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        # Удаляем вложенные данные из validated_data
         rules_data = validated_data.pop("hotels_rules", None)
-
-        # Обновляем основные поля
         instance = super().update(instance, validated_data)
-
-        # Обновляем вложенные поля, если они предоставлены
         if rules_data is not None:
-            instance.hotels_rules.all().delete()  # Удаляем старые правила
-            for rule_data in rules_data:
-                instance.hotels_rules.create(**rule_data)
-
+            with transaction.atomic():
+                existing_rules = {rule.name: rule for rule in instance.hotels_rules.all()}
+                new_rule_names = {rule["name"] for rule in rules_data}
+                # Удаляем правила, которых больше нет
+                for name, rule in existing_rules.items():
+                    if name not in new_rule_names:
+                        rule.delete()
+                # Или обновляем, или создаём новые правила
+                for rule_data in rules_data:
+                    rule = existing_rules.get(rule_data["name"])
+                    if rule:
+                        for key, value in rule_data.items():
+                            setattr(rule, key, value)
+                        rule.save()
+                    else:
+                        instance.hotels_rules.create(**rule_data)
         return instance
 
 
@@ -272,20 +280,16 @@ class HotelListRoomAndPhotoSerializer(HotelListWithPhotoSerializer):
 
 
 class HotelShortPhotoSerializer(ModelSerializer):
-    photo = SerializerMethodField()
+    photo = HotelPhotoSerializer(source="hotel_photos", many=True, read_only=True)
 
     class Meta:
         model = Hotel
         fields = ("photo",)
 
-    @extend_schema_field(ImageField())
-    def get_photo(self, obj: Hotel):
-        photo = obj.hotel_photos.all()[:10]
-        return HotelPhotoSerializer(
-            photo,
-            many=True,
-            context=self.context,
-        ).data
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["photo"] = representation["photo"][:10]
+        return representation
 
 
 class HotelPopularSerializer(HotelShortPhotoSerializer):
@@ -312,37 +316,52 @@ class HotelPopularSerializer(HotelShortPhotoSerializer):
         )
 
 
-class HotelShortSerializer(HotelShortPhotoSerializer):
+class HotelBaseShortSerializer(HotelShortPhotoSerializer):
     class Meta:
         model = Hotel
-        fields = (
+        fields = HotelShortPhotoSerializer.Meta.fields + (
             "id",
             "country",
             "city",
-            "distance_to_the_station",
-            "distance_to_the_sea",
-            "distance_to_the_center",
-            "distance_to_the_metro",
-            "distance_to_the_airport",
             "star_category",
-            "amenities_common",
             "name",
             "user_rating",
+            "distance_to_the_center",
+        )
+
+
+class HotelShortSerializer(HotelBaseShortSerializer):
+    class Meta:
+        model = Hotel
+        fields = HotelBaseShortSerializer.Meta.fields + (
+            "distance_to_the_station",
+            "distance_to_the_sea",
+            "distance_to_the_metro",
+            "distance_to_the_airport",
+            "amenities_common",
             "width",
             "longitude",
-        ) + HotelShortPhotoSerializer.Meta.fields
+        )
 
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
-    min_price = DecimalField(
+    min_price_without_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="25000.00",
     )
+    min_price_with_discount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default="20000.00",
+    )
 
-    class Meta(HotelShortSerializer.Meta):
+    class Meta:
         model = Hotel
-        fields = HotelShortSerializer.Meta.fields + ("min_price",)
+        fields = HotelShortSerializer.Meta.fields + (
+            "min_price_without_discount",
+            "min_price_with_discount",
+        )
 
 
 class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
@@ -353,7 +372,7 @@ class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
     nights = SerializerMethodField()
     guests = SerializerMethodField()
 
-    class Meta(HotelShortWithPriceSerializer.Meta):
+    class Meta:
         model = Hotel
         fields = HotelShortWithPriceSerializer.Meta.fields + (
             "nights",
@@ -445,8 +464,30 @@ class HotelFiltersRequestSerializer(Serializer):
         ]
 
 
+class HotelWithMinPriceSerializer(HotelBaseShortSerializer):
+    min_price_without_discount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+        default="5000.00",
+    )
+    min_price_with_discount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+        default="4000.00",
+    )
+
+    class Meta:
+        model = Hotel
+        fields = HotelBaseShortSerializer.Meta.fields + (
+            "min_price_without_discount",
+            "min_price_with_discount",
+        )
+
+
 class HotelWhatAboutFullSerializer(ModelSerializer):
-    hotel = HotelShortSerializer(many=True, read_only=True)
+    hotel = HotelWithMinPriceSerializer(many=True, read_only=True)
     name_set = CharField(read_only=True)
 
     class Meta:
