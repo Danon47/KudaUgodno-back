@@ -10,6 +10,7 @@ from rest_framework.permissions import (
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from all_fixture.choices import CountryChoices
 from blogs.filters import ArticleFilter
 from blogs.models import (
     Article,
@@ -17,7 +18,6 @@ from blogs.models import (
     Category,
     Comment,
     CommentLike,
-    Country,
     Tag,
     Theme,
 )
@@ -28,7 +28,6 @@ from blogs.serializers import (
     CategorySerializer,
     CommentLikeSerializer,
     CommentSerializer,
-    CountrySerializer,
     TagSerializer,
     ThemeSerializer,
 )
@@ -51,16 +50,8 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
 
 
-class CountryViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint стран (чтение всем, запись авторизованным)."""
-
-    queryset = Country.objects.all()
-    serializer_class = CountrySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-
 class ThemeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint тем статей (только админ)."""
+    """CRUD-endpoint тем статей (доступен только админам)."""
 
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
@@ -77,16 +68,14 @@ class ArticleViewSet(viewsets.ModelViewSet):
     Фильтрация через `ArticleFilter`:
       • date_from / date_to  — интервал публикации (YYYY-MM-DD)
       • popularity           — asc / desc
-      • country              — CSV-список стран
+      • country              — CSV-список стран (рус. названия)
       • theme_id             — ID темы
     """
 
     serializer_class = ArticleSerializer
     queryset = Article.objects.all()
     filterset_class = ArticleFilter
-
-    # базовые пермишены (детально корректируются в get_permissions)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # базовый уровень, детально уточняется ниже
 
     # ─────────────────────── выборка с учётом статуса ───────────────────────────
 
@@ -104,29 +93,18 @@ class ArticleViewSet(viewsets.ModelViewSet):
             classes = [IsAuthenticated]
         else:
             classes = [AllowAny]
-        return [p() for p in classes]
+        return [cls() for cls in classes]
 
     # ─────────────────────────────── CRUD-overrides ─────────────────────────────
 
     def perform_create(self, serializer):
-        """Сохраняем автора, ставим неопубликованной, уведомляем модераторов."""
+        """Сохраняем автора, помечаем статью как черновик и уведомляем модераторов."""
         article = serializer.save(
             author=self.request.user,
             is_published=False,
             is_moderated=False,
         )
         send_moderation_notification.delay(article.id)
-
-    # ───────────────────────────── дополнительное действие ──────────────────────
-
-    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
-    def moderate(self, request, pk=None):
-        """Админ помечает статью как прошедшую модерацию и опубликованную."""
-        article = self.get_object()
-        article.is_moderated = True
-        article.is_published = True
-        article.save(update_fields=["is_moderated", "is_published"])
-        return Response({"message": "Статья успешно проверена"}, status=status.HTTP_200_OK)
 
     # ─────────────────────────── вспом. проверка прав ───────────────────────────
 
@@ -147,6 +125,22 @@ class ArticleViewSet(viewsets.ModelViewSet):
         self._check_owner(request, self.get_object())
         return super().destroy(request, *args, **kwargs)
 
+    # ───────────────────────────── доп. действия ────────────────────────────────
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    def moderate(self, request, pk=None):
+        """Админ помечает статью как прошедшую модерацию и опубликованную."""
+        article = self.get_object()
+        article.is_moderated = True
+        article.is_published = True
+        article.save(update_fields=["is_moderated", "is_published"])
+        return Response({"message": "Статья успешно проверена"}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def available_countries(self, request):
+        """Возвращает список всех доступных стран (русские названия)."""
+        return Response([name for _, name in CountryChoices.choices])
+
 
 # ───────────────────────── комментарии и реакции ───────────────────────────────
 
@@ -163,7 +157,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class CommentLikeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint реакций (лайк / дизлайк) на комментарии."""
+    """CRUD-endpoint лайков/дизлайков к комментариям."""
 
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
@@ -177,7 +171,7 @@ class CommentLikeViewSet(viewsets.ModelViewSet):
         except (KeyError, ValueError) as err:
             raise ValidationError("Требуется JSON: {'comment': int, 'is_like': bool}") from err
 
-        # заменяем прежнюю реакцию пользователя
+        # заменяем возможную прежнюю реакцию пользователя
         CommentLike.objects.filter(user=request.user, comment_id=comment_id).delete()
         serializer.save(user=request.user, comment_id=comment_id, is_like=is_like)
 

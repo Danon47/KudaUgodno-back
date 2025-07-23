@@ -7,7 +7,6 @@ from blogs.views import (
     CategoryViewSet,
     CommentLikeViewSet,
     CommentViewSet,
-    CountryViewSet,
     TagViewSet,
     ThemeViewSet,
 )
@@ -17,7 +16,6 @@ app_name = BlogsConfig.name
 router = routers.DefaultRouter()
 router.register(r"categories", CategoryViewSet, basename="category")
 router.register(r"tags", TagViewSet, basename="tag")
-router.register(r"countries", CountryViewSet, basename="country")
 router.register(r"themes", ThemeViewSet, basename="theme")
 router.register(r"articles", ArticleViewSet, basename="article")
 router.register(r"comments", CommentViewSet, basename="comment")
