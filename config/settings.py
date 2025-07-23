@@ -18,7 +18,6 @@ from all_fixture.views_fixture import (
     HOTEL_SETTINGS,
     INSURANCE_SETTINGS,
     MAILING_SETTINGS,
-    POPULAR_SETTINGS,
     ROOM_PHOTO_SETTINGS,
     ROOM_SETTINGS,
     TOUR_SETTINGS,
@@ -95,7 +94,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
 
 LOGGING = {
     "version": 1,
@@ -264,7 +262,6 @@ SPECTACULAR_SETTINGS = {
         INSURANCE_SETTINGS,
         VZHUH_SETTINGS,
         WHAT_ABOUT_SETTINGS,
-        POPULAR_SETTINGS,
         MAILING_SETTINGS,
         DISCOUNT_SETTINGS,
     ],
@@ -277,6 +274,9 @@ SPECTACULAR_SETTINGS = {
         "MedicalInsuranceEnum": "insurances.models.MedicalInsuranceChoices",
         "NotLeavingInsuranceEnum": "insurances.models.NotLeavingInsuranceChoices",
     },
+    "POSTPROCESSING_HOOKS": [
+        "all_fixture.spectacular_preorder.reorder_operations_postprocessing",
+    ],
 }
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")

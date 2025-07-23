@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import DecimalField, IntegerField
 from rest_framework.serializers import CharField, ModelSerializer
 
+from all_fixture.choices import StatusChoices
 from all_fixture.validators.validators import ForbiddenWordValidator
 from applications.models import (
     ApplicationHotel,
@@ -83,6 +84,11 @@ class ApplicationBaseSerializer(ModelSerializer):
         min_value=Decimal("0.00"),
         max_value=Decimal("99999999.00"),
         default="150000.00",
+    )
+    status = CharField(
+        required=False,
+        allow_blank=True,
+        default=StatusChoices.AWAIT_CONFIRM,
     )
 
     class Meta:

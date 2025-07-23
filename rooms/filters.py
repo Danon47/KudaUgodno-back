@@ -1,7 +1,8 @@
 from django.db.models.expressions import RawSQL
-from django_filters import DateFromToRangeFilter, FilterSet
+from django_filters import DateFromToRangeFilter, FilterSet, MultipleChoiceFilter
 from rest_framework.exceptions import ValidationError
 
+from all_fixture.choices import RoomCategoryChoices
 from rooms.models import Room
 
 
@@ -57,10 +58,33 @@ class RoomFilter(FilterSet):
         method="filter_date_range",
         label="Диапазон дат (YYYY-MM-DD)",
     )
+    number_of_adults = MultipleChoiceFilter(
+        field_name="number_of_adults",
+        choices=[(i, i) for i in range(1, 10)],
+        conjoined=False,
+        label="Количество взрослых",
+    )
+
+    number_of_children = MultipleChoiceFilter(
+        field_name="number_of_children",
+        choices=[(i, i) for i in range(1, 10)],
+        conjoined=False,
+        label="Количество детей",
+    )
+    category = MultipleChoiceFilter(
+        field_name="category",
+        choices=RoomCategoryChoices.choices,
+        label="Категория номера",
+    )
 
     class Meta:
         model = Room
-        fields = ("date_range",)
+        fields = (
+            "date_range",
+            "number_of_adults",
+            "number_of_children",
+            "category",
+        )
 
     def filter_date_range(self, queryset, name, value):
         start_date = value.start

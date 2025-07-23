@@ -10,4 +10,5 @@ class RoomCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(CalendarDate)
 class CalendarAdmin(admin.ModelAdmin):
-    list_display = ("id", "start_date", "end_date")
+    list_display = ("id", "hotel", "start_date", "end_date")
+    list_filter = ("hotel",)

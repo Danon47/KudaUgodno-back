@@ -3,20 +3,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, DecimalField, ImageField, IntegerField
 from rest_framework.serializers import ModelSerializer, Serializer
 
-# from hotels.models import Hotel
-from promocodes.models import Promocode, PromocodePhoto
+from promocodes.models import Promocode
 from tours.models import Tour
-
-
-class PromocodePhotoSerializer(ModelSerializer):
-    image = ImageField()
-
-    class Meta:
-        model = PromocodePhoto
-        fields = (
-            "id",
-            "image",
-        )
 
 
 class PromocodeSerializer(ModelSerializer):
@@ -25,11 +13,13 @@ class PromocodeSerializer(ModelSerializer):
         decimal_places=2,
         default="0.17",
     )
+    photo = ImageField()
 
     class Meta:
         model = Promocode
         fields = (
             "id",
+            "photo",
             "start_date",
             "end_date",
             "name",
@@ -40,16 +30,6 @@ class PromocodeSerializer(ModelSerializer):
             "hotels",
             "is_active",
         )
-
-
-class PromocodeListSerializer(PromocodeSerializer):
-    image = PromocodePhotoSerializer(
-        many=True,
-        source="promocode_image",
-    )
-
-    class Meta(PromocodeSerializer.Meta):
-        fields = PromocodeSerializer.Meta.fields + ("image",)
 
 
 class PromoCodeCheckSerializer(Serializer):

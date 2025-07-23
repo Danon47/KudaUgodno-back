@@ -10,6 +10,12 @@ from tours.models import Tour
 
 
 class Promocode(models.Model):
+    photo = models.ImageField(
+        upload_to="promocodes/photos/",
+        verbose_name="Фотография для промокода",
+        help_text="Загрузите фотографию для промокода",
+        **NULLABLE,
+    )
     start_date = models.DateField(
         verbose_name="Дата начала",
         help_text="Введите дату начала",
@@ -27,12 +33,12 @@ class Promocode(models.Model):
         max_length=14,
         unique=True,
         verbose_name="Промокод",
-        help_text="Введите промокод (3-10 заглавных букв и 1-4 цифры). "
+        help_text="Введите промокод (2-10 заглавных букв и 1-4 цифры). "
         "Разрешены только латинские заглавные буквы и цифры, остальное - запрещено",
         validators=[
             RegexValidator(
-                regex=r"^[A-Z]{3,10}\d{1,4}$",
-                message="Промокод должен содержать от 3 до 10 заглавных латинских букв и от 1 до 4 цифр. "
+                regex=r"^[A-Z]{2,10}\d{1,4}$",
+                message="Промокод должен содержать от 2 до 10 заглавных латинских букв и от 1 до 4 цифр. "
                 "Всё остальное - запрещено.",
             )
         ],
@@ -70,9 +76,25 @@ class Promocode(models.Model):
         help_text="Промокод активен",
     )
 
-    def is_valid(self):
-        now = date.today()
-        return self.is_active and self.start_date <= now <= self.end_date
+    def is_valid(self, check_in_date=None, check_out_date=None):
+        """
+        Проверяет валидность промокода.
+        Если указаны даты заезда и выезда, проверяет, что промокод действует в этот период.
+        Если даты не указаны, проверяет, что промокод активен на текущую дату.
+        """
+        if not self.is_active:
+            return False
+
+        if check_in_date and check_out_date:
+            # Проверяем, что даты заезда и выезда входят в период действия промокода
+            return (
+                self.start_date <= check_in_date <= self.end_date
+                and self.start_date <= check_out_date <= self.end_date
+            )
+        else:
+            # Если даты не указаны, проверяем только на текущую дату
+            now = date.today()
+            return self.start_date <= now <= self.end_date
 
     def apply_discount(self, original_price):
         discount_amount = self.discount_amount
@@ -85,19 +107,3 @@ class Promocode(models.Model):
     class Meta:
         verbose_name = "Промокод"
         verbose_name_plural = "Промокоды"
-
-
-class PromocodePhoto(models.Model):
-    image = models.ImageField(
-        upload_to="promocodes/",
-        **NULLABLE,
-    )
-    promocode = models.ForeignKey(
-        Promocode,
-        on_delete=models.CASCADE,
-        related_name="promocode_image",
-    )
-
-    class Meta:
-        verbose_name = "Фотография промокода"
-        verbose_name_plural = "Фотографии промокодов"

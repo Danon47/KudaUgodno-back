@@ -270,8 +270,8 @@ class HotelViewSet(viewsets.ModelViewSet):
 @extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
-        summary="Список акционных отелей",
-        description="Получение списка всех акционных отелей",
+        summary="Список отелей по специальной цене",
+        description="Получение списка всех отелей по специальной цене",
         parameters=[LIMIT, OFFSET],
         responses={
             200: HotelShortWithPriceSerializer(many=True),
@@ -279,11 +279,11 @@ class HotelViewSet(viewsets.ModelViewSet):
     )
 )
 class HotelsHotView(viewsets.ModelViewSet):
-    """Горящее предложение от отелей по одному из каждой страны по минимальной цене."""
+    """Отели по специальной цене."""
 
     serializer_class = HotelShortWithPriceSerializer
     pagination_class = CustomLOPagination
-    http_method_names = ["get"]
+    queryset = Hotel.objects.none()
 
     def get_queryset(self):
         """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
@@ -321,6 +321,7 @@ class HotelsHotView(viewsets.ModelViewSet):
     list=extend_schema(
         summary="Список популярных отелей",
         description="Получение списка шести популярных отелей",
+        parameters=[LIMIT, OFFSET],
         responses={
             200: HotelPopularSerializer(many=True),
         },
@@ -330,7 +331,8 @@ class HotelsPopularView(viewsets.ModelViewSet):
     """Отели шести стран."""
 
     serializer_class = HotelPopularSerializer
-    http_method_names = ["get"]
+    pagination_class = CustomLOPagination
+    queryset = Hotel.objects.none()
 
     def get_queryset(self):
         """Получение запроса с отелями по одному из шести стран с минимальной ценой."""

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from promocodes.models import Promocode, PromocodePhoto
+from promocodes.models import Promocode
 
 
 @admin.register(Promocode)
@@ -24,12 +24,4 @@ class PromocodeAdmin(admin.ModelAdmin):
     filter_horizontal = (
         "tours",
         "hotels",
-    )
-
-
-@admin.register(PromocodePhoto)
-class PromocodePhotoAdmin(admin.ModelAdmin):
-    list_display = (
-        "promocode",
-        "image",
     )
