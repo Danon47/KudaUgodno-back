@@ -147,6 +147,11 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
+    def user_can_edit(self, user):
+        """Проверяет, может ли пользователь редактировать статью"""
+
+        return user.is_staff or self.author == user
+
 
 class Comment(models.Model):
     """Модель комментария к статье."""

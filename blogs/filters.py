@@ -1,3 +1,4 @@
+from django.db import models
 from django_filters import (
     CharFilter,
     ChoiceFilter,
@@ -115,9 +116,22 @@ class ArticleFilter(FilterSet):
     @property
     def qs(self):
         """
-        Обычным пользователям показываем только опубликованные
-        и прошедшие модерацию статьи; администраторы видят всё.
+        Возвращает queryset с учётом прав доступа:
+
+        • анонимы — только опубликованные и промодерированные статьи;
+        • обычные пользователи — опубликованные + свои черновики;
+        • администраторы — весь список.
         """
-        qs = super().qs
-        user = self.request.user
-        return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
+        base_qs = super().qs
+        user = getattr(self.request, "user", None)
+
+        # аноним или отсутствие request.user
+        if user is None or not user.is_authenticated:
+            return base_qs.filter(is_published=True, is_moderated=True)
+
+        # админ видит всё
+        if user.is_superuser:
+            return base_qs
+
+        # автор — свои + опубликованные
+        return base_qs.filter(models.Q(is_published=True, is_moderated=True) | models.Q(author=user))

@@ -99,23 +99,17 @@ class ArticleViewSet(viewsets.ModelViewSet):
     filterset_class = ArticleFilter
     permission_classes = [IsAuthenticated]  # базовый уровень, детально уточняется ниже
 
-    # ─────────────────────── выборка с учётом статуса ───────────────────────────
+    # ───────────────────── выборка с учётом статуса и фильтров ───────────────────
 
     def get_queryset(self):
+        """
+        Применяет filters.ArticleFilter к базовому queryset-у.
+        Админ получает полный список,
+        остальные — только опубликованные и прошедшие модерацию статьи.
+        """
         qs = self.filter_queryset(super().get_queryset())
         user = self.request.user
         return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
-
-    # ───────────────────────────── permissions matrix ───────────────────────────
-
-    def get_permissions(self):
-        if self.action in {"update", "partial_update", "destroy"}:
-            classes = [IsAuthorOrAdmin]
-        elif self.action == "create":
-            classes = [IsAuthenticated]
-        else:
-            classes = [AllowAny]
-        return [cls() for cls in classes]
 
     # ─────────────────────────────── CRUD-overrides ─────────────────────────────
 
