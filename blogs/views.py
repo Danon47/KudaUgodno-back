@@ -51,11 +51,33 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class ThemeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint тем статей (доступен только админам)."""
+    """
+    CRUD-endpoint тем статей.
+
+    Права доступа:
+    • list / retrieve – доступны всем;
+    • create – только авторизованным;
+    • update / partial_update / destroy – автор темы либо администратор.
+    """
 
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
-    permission_classes = [IsAdminUser]
+
+    # базовый класс — заменяем динамически
+    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in {"list", "retrieve"}:
+            return [AllowAny()]
+        if self.action == "create":
+            return [IsAuthenticated()]
+        # update / partial_update / destroy
+        return [IsAuthorOrAdmin()]
+
+    def perform_create(self, serializer):
+        # если в модели Theme есть поле author, можно раскомментировать:
+        # serializer.save(author=self.request.user)
+        serializer.save()
 
 
 # ───────────────────────────── основная сущность ────────────────────────────────
