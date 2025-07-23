@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from blogs.models import Article, ArticleImage, Category, Comment, CommentLike, Country, Tag, Theme
+from all_fixture.choices import CountryChoices
+from blogs.models import Article, ArticleImage, Category, Comment, CommentLike, Tag, Theme
 
 
 # noinspection PyUnresolvedReferences
@@ -12,7 +13,7 @@ class SlugNameAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
     list_filter = ("name", "slug")
     search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name",)}  # Автозаполнение slug из name
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Category)
@@ -23,11 +24,6 @@ class CategoryAdmin(SlugNameAdmin):
 @admin.register(Tag)
 class TagsAdmin(SlugNameAdmin):
     """Админ панель для модели Tag."""
-
-
-@admin.register(Country)
-class CountryAdmin(SlugNameAdmin):
-    """Админ панель для модели Country."""
 
 
 @admin.register(Theme)
@@ -50,6 +46,7 @@ class ArticleAdmin(admin.ModelAdmin):
         "rating",
         "created_at",
         "updated_at",
+        "display_countries",
     )
     list_filter = (
         "title",
@@ -63,7 +60,20 @@ class ArticleAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
-    search_fields = ("title",)
+    search_fields = (
+        "title",
+        "countries",
+    )
+
+    def display_countries(self, obj):
+        """
+        Преобразует коды стран статьи в строку с русскими названиями.
+        """
+
+        country_mapping = dict(CountryChoices.choices)
+        return ", ".join(country_mapping.get(code, code) for code in obj.countries)
+
+    display_countries.short_description = "Страны"
 
 
 @admin.register(Comment)
@@ -107,7 +117,7 @@ class CommentAdmin(admin.ModelAdmin):
     dislikes_count_display.short_description = "Дизлайки"
     dislikes_count_display.admin_order_field = "dislikes_count"
 
-    def approve_comments(self, request, queryset):
+    def approve_comments(self, queryset):
         queryset.update(is_active=True)
 
     approve_comments.short_description = "Одобрить выбранные комментарии"

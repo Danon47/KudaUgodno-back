@@ -45,14 +45,6 @@ class Tag(SlugNameModel):
         verbose_name_plural = "Теги"
 
 
-class Country(SlugNameModel):
-    """Модель страна."""
-
-    class Meta(SlugNameModel.Meta):
-        verbose_name = "Страна"
-        verbose_name_plural = "Страны"
-
-
 class Theme(SlugNameModel):
     """Модель тема статьи."""
 
@@ -126,11 +118,11 @@ class Article(models.Model):
         verbose_name="Теги",
         help_text="Теги",
     )
-    countries = models.ManyToManyField(
-        Country,
+    countries = models.JSONField(
+        default=list,
         blank=True,
         verbose_name="Страны",
-        help_text="Страны",
+        help_text="Список стран в формате ['Россия', 'Казахстан']",
     )
     author = models.ForeignKey(
         User,

@@ -7,6 +7,7 @@ from django_filters import (
 )
 from rest_framework.exceptions import APIException
 
+from all_fixture.choices import CountryChoices
 from blogs.models import Article, Theme
 
 
@@ -35,8 +36,8 @@ class ArticleFilter(FilterSet):
     )
     country = CharFilter(
         method="filter_country",
-        label="Страны (CSV)",
-        help_text="Список стран через запятую",
+        label="Страны (русские названия)",
+        help_text="CSV-список русских названий стран",
     )
     theme_id = NumberFilter(
         field_name="theme",
@@ -79,9 +80,26 @@ class ArticleFilter(FilterSet):
 
     @staticmethod
     def filter_country(queryset, name, value):  # noqa: ARG003
+        """
+        Принимает CSV из русских названий стран и фильтрует по их кодам.
+        """
         try:
-            countries = [c.strip() for c in value.split(",")]
-            return queryset.filter(countries__name__in=countries)
+            name_to_code = {name: code for code, name in CountryChoices.choices}
+            codes = []
+            unknown = []
+            for raw in value.split(","):
+                name_ru = raw.strip()
+                code = name_to_code.get(name_ru)
+                if code:
+                    codes.append(code)
+                else:
+                    unknown.append(name_ru)
+
+            if unknown:
+                raise APIException(f"Неизвестные страны: {', '.join(unknown)}") from None
+
+            # `countries` — ArrayField(CharField) => lookup contains list-intersection
+            return queryset.filter(countries__contains=codes)
         except Exception as err:  # noqa: BLE001
             raise APIException(f"Ошибка фильтрации по стране: {err}") from err
 
@@ -97,8 +115,8 @@ class ArticleFilter(FilterSet):
     @property
     def qs(self):
         """
-        Обычным пользователям показываем только опубликованные и
-        прошедшие модерацию статьи; администраторы видят всё.
+        Обычным пользователям показываем только опубликованные
+        и прошедшие модерацию статьи; администраторы видят всё.
         """
         qs = super().qs
         user = self.request.user

@@ -1,8 +1,14 @@
 from rest_framework import serializers
 from rest_framework.fields import (
+    BooleanField,
+    CharField,
+    CurrentUserDefault,
     ImageField,
+    ListField,
 )
+from rest_framework.relations import PrimaryKeyRelatedField, StringRelatedField
 
+from all_fixture.choices import CountryChoices
 from all_fixture.validators.validators import ForbiddenWordValidator
 from blogs.models import (
     Article,
@@ -10,10 +16,11 @@ from blogs.models import (
     Category,
     Comment,
     CommentLike,
-    Country,
     Tag,
     Theme,
 )
+
+# ───────────────────────────── базовые справочники ──────────────────────────────
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,14 +36,6 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ["id", "name", "slug"]
-
-
-class CountrySerializer(serializers.ModelSerializer):
-    """Страна публикации статьи."""
-
-    class Meta:
-        model = Country
         fields = ["id", "name", "slug"]
 
 
@@ -77,7 +76,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Комментарий с вложенными ответами (до 2-го уровня) и счётчиками реакций."""
 
-    author = serializers.StringRelatedField(read_only=True)
+    author = StringRelatedField(read_only=True)
     replies = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField(read_only=True)
     dislikes_count = serializers.SerializerMethodField(read_only=True)
@@ -129,28 +128,60 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ArticleSerializer(serializers.ModelSerializer):
-    """Подробная информация о статье со связанными сущностями."""
+    """Статья со связанными сущностями и поддержкой русских названий стран."""
 
     images = ArticleImageSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    country = CountrySerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
 
-    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    theme = serializers.PrimaryKeyRelatedField(queryset=Theme.objects.all(), allow_null=True)
-    is_published = serializers.BooleanField(read_only=True)
-    is_moderated = serializers.BooleanField(read_only=True)
+    # страны приходят/уходят как список русских названий
+    countries = ListField(
+        child=CharField(),
+        required=False,
+        help_text="Список русских названий стран (например, ['Россия', 'США'])",
+    )
 
+    author = PrimaryKeyRelatedField(read_only=True, default=CurrentUserDefault())
+    theme = PrimaryKeyRelatedField(queryset=Theme.objects.all(), allow_null=True)
+    is_published = BooleanField(read_only=True)
+    is_moderated = BooleanField(read_only=True)
+
+    # запрет на некорректные слова
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Валидаторы на запрещённые слова
         self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
         self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
 
+    # ───────── countries helpers ─────────
+
+    @staticmethod
+    def validate_countries(value):
+        """Проверка, что все названия стран валидны (по Russian name)."""
+        valid_names = {name for _, name in CountryChoices.choices}
+        invalid = [name for name in value if name not in valid_names]
+        if invalid:
+            raise serializers.ValidationError(f"Неизвестные страны: {', '.join(invalid)}")
+        return value
+
+    def to_internal_value(self, data):
+        """Преобразуем русские названия в коды перед сохранением."""
+        if "countries" in data:
+            name_to_code = {name: code for code, name in CountryChoices.choices}
+            data["countries"] = [name_to_code[n] for n in data["countries"] if n in name_to_code]
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        """Преобразуем коды в русские названия при отдаче данных."""
+        rep = super().to_representation(instance)
+        if "countries" in rep:
+            code_to_name = dict(CountryChoices.choices)
+            rep["countries"] = [code_to_name.get(code, code) for code in rep["countries"]]
+        return rep
+
     class Meta:
         model = Article
-        fields = (
+        fields = [
             "id",
             "title",
             "content",
@@ -164,14 +195,20 @@ class ArticleSerializer(serializers.ModelSerializer):
             "updated_at",
             "category",
             "tags",
-            "country",
+            "countries",
             "theme",
             "author",
             "images",
             "comments",
-        )
-        read_only_fields = (
+        ]
+        read_only_fields = [
             "id",
+            "is_published",
+            "is_moderated",
+            "views_count",
+            "rating",
             "created_at",
             "updated_at",
-        )
+            "images",
+            "comments",
+        ]
