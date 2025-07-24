@@ -30,7 +30,7 @@ def annotate_with_prices(queryset, start_date, end_date):
                             END
                         ELSE cp.price
                     END
-                ), 
+                ),
                 0
             ) AS total_price_with_discount
         FROM date_series ds
