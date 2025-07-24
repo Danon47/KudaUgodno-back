@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import UniqueConstraint
+from django.db.models.functions import Lower
 from phonenumber_field.modelfields import PhoneNumberField
 
 from all_fixture.choices import (
@@ -39,6 +41,7 @@ class User(AbstractUser):
         region="RU",
         verbose_name="Телефон",
         help_text="Телефон в формате: +7 (XXX) XXX-XX-XX",
+        unique=True,
     )
     avatar = models.ImageField(
         upload_to="users/",
@@ -91,22 +94,16 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
 
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
-        ordering = ("-pk",)
-
     def __str__(self):
-        """Строковое представление — email пользователя."""
+        """Строковое представление — имя и email пользователя."""
         return f"{self.first_name} {self.last_name} ({self.email})"
 
     def clean(self):
         """
         Валидация полей модели пользователя в зависимости от роли:
-        - Пользователь не может иметь company_name и documents.
+        - Обычный пользователь не может иметь company_name и documents.
         - Туроператор и Отельер обязаны заполнить company_name и загрузить documents.
-        - Только обычный пользователь может использовать настройки:
-            currency, language, notifications_enabled, preferred_contact_channel.
+        - Только обычный пользователь может настраивать интерфейс.
         """
         super().clean()
 
@@ -119,7 +116,7 @@ class User(AbstractUser):
             if not self.documents:
                 raise ValidationError("Для Туроператора и Отельера необходимо загрузить документы.")
 
-            # Проверяем, что пользователь не пытался указать специфичные для туриста поля
+            # Проверяем, что пользователь не пытался указать туристические настройки
             if any(
                 [
                     self.currency != CurrencyChoices.RUB,
@@ -129,3 +126,20 @@ class User(AbstractUser):
                 ]
             ):
                 raise ValidationError("Настройки интерфейса доступны только обычным пользователям (туристам).")
+
+    def save(self, *args, **kwargs):
+        """
+        Перед сохранением понижаем регистр email, чтобы обеспечить консистентность.
+        """
+        if self.email:
+            self.email = self.email.strip().lower()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(Lower("email"), name="unique_lower_email"),
+            UniqueConstraint("phone_number", name="unique_phone_number"),
+        ]
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        ordering = ("-pk",)

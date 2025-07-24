@@ -52,13 +52,24 @@ class UserSerializer(BaseUserSerializer):
             "preferred_contact_channel",
         )
 
+    def validate_role(self, value):
+        user = self.context["request"].user
+        if not user.is_authenticated or not user.is_superuser:
+            if value != RoleChoices.USER:
+                raise serializers.ValidationError("Вы не можете задать роль, отличную от USER.")
+        return value
+
 
 class CompanyUserSerializer(BaseUserSerializer):
     """Сериализатор для Туроператоров и Отельеров."""
 
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
     documents = serializers.FileField(required=False, allow_null=True)
-    role = serializers.CharField(default=RoleChoices.TOUR_OPERATOR)
+    role = serializers.ChoiceField(
+        choices=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER],
+        default=RoleChoices.TOUR_OPERATOR,
+        help_text="Роль компании: TOUR_OPERATOR или HOTELIER",
+    )
 
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ("company_name", "documents")
@@ -88,21 +99,26 @@ class CompanyUserSerializer(BaseUserSerializer):
         return instance
 
     def validate(self, data):
-        """Валидация полей в зависимости от роли."""
-        role = data.get("role", RoleChoices.USER)
+        role = data.get("role", RoleChoices.TOUR_OPERATOR)
         if role == RoleChoices.USER:
             raise serializers.ValidationError("Обычный пользователь не может иметь company_name и documents.")
+        if role not in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            raise serializers.ValidationError("Вы можете задать только роль 'TOUR_OPERATOR' или 'HOTELIER'.")
         return data
 
 
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(
+        required=True,
+        help_text="Email (регистр игнорируется)",
+    )
 
     def save(self, request):
         user = super().save(request)
+        # теперь User.save() приведёт email к lowercase
         user.username = user.email
-        user.save()
+        user.save(update_fields=["username"])
         return user
 
 
@@ -122,11 +138,9 @@ class EmailCodeResponseSerializer(serializers.Serializer):
 
 
 class VerifyCodeSerializer(serializers.Serializer):
-    """Сериализатор запроса на подтверждение кода.
-    Используется для передачи email и 4-значного кода из письма.
-    """
-
-    email = serializers.EmailField(help_text="Email, на который отправлен код")
+    email = serializers.EmailField(
+        help_text="Email, на который отправлен код",
+    )
     code = serializers.CharField(help_text="Код из письма")
 
 
