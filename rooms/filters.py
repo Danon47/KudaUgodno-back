@@ -16,18 +16,21 @@ def annotate_with_prices(queryset, start_date, end_date):
         WITH date_series AS (
             SELECT generate_series(%s::date, (%s::date - interval '1 day'), interval '1 day')::date AS day
         ),
-        price_calculation AS (
+        calculations AS (
             SELECT 
+                COUNT(DISTINCT CASE 
+                    WHEN cd.available_for_booking = TRUE THEN ds.day 
+                END) AS nights,
                 COALESCE(SUM(cp.price), 0) AS total_price_without_discount,
                 COALESCE(
                     SUM(
                         CASE 
                             WHEN cd.discount = TRUE AND cd.discount_amount IS NOT NULL THEN 
-                            CASE 
-                                WHEN cd.discount_amount <= 1.0 THEN GREATEST(cp.price * (1 - cd.discount_amount), 0)
-                                ELSE GREATEST(cp.price - cd.discount_amount, 0)
-                            END
-                        ELSE cp.price
+                                CASE 
+                                    WHEN cd.discount_amount <= 1.0 THEN GREATEST(cp.price * (1 - cd.discount_amount), 0)
+                                    ELSE GREATEST(cp.price - cd.discount_amount, 0)
+                                END
+                            ELSE cp.price
                         END
                     ),
                     0
@@ -36,21 +39,12 @@ def annotate_with_prices(queryset, start_date, end_date):
             JOIN calendars_calendardate cd ON ds.day BETWEEN cd.start_date AND cd.end_date
             JOIN calendars_calendarprice cp ON cp.calendar_date_id = cd.id
             WHERE cp.room_id = rooms_room.id
-        ),
-        availability_calculation AS (
-            SELECT COUNT(DISTINCT ds.day) AS nights
-            FROM date_series ds
-            JOIN calendars_calendardate cd 
-                ON ds.day BETWEEN cd.start_date AND cd.end_date
-                AND cd.available_for_booking = TRUE
-            JOIN calendars_calendarprice cp 
-                ON cp.calendar_date_id = cd.id 
-                AND cp.room_id = rooms_room.id
         )
         SELECT 
-            (SELECT total_price_without_discount FROM price_calculation) AS price_without_discount,
-            (SELECT total_price_with_discount FROM price_calculation) AS price_with_discount,
-            (SELECT nights FROM availability_calculation) AS available_count
+            total_price_without_discount AS price_without_discount,
+            total_price_with_discount AS price_with_discount,
+            nights AS available_count
+        FROM calculations
     """
 
     params = (start_date, end_date)
