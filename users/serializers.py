@@ -1,6 +1,5 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 from all_fixture.choices import ContactPriorityChoices, CurrencyChoices, LanguageChoices, RoleChoices
 from all_fixture.validators.validators import ForbiddenWordValidator
@@ -15,15 +14,6 @@ class BaseUserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     last_name = serializers.CharField(validators=[ForbiddenWordValidator()])
     avatar = serializers.ImageField(required=False, allow_null=True)
-    phone_number = serializers.CharField(
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(),
-                message="Пользователь с таким номером телефона уже существует",
-                lookup="exact",
-            )
-        ]
-    )
 
     class Meta:
         model = User
@@ -76,7 +66,7 @@ class CompanyUserSerializer(BaseUserSerializer):
     company_name = serializers.CharField(required=True, validators=[ForbiddenWordValidator()])
     documents = serializers.FileField(required=False, allow_null=True)
     role = serializers.ChoiceField(
-        choices=[(RoleChoices.TOUR_OPERATOR, "Туроператор"), (RoleChoices.HOTELIER, "Отельер")],
+        choices=[RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER],
         default=RoleChoices.TOUR_OPERATOR,
         help_text="Роль компании: TOUR_OPERATOR или HOTELIER",
     )
@@ -121,11 +111,6 @@ class CustomRegisterSerializer(RegisterSerializer):
     username = None
     email = serializers.EmailField(
         required=True,
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(), message="Пользователь с таким email уже существует", lookup="iexact"
-            )
-        ],
         help_text="Email (регистр игнорируется)",
     )
 
@@ -155,11 +140,6 @@ class EmailCodeResponseSerializer(serializers.Serializer):
 class VerifyCodeSerializer(serializers.Serializer):
     email = serializers.EmailField(
         help_text="Email, на который отправлен код",
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(), message="Пользователь с таким email не найден", lookup="iexact"
-            )
-        ],
     )
     code = serializers.CharField(help_text="Код из письма")
 
