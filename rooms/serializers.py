@@ -199,17 +199,16 @@ class RoomDetailSerializer(RoomBaseSerializer):
     @extend_schema_field(field=RoomCalendarDateSerializer(many=True))
     def get_calendar_dates(self, obj: Room):
         request = self.context.get("request")
+        calendar_dates = obj.calendar_dates.all()
+
         start_date_str = request.query_params.get("date_range_after") if request else None
         end_date_str = request.query_params.get("date_range_before") if request else None
-        calendar_dates = obj.calendar_dates.all()
 
         if start_date_str and end_date_str:
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
             end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
             # Вычитаем один день из end_date, так как день выезда не учитывается
             adjusted_end_date = end_date - timedelta(days=1)
-
             calendar_dates = (
                 calendar_dates.filter(
                     start_date__lte=adjusted_end_date,

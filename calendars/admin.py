@@ -5,7 +5,7 @@ from calendars.models import CalendarDate, CalendarPrice
 
 @admin.register(CalendarPrice)
 class RoomCategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "price")
+    list_display = ("id", "price", "room", "calendar_date")
 
 
 @admin.register(CalendarDate)
