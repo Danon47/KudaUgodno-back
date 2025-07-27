@@ -1,6 +1,11 @@
+from django import forms
 from django.db.models import Prefetch
 from django.db.models.expressions import RawSQL
-from django_filters import DateFromToRangeFilter, FilterSet, MultipleChoiceFilter
+from django_filters import (
+    DateFromToRangeFilter,
+    FilterSet,
+    MultipleChoiceFilter,
+)
 from rest_framework.exceptions import ValidationError
 
 from all_fixture.choices import RoomCategoryChoices
@@ -67,22 +72,36 @@ def annotate_with_prices(queryset, start_date, end_date):
     return queryset
 
 
+class IntMultiChoiceFilter(MultipleChoiceFilter):
+    """
+    - value  '00' … '10' → Swagger показывает в правильном порядке
+    - label  тоже '00' … '10' (можно оставить как есть)
+    - coerce=int позволяет присылать и `4`, и `04`
+    """
+
+    field_class = forms.TypedMultipleChoiceField
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("coerce", int)
+
+        # генерируем одинаковые value/label с ведущим нулём
+        kwargs["choices"] = [(f"{i:02}", f"{i:02}") for i in range(0, 11)]
+
+        super().__init__(*args, **kwargs)
+
+
 class RoomFilter(FilterSet):
     date_range = DateFromToRangeFilter(
         method="filter_date_range",
         label="Диапазон дат (YYYY-MM-DD)",
     )
-    number_of_adults = MultipleChoiceFilter(
+    number_of_adults = IntMultiChoiceFilter(
         field_name="number_of_adults",
-        choices=[(i, i) for i in range(1, 10)],
-        conjoined=False,
         label="Количество взрослых",
     )
 
-    number_of_children = MultipleChoiceFilter(
+    number_of_children = IntMultiChoiceFilter(
         field_name="number_of_children",
-        choices=[(i, i) for i in range(1, 10)],
-        conjoined=False,
         label="Количество детей",
     )
     category = MultipleChoiceFilter(
@@ -91,6 +110,14 @@ class RoomFilter(FilterSet):
         label="Категория номера",
     )
 
+    # 👉 новый фильтр: общее число гостей (взрослые + дети) : если понадобиться фильтровать по N гостей
+    """
+        total_guests = NumberFilter(
+        method="filter_total_guests",
+        label="Всего гостей",
+    )
+    """
+
     class Meta:
         model = Room
         fields = (
@@ -98,7 +125,23 @@ class RoomFilter(FilterSet):
             "number_of_adults",
             "number_of_children",
             "category",
+            # "total_guests", #  👉 если понадобиться фильтровать по N гостей
         )
+
+    #  👉 если понадобиться фильтровать по N гостей
+    # В этом случае не забыть добавить импорты django.db.models > F, django_filters > NumberFilter
+    '''
+        def filter_total_guests(self, queryset, name, value):
+        """
+        value — это число, которое пришло из query-param (?total_guests=3).
+        Фильтруем номера, где number_of_adults + number_of_children == value
+        """
+        return (
+            queryset
+            .annotate(total_guests=F("number_of_adults") + F("number_of_children"))
+            .filter(total_guests=value)
+        )
+    '''
 
     def filter_date_range(self, queryset, name, value):
         start_date = value.start
