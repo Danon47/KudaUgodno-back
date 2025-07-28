@@ -1,6 +1,6 @@
 from django.db import models
 
-from all_fixture.fixture_views import NULLABLE
+from all_fixture.views_fixture import NULLABLE
 from users.models import User
 
 
