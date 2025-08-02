@@ -1,9 +1,15 @@
-from django.core.exceptions import ValidationError
+# ─── Стандартные библиотеки ──────────────────────────────────────────────
+from datetime import timedelta
+
+# ─── Первый уровень ────────────────────────────────────────────────────
 from django.test import TestCase
+from django.utils import timezone
 
-from all_fixture.choices import RoleChoices
+# ─── Второй уровень / Приложения разработки ───────────────────────────────
 from users.models import User
+from users.services import BAN_STEPS, check_ban, record_login_attempt
 
+'''
 
 class UserModelTests(TestCase):
     """Тесты для модели пользователя."""
@@ -122,3 +128,48 @@ class UserModelTests(TestCase):
         with self.assertRaises(ValidationError) as error:
             self.hotel_owner.full_clean()
         self.assertIn("Для Туроператора и Отельера необходимо загрузить документы.", str(error.exception))
+
+'''
+
+# ────────────────────────────────────────────────────────────
+# Тесты логики авто-бана
+# ────────────────────────────────────────────────────────────
+class BanEscalationTest(TestCase):
+    def _fail(self, user, n):
+        for _ in range(n):
+            record_login_attempt(user, success=False, ip="::1")
+
+    def _fail_login_n_times(self, user, n):
+        for _ in range(n):
+            record_login_attempt(user, success=False, ip="127.0.0.1")
+
+    def test_first_level(self):
+        user = User.objects.create_user(email="u1@example.com", password="pwd")
+        self._fail_login_n_times(user, 5)
+
+        self.assertEqual(user.ban_level, 1)
+        self.assertEqual(user.failed_login_count, 0)
+
+        delta = user.ban_until - timezone.now()
+        self.assertGreater(delta, timedelta(0))  # > 0 секунд
+        self.assertLessEqual(delta, BAN_STEPS[0])  # ≤ 15 мин
+
+        with self.assertRaises(PermissionError):
+            check_ban(user)
+
+    def test_escalation(self):
+        user = User.objects.create_user(email="u2@example.com", password="pwd")
+        self._fail(user, 5)
+        user.ban_until = timezone.now() - timedelta(minutes=1)
+        user.save(update_fields=["ban_until"])
+        self._fail(user, 5)
+        self.assertEqual(user.ban_level, 2)
+        self.assertLessEqual(user.ban_until - timezone.now(), BAN_STEPS[1])
+
+    def test_reset_on_success(self):
+        user = User.objects.create_user(email="u3@example.com", password="pwd")
+        self._fail(user, 5)
+        record_login_attempt(user, success=True, ip="::1")
+        self.assertEqual(user.failed_login_count, 0)
+        self.assertEqual(user.ban_level, 0)
+        self.assertIsNone(user.ban_until)
