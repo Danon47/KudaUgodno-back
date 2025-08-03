@@ -5,7 +5,11 @@ from rooms.models import Room, RoomPhoto, RoomRules
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ("id", "hotel")
+    list_display = (
+        "id",
+        "hotel",
+        "number_of_adults",
+    )
     list_display_links = ("id",)
 
 

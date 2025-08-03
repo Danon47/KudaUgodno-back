@@ -43,14 +43,14 @@ class ApplicationTest(TestCase):
         Тест модели Заявки
         """
 
-        self.assertEqual(self.application.tour, self.tour),
-        self.assertEqual(self.application.email, "test@test.ru"),
-        self.assertEqual(self.application.phone_number, "+7(999)999-99-99"),
-        self.assertEqual(self.application.visa, False),
-        self.assertEqual(self.application.med_insurance, True),
-        self.assertEqual(self.application.cancellation_insurance, True),
-        self.assertEqual(self.application.wishes, "test wishes"),
-        self.assertEqual(self.application.status, "Подтвержден"),
+        self.assertEqual(self.application.tour, self.tour)
+        self.assertEqual(self.application.email, "test@test.ru")
+        self.assertEqual(self.application.phone_number, "+7(999)999-99-99")
+        self.assertEqual(self.application.visa, False)
+        self.assertEqual(self.application.med_insurance, True)
+        self.assertEqual(self.application.cancellation_insurance, True)
+        self.assertEqual(self.application.wishes, "test wishes")
+        self.assertEqual(self.application.status, "Подтвержден")
         self.assertEqual(self.application.user_owner, self.user)
 
     def test_application_list(self):

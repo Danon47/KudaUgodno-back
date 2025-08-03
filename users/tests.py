@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from users.choices import RoleChoices
+from all_fixture.choices import RoleChoices
 from users.models import User
 
 

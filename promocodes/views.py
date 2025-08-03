@@ -3,11 +3,11 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from all_fixture.pagination import CustomLOPagination
 from all_fixture.views_fixture import DISCOUNT_SETTINGS
-from promocodes.models import Promocode, PromocodePhoto
+from promocodes.models import Promocode
 from promocodes.serializers import (
     PromoCodeCheckSerializer,
-    PromocodePhotoSerializer,
     PromocodeSerializer,
 )
 
@@ -15,12 +15,14 @@ from promocodes.serializers import (
 @extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
+        summary="Список активных промокодов",
+        description="Список активных промокодов",
         responses={
             200: OpenApiResponse(
                 response=PromocodeSerializer(many=True),
                 description="Пример списка промокодов",
             ),
-        }
+        },
     ),
     create=extend_schema(exclude=True),
     retrieve=extend_schema(exclude=True),
@@ -31,24 +33,14 @@ from promocodes.serializers import (
 class PromocodesModelViewSet(viewsets.ModelViewSet):
     queryset = Promocode.objects.filter(is_active=True)
     serializer_class = PromocodeSerializer
-
-
-@extend_schema_view(
-    list=extend_schema(exclude=True),
-    create=extend_schema(exclude=True),
-    retrieve=extend_schema(exclude=True),
-    update=extend_schema(exclude=True),
-    partial_update=extend_schema(exclude=True),
-    destroy=extend_schema(exclude=True),
-)
-class PromocodesPhotoModelViewSet(viewsets.ModelViewSet):
-    queryset = PromocodePhoto.objects.all()
-    serializer_class = PromocodePhotoSerializer
+    pagination_class = CustomLOPagination
 
 
 @extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     post=extend_schema(
+        summary="Проверка промокода",
+        description="Проверка промокода",
         request=PromoCodeCheckSerializer,
         responses={
             200: PromoCodeCheckSerializer,

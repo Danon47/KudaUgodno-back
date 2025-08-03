@@ -30,7 +30,6 @@ from all_fixture.views_fixture import (
     FILTER_USER_RATING,
     LIMIT,
     OFFSET,
-    POPULAR_SETTINGS,
     TOUR_ARRIVAL_CITY,
     TOUR_DEPARTURE_CITY,
     TOUR_GUESTS,
@@ -271,11 +270,12 @@ class TourHotView(viewsets.ModelViewSet):
         return queryset
 
 
-@extend_schema(tags=[POPULAR_SETTINGS["name"]])
+@extend_schema(tags=[DISCOUNT_SETTINGS["name"]])
 @extend_schema_view(
     list=extend_schema(
         summary="Список популярных туров",
         description=DESCRIPTION_POPULAR_TOURS,
+        parameters=[LIMIT, OFFSET],
         responses={
             200: TourPopularSerializer(many=True),
         },
@@ -287,6 +287,7 @@ class TourPopularView(viewsets.ModelViewSet):
 
     queryset = Tour.objects.none()
     serializer_class = TourPopularSerializer
+    pagination_class = CustomLOPagination
 
     def get_queryset(self):
         """Получение тура по одному из шести страны с минимальной ценой."""
@@ -312,7 +313,7 @@ class TourPopularView(viewsets.ModelViewSet):
                 ),
             )
             .filter(country_rank=1)
-            .order_by("total_price")[:6]
+            .order_by("total_price")
         )
 
         return queryset

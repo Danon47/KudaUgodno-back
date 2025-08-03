@@ -208,9 +208,6 @@ class RoomViewSet(HotelRelatedMixin, BaseErrorHandlingMixin, viewsets.ModelViewS
         return Room.objects.filter(hotel_id=self.kwargs["hotel_id"]).prefetch_related(
             "room_photos",
             "rules",
-            "type_of_meals",
-            "calendar_dates",
-            "calendar_dates__calendar_prices",
         )
 
     def perform_create(self, serializer):

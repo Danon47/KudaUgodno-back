@@ -70,13 +70,9 @@ MAILING_SETTINGS = {
     "name": "Рассылки",
     "description": "Методы для работы с рассылками",
 }
-POPULAR_SETTINGS = {
-    "name": "Популярные направления",
-    "description": "Методы для работы с популярными направлениями",
-}
 DISCOUNT_SETTINGS = {
     "name": "Акции",
-    "description": "Методы для работы с акциями",
+    "description": "Методы для работы со страницей с акциями",
 }
 VZHUH_SETTINGS = {
     "name": "Вжухи",
