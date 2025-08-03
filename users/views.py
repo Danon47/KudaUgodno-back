@@ -16,7 +16,7 @@ from drf_spectacular.utils import (
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
@@ -52,6 +52,7 @@ from users.serializers import (
     VerifyCodeResponseSerializer,
     VerifyCodeSerializer,
 )
+from users.services import check_ban, record_login_attempt
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +205,50 @@ class UserViewSet(viewsets.ModelViewSet):
 
         self.perform_destroy(instance)
         return Response({"message": "Пользователь удалён"}, status=status.HTTP_204_NO_CONTENT)
+
+    # ───────────────  action-методы для деактивации / активации аккаунта ──────────────────────────
+    @extend_schema(
+        summary="Деактивация аккаунта",
+        description=("Переводит is_active=False и отзывает все JWT-токены пользователя."),
+        tags=[USER_SETTINGS["name"]],
+        request=None,
+        parameters=[USER_ID],
+        responses={200: OpenApiResponse(description="Аккаунт деактивирован")},
+    )
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    def deactivate(self, request, pk=None):
+        user = self.get_object()
+        # запрещаю суперпользователю выключать самого себя
+        if request.user == user and request.user.is_superuser:
+            return Response(
+                {"error": "Суперпользователь не может деактивировать себя самого"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not user.is_active:
+            return Response({"message": "Уже деактивирован"}, status=status.HTTP_200_OK)
+
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        blacklist_user_tokens(user)
+        return Response({"message": "Аккаунт деактивирован"}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Реактивация аккаунта",
+        description="Переводит is_active=True (обратное действие).",
+        tags=[USER_SETTINGS["name"]],
+        parameters=[USER_ID],
+        request=None,
+        responses={200: OpenApiResponse(description="Аккаунт реактивирован")},
+    )
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    def reactivate(self, request, pk=None):
+        user = self.get_object()
+        if user.is_active:
+            return Response({"message": "Уже активен"}, status=status.HTTP_200_OK)
+
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+        return Response({"message": "Аккаунт реактивирован"}, status=status.HTTP_200_OK)
 
 
 @extend_schema_view(
@@ -449,19 +494,40 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
     def verify(self, request):
+        """
+        Проверка email-кода, логирование попытки и выдача JWT-токенов.
+        Блокирует пользователя после 5 неудач с нарастающим таймаутом.
+        """
         serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
         code = serializer.validated_data["code"]
 
-        user = authenticate(email=email, password=str(code))
-        if not user:
+        # ─── 1. Проверяем существование пользователя и активные баны ─────────────
+        try:
+            user = User.objects.get(email=email)
+            check_ban(user)  # 🔒 бросит PermissionError
+        except PermissionError as e:
+            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except User.DoesNotExist:
+            # Ложиться сюда пользователь, которого вообще нет
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+        # ─── 2. Пробуем аутентифицировать по коду ────────────────────────────────
+        authenticated_user = authenticate(email=email, password=str(code))
+        success = authenticated_user is not None
+
+        # ─── 3. Записываем попытку ───────────────────────────────────────────────
+        record_login_attempt(user, success, request.META.get("REMOTE_ADDR"))
+
+        if not success:
             return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
 
-        refresh = RefreshToken.for_user(user)
+        # ─── 4. Всё ок – выдаём токены и куки (оригинальный код без изменений) ───
+        refresh = RefreshToken.for_user(authenticated_user)
         response = Response(
-            {"role": user.role, "id": user.id},
+            {"role": authenticated_user.role, "id": authenticated_user.id},
             status=status.HTTP_200_OK,
         )
 
@@ -484,6 +550,7 @@ class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             samesite="Lax",
             expires=expires,
         )
+        return response
 
     @extend_schema(
         summary="Выход из системы (Logout)",

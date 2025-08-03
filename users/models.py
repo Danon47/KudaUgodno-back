@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import UniqueConstraint
 from django.db.models.functions import Lower
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 from all_fixture.choices import (
@@ -89,6 +91,24 @@ class User(AbstractUser):
         default=ContactPriorityChoices.EMAIL,
         verbose_name="Приоритетный канал связи",
     )
+    failed_login_count = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Счетчик ошибок входа",
+    )
+    ban_level = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Уровень бана",
+    )
+    ban_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Блокировка до (числа)",
+    )
+
+    # helper
+    def is_banned(self) -> bool:
+        """True, если действует временная блокировка."""
+        return bool(self.ban_until and self.ban_until > timezone.now())
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -143,3 +163,19 @@ class User(AbstractUser):
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
         ordering = ("-pk",)
+
+
+# ─── История попыток входа ────────────────────────────────────────────────────
+class LoginAttempt(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="login_attempts",
+    )
+    ts = models.DateTimeField(auto_now_add=True)
+    success = models.BooleanField()
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "-ts"])]
+        ordering = ["-ts"]
