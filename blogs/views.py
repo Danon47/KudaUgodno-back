@@ -1,3 +1,11 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -11,6 +19,16 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from all_fixture.choices import CountryChoices
+from all_fixture.views_fixture import (
+    ARTICLE_COUNTRY,
+    ARTICLE_DATE_FROM,
+    ARTICLE_DATE_TO,
+    ARTICLE_ID,
+    ARTICLE_THEME_ID,
+    BLOG_SETTINGS,
+    LIMIT,
+    OFFSET,
+)
 from blogs.filters import ArticleFilter
 from blogs.models import (
     Article,
@@ -83,6 +101,136 @@ class ThemeViewSet(viewsets.ModelViewSet):
 # ───────────────────────────── основная сущность ────────────────────────────────
 
 
+@extend_schema(tags=[BLOG_SETTINGS["name"]])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список статей",
+        description="Получение списка статей с пагинацией и фильтрацией по дате, стране и теме.",
+        parameters=[
+            LIMIT,
+            OFFSET,
+            ARTICLE_DATE_FROM,
+            ARTICLE_DATE_TO,
+            OpenApiParameter(
+                name="popularity",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Сортировка по популярности (asc/desc)",
+                enum=["asc", "desc"],
+                required=False,
+            ),
+            ARTICLE_COUNTRY,
+            ARTICLE_THEME_ID,
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=ArticleSerializer(many=True),
+                description="Успешное получение списка статей",
+            ),
+        },
+    ),
+    create=extend_schema(
+        summary="Создание статьи",
+        description="Создание новой статьи (автоматически назначается текущий пользователь как автор)",
+        request=ArticleSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=ArticleSerializer,
+                description="Статья успешно создана",
+            ),
+            400: OpenApiResponse(
+                description="Ошибки валидации",
+                examples=[
+                    OpenApiExample(
+                        "Пример ошибки",
+                        value={
+                            "title": ["Обязательное поле."],
+                            "content": ["Содержит запрещенные слова."],
+                        },
+                    )
+                ],
+            ),
+            401: OpenApiResponse(description="Требуется аутентификация"),
+        },
+    ),
+    retrieve=extend_schema(
+        summary="Детали статьи",
+        description="Получение полной информации о статье с комментариями и изображениями",
+        parameters=[ARTICLE_ID],
+        responses={
+            200: OpenApiResponse(
+                response=ArticleSerializer,
+                description="Успешное получение статьи",
+            ),
+            404: OpenApiResponse(description="Статья не найдена"),
+        },
+    ),
+    update=extend_schema(
+        summary="Полное обновление статьи",
+        description="Обновление всех полей статьи (только для автора или админа)",
+        parameters=[ARTICLE_ID],
+        request=ArticleSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=ArticleSerializer,
+                description="Статья успешно обновлена",
+            ),
+            400: OpenApiResponse(description="Ошибки валидации"),
+            403: OpenApiResponse(description="Нет прав для редактирования"),
+            404: OpenApiResponse(description="Статья не найдена"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Частичное обновление статьи",
+        description="Обновление отдельных полей статьи (только для автора или админа)",
+        parameters=[ARTICLE_ID],
+        request=ArticleSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=ArticleSerializer,
+                description="Статья успешно обновлена",
+            ),
+            400: OpenApiResponse(description="Ошибки валидации"),
+            403: OpenApiResponse(description="Нет прав для редактирования"),
+            404: OpenApiResponse(description="Статья не найдена"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Удаление статьи",
+        description="Удаление статьи (только для автора или админа)",
+        parameters=[ARTICLE_ID],
+        responses={
+            204: OpenApiResponse(
+                description="Статья успешно удалена",
+            ),
+            403: OpenApiResponse(description="Нет прав для удаления"),
+            404: OpenApiResponse(description="Статья не найдена"),
+        },
+    ),
+    moderate=extend_schema(
+        summary="Модерация статьи",
+        description="Пометить статью как прошедшую модерацию (только для админа)",
+        parameters=[ARTICLE_ID],
+        responses={
+            200: OpenApiResponse(
+                description="Статья успешно промодерирована",
+                examples=[OpenApiExample("Пример ответа", value={"message": "Статья успешно проверена"})],
+            ),
+            403: OpenApiResponse(description="Требуются права администратора"),
+            404: OpenApiResponse(description="Статья не найдена"),
+        },
+    ),
+    available_countries=extend_schema(
+        summary="Доступные страны",
+        description="Получение списка всех доступных стран для статей",
+        responses={
+            200: OpenApiResponse(
+                description="Список стран",
+                examples=[OpenApiExample("Пример ответа", value=["Россия", "США", "Германия"])],
+            ),
+        },
+    ),
+)
 class ArticleViewSet(viewsets.ModelViewSet):
     """
     CRUD-endpoint статей.

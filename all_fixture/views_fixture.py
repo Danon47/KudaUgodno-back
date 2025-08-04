@@ -78,6 +78,10 @@ VZHUH_SETTINGS = {
     "name": "Вжухи",
     "description": "Список актуальных спецпредложений по направлениям",
 }
+BLOG_SETTINGS = {
+    "name": "Блог",
+    "description": "Методы для работы с блогом",
+}
 
 
 # ID пользователя
@@ -451,6 +455,71 @@ OFFSET = OpenApiParameter(
     name="offset",
     type=int,
     description="Начальный индекс для пагинации",
+    required=False,
+)
+# ID статьи
+ARTICLE_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID статьи",
+    required=True,
+)
+
+# Лимит статей
+ARTICLE_LIMIT = OpenApiParameter(
+    name="limit",
+    type=int,
+    description="Количество статей на странице",
+    required=False,
+)
+
+# Смещение
+ARTICLE_OFFSET = OpenApiParameter(
+    name="offset",
+    type=int,
+    description="Смещение от начала списка",
+    required=False,
+)
+
+# Дата от
+ARTICLE_DATE_FROM = OpenApiParameter(
+    name="date_from",
+    type=str,
+    description="Дата публикации от (YYYY-MM-DD)",
+    required=False,
+)
+
+# Дата до
+ARTICLE_DATE_TO = OpenApiParameter(
+    name="date_to",
+    type=str,
+    description="Дата публикации до (YYYY-MM-DD)",
+    required=False,
+)
+
+# Сортировка
+ARTICLE_POPULARITY = OpenApiParameter(
+    name="popularity",
+    type=str,
+    description="Сортировка по популярности (asc/desc)",
+    enum=["asc", "desc"],
+    required=False,
+)
+
+# Страна
+ARTICLE_COUNTRY = OpenApiParameter(
+    name="country",
+    type=str,
+    description="Страна (русское название)",
+    required=False,
+)
+
+# ID темы
+ARTICLE_THEME_ID = OpenApiParameter(
+    name="theme_id",
+    type=int,
+    description="ID темы статьи",
     required=False,
 )
 

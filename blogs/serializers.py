@@ -9,7 +9,6 @@ from rest_framework.fields import (
 from rest_framework.relations import PrimaryKeyRelatedField, StringRelatedField
 
 from all_fixture.choices import CountryChoices
-from all_fixture.validators.validators import ForbiddenWordValidator
 from blogs.models import (
     Article,
     ArticleImage,
@@ -19,6 +18,7 @@ from blogs.models import (
     Tag,
     Theme,
 )
+from blogs.validators import DynamicForbiddenWordValidator
 
 # ───────────────────────────── базовые справочники ──────────────────────────────
 
@@ -150,8 +150,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     # запрет на некорректные слова
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
-        self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
+        self.fields["title"].validators.append(DynamicForbiddenWordValidator(field_name="title"))
+        self.fields["content"].validators.append(DynamicForbiddenWordValidator(field_name="content"))
 
     # ───────── countries helpers ─────────
 
