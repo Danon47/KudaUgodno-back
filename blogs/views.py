@@ -24,15 +24,17 @@ from all_fixture.views_fixture import (
     ARTICLE_DATE_FROM,
     ARTICLE_DATE_TO,
     ARTICLE_ID,
+    ARTICLE_MEDIA_ID,
     ARTICLE_THEME_ID,
     BLOG_SETTINGS,
     LIMIT,
+    MEDIA_TYPE,
     OFFSET,
 )
-from blogs.filters import ArticleFilter
+from blogs.filters import ArticleFilter, ArticleMediaFilter
 from blogs.models import (
     Article,
-    ArticleImage,
+    ArticleMedia,
     Category,
     Comment,
     CommentLike,
@@ -41,8 +43,9 @@ from blogs.models import (
 )
 from blogs.permissions import IsAuthorOrAdmin
 from blogs.serializers import (
-    ArticleImageSerializer,
+    ArticlePhotoSerializer,
     ArticleSerializer,
+    ArticleVideoSerializer,
     CategorySerializer,
     CommentLikeSerializer,
     CommentSerializer,
@@ -55,14 +58,18 @@ from blogs.tasks import send_moderation_notification
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint категорий статей."""
+    """
+    CRUD-endpoint категорий статей.
+    """
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint тегов статей."""
+    """
+    CRUD-endpoint тегов статей.
+    """
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -71,7 +78,6 @@ class TagViewSet(viewsets.ModelViewSet):
 class ThemeViewSet(viewsets.ModelViewSet):
     """
     CRUD-endpoint тем статей.
-
     Права доступа:
     • list / retrieve – доступны всем;
     • create – только авторизованным;
@@ -93,8 +99,6 @@ class ThemeViewSet(viewsets.ModelViewSet):
         return [IsAuthorOrAdmin()]
 
     def perform_create(self, serializer):
-        # если в модели Theme есть поле author, можно раскомментировать:
-        # serializer.save(author=self.request.user)
         serializer.save()
 
 
@@ -251,10 +255,11 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Применяет filters.ArticleFilter к базовому queryset-у.
+        Применяет ArticleFilter к базовому queryset-у.
         Админ получает полный список,
         остальные — только опубликованные и прошедшие модерацию статьи.
         """
+
         qs = self.filter_queryset(super().get_queryset())
         user = self.request.user
         return qs if user.is_superuser else qs.filter(is_published=True, is_moderated=True)
@@ -262,7 +267,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
     # ─────────────────────────────── CRUD-overrides ─────────────────────────────
 
     def perform_create(self, serializer):
-        """Сохраняем автора, помечаем статью как черновик и уведомляем модераторов."""
+        """
+        Сохраняем автора, помечаем статью как черновик и уведомляем модераторов.
+        """
+
         article = serializer.save(
             author=self.request.user,
             is_published=False,
@@ -293,7 +301,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
     def moderate(self, request, pk=None):
-        """Админ помечает статью как прошедшую модерацию и опубликованную."""
+        """
+        Админ помечает статью как прошедшую модерацию и опубликованную.
+        """
+
         article = self.get_object()
         article.is_moderated = True
         article.is_published = True
@@ -302,7 +313,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def available_countries(self, request):
-        """Возвращает список всех доступных стран (русские названия)."""
+        """
+        Возвращает список всех доступных стран (русские названия).
+        """
+
         return Response([name for _, name in CountryChoices.choices])
 
 
@@ -310,7 +324,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint комментариев (чтение всем, запись авторизованным)."""
+    """
+    CRUD-endpoint комментариев (чтение всем, запись авторизованным).
+    """
 
     queryset = Comment.objects.filter(is_active=True)
     serializer_class = CommentSerializer
@@ -321,7 +337,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class CommentLikeViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint лайков/дизлайков к комментариям."""
+    """
+    CRUD-endpoint лайков/дизлайков к комментариям.
+    """
 
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
@@ -343,8 +361,297 @@ class CommentLikeViewSet(viewsets.ModelViewSet):
 # ─────────────────────────── изображения статьи ────────────────────────────────
 
 
-class ArticleImageViewSet(viewsets.ModelViewSet):
-    """CRUD-endpoint изображений статей."""
+@extend_schema(tags=["Медиа статей"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список медиафайлов статьи",
+        description="Получение списка всех медиафайлов статьи с фильтрацией по типу",
+        parameters=[
+            LIMIT,
+            OFFSET,
+            OpenApiParameter(
+                name="article",
+                type=int,
+                description="ID статьи для фильтрации",
+                required=False,
+            ),
+            MEDIA_TYPE,
+            OpenApiParameter(
+                name="is_cover",
+                type=bool,
+                description="Фильтр по обложкам (true/false)",
+                required=False,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=ArticlePhotoSerializer(many=True),
+                description="Список медиафайлов",
+            )
+        },
+    ),
+    retrieve=extend_schema(
+        summary="Детали медиафайла",
+        description="Получение полной информации о медиафайле",
+        parameters=[ARTICLE_MEDIA_ID],
+        responses={
+            200: OpenApiResponse(response=ArticlePhotoSerializer, description="Данные медиафайла"),
+            404: OpenApiResponse(description="Медиафайл не найден"),
+        },
+    ),
+    create=extend_schema(
+        summary="Загрузка нового фото",
+        description=f"""
+        Загрузка фотографии для статьи. Ограничения:
+        - Макс. {ArticleMedia.MAX_PHOTOS} фото на статью
+        - Размер до {ArticleMedia.MAX_PHOTO_SIZE_MB}MB
+        - Форматы: JPG, PNG, GIF
+        """,
+        request=ArticlePhotoSerializer,
+        responses={
+            201: OpenApiResponse(response=ArticlePhotoSerializer, description="Фото успешно загружено"),
+            400: OpenApiResponse(
+                description="Ошибки валидации",
+                examples=[
+                    OpenApiExample(
+                        "Пример ошибки",
+                        value={"photo": ["Превышен максимальный размер файла"]},
+                    )
+                ],
+            ),
+            403: OpenApiResponse(description="Нет прав доступа"),
+        },
+    ),
+    update=extend_schema(
+        summary="Полное обновление фото",
+        description="Обновление всех полей фотографии",
+        parameters=[ARTICLE_MEDIA_ID],
+        request=ArticlePhotoSerializer,
+        responses={
+            200: OpenApiResponse(response=ArticlePhotoSerializer, description="Фото успешно обновлено"),
+            400: OpenApiResponse(description="Ошибка валидации"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Фото не найдено"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Частичное обновление фото",
+        description="Обновление отдельных полей фотографии",
+        parameters=[ARTICLE_MEDIA_ID],
+        request=ArticlePhotoSerializer,
+        responses={
+            200: OpenApiResponse(response=ArticlePhotoSerializer, description="Фото успешно обновлено"),
+            400: OpenApiResponse(description="Ошибка валидации"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Фото не найдено"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Удаление фото",
+        description="Удаление фотографии из статьи",
+        parameters=[ARTICLE_MEDIA_ID],
+        responses={
+            204: OpenApiResponse(description="Фото успешно удалено"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Фото не найдено"),
+        },
+    ),
+    set_cover=extend_schema(
+        methods=["POST"],
+        summary="Установка обложки",
+        description="Пометить это фото как обложку статьи",
+        parameters=[ARTICLE_MEDIA_ID],
+        responses={
+            200: OpenApiResponse(
+                description="Фото успешно установлено как обложка",
+                examples=[
+                    OpenApiExample(
+                        "Пример ответа",
+                        value={"detail": "Фото успешно установлено как обложка"},
+                    )
+                ],
+            ),
+            400: OpenApiResponse(
+                description="Ошибка: нельзя сделать видео обложкой",
+                examples=[
+                    OpenApiExample(
+                        "Пример ошибки",
+                        value={"detail": "Только фото может быть обложкой"},
+                    )
+                ],
+            ),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Фото не найдено"),
+        },
+    ),
+)
+class ArticlePhotoViewSet(viewsets.ModelViewSet):
+    """
+    API для управления фотографиями статей.
+    Доступные действия:
+    - list: Получить все фото статьи
+    - create: Загрузить новое фото
+    - retrieve: Получить конкретное фото
+    - update: Обновить фото (включая отметку как обложки)
+    - destroy: Удалить фото
+    - set_cover: Специальный эндпоинт для установки обложки
+    """
 
-    queryset = ArticleImage.objects.all()
-    serializer_class = ArticleImageSerializer
+    queryset = ArticleMedia.objects.filter(photo__isnull=False)
+    serializer_class = ArticlePhotoSerializer
+    permission_classes = [AllowAny]
+    filterset_class = ArticleMediaFilter
+
+    def perform_create(self, serializer):
+        """
+        Проверка лимита фото перед сохранением
+        """
+
+        article = serializer.validated_data["article"]
+        if article.media.filter(photo__isnull=False).count() >= ArticleMedia.MAX_PHOTOS:
+            raise ValidationError({"detail": f"Максимум {ArticleMedia.MAX_PHOTOS} фото на статью"})
+        serializer.save()
+
+    @extend_schema(
+        methods=["POST"],
+        description="Установить это фото как обложку статьи",
+        responses={
+            200: OpenApiResponse(description="Фото успешно установлено как обложка"),
+            400: OpenApiResponse(description="Это видео или произошла ошибка"),
+        },
+    )
+    @action(detail=True, methods=["post"])
+    def set_cover(self, request, pk=None):
+        """
+        Специальный эндпоинт для установки обложки
+        """
+
+        media = self.get_object()
+
+        if not media.photo:
+            return Response(
+                {"detail": "Только фото может быть обложкой"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Автоматически сбрасываем другие обложки
+        ArticleMedia.objects.filter(article=media.article, is_cover=True).exclude(pk=media.pk).update(is_cover=False)
+
+        media.is_cover = True
+        media.save()
+
+        return Response(
+            {"detail": "Фото успешно установлено как обложка"},
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(tags=["Медиа статей"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список видео статьи",
+        description="Получение списка всех видео статьи",
+        parameters=[
+            LIMIT,
+            OFFSET,
+            OpenApiParameter(
+                name="article",
+                type=int,
+                description="ID статьи для фильтрации",
+                required=False,
+            ),
+        ],
+        responses={200: OpenApiResponse(response=ArticleVideoSerializer(many=True), description="Список видео")},
+    ),
+    retrieve=extend_schema(
+        summary="Детали видео",
+        description="Получение полной информации о видео",
+        parameters=[ARTICLE_MEDIA_ID],
+        responses={
+            200: OpenApiResponse(response=ArticleVideoSerializer, description="Данные видео"),
+            404: OpenApiResponse(description="Видео не найдено"),
+        },
+    ),
+    create=extend_schema(
+        summary="Загрузка нового видео",
+        description=f"""
+        Загрузка видео для статьи. Ограничения:
+        - Макс. {ArticleMedia.MAX_VIDEOS} видео на статью
+        - Размер до {ArticleMedia.MAX_VIDEO_SIZE_MB}MB
+        - Длительность до {ArticleMedia.MAX_VIDEO_DURATION} сек
+        - Форматы: MP4, MOV, WEBM
+        """,
+        request=ArticleVideoSerializer,
+        responses={
+            201: OpenApiResponse(response=ArticleVideoSerializer, description="Видео успешно загружено"),
+            400: OpenApiResponse(
+                description="Ошибки валидации",
+                examples=[
+                    OpenApiExample(
+                        "Пример ошибки",
+                        value={"video": ["Превышена максимальная длительность"]},
+                    )
+                ],
+            ),
+            403: OpenApiResponse(description="Нет прав доступа"),
+        },
+    ),
+    update=extend_schema(
+        summary="Полное обновление видео",
+        description="Обновление всех полей видео",
+        parameters=[ARTICLE_MEDIA_ID],
+        request=ArticleVideoSerializer,
+        responses={
+            200: OpenApiResponse(response=ArticleVideoSerializer, description="Видео успешно обновлено"),
+            400: OpenApiResponse(description="Ошибка валидации"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Видео не найдено"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Частичное обновление видео",
+        description="Обновление отдельных полей видео",
+        parameters=[ARTICLE_MEDIA_ID],
+        request=ArticleVideoSerializer,
+        responses={
+            200: OpenApiResponse(response=ArticleVideoSerializer, description="Видео успешно обновлено"),
+            400: OpenApiResponse(description="Ошибка валидации"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Видео не найдено"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Удаление видео",
+        description="Удаление видео из статьи",
+        parameters=[ARTICLE_MEDIA_ID],
+        responses={
+            204: OpenApiResponse(description="Видео успешно удалено"),
+            403: OpenApiResponse(description="Нет прав доступа"),
+            404: OpenApiResponse(description="Видео не найдено"),
+        },
+    ),
+)
+class ArticleVideoViewSet(viewsets.ModelViewSet):
+    """
+    API для управления видео к статьям.
+    Доступные действия:
+    - list: Получить все видео статьи
+    - create: Загрузить новое видео
+    - retrieve: Получить конкретное видео
+    - update: Обновить информацию о видео
+    - destroy: Удалить видео
+    """
+
+    queryset = ArticleMedia.objects.filter(video__isnull=False)
+    serializer_class = ArticleVideoSerializer
+    permission_classes = [AllowAny]
+    filterset_class = ArticleMediaFilter
+
+    def perform_create(self, serializer):
+        """
+        Проверка лимита видео перед сохранением
+        """
+        article = serializer.validated_data["article"]
+        if article.media.filter(video__isnull=False).count() >= ArticleMedia.MAX_VIDEOS:
+            raise ValidationError({"detail": f"Максимум {ArticleMedia.MAX_VIDEOS} видео на статью"})
+        serializer.save()

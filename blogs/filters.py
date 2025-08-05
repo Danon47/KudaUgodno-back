@@ -6,10 +6,11 @@ from django_filters import (
     FilterSet,
     NumberFilter,
 )
+from django_filters.filters import BooleanFilter
 from rest_framework.exceptions import APIException
 
 from all_fixture.choices import CountryChoices
-from blogs.models import Article, Theme
+from blogs.models import Article, ArticleMedia, Theme
 
 
 class ArticleFilter(FilterSet):
@@ -99,7 +100,6 @@ class ArticleFilter(FilterSet):
             if unknown:
                 raise APIException(f"Неизвестные страны: {', '.join(unknown)}") from None
 
-            # `countries` — ArrayField(CharField) => lookup contains list-intersection
             return queryset.filter(countries__contains=codes)
         except Exception as err:  # noqa: BLE001
             raise APIException(f"Ошибка фильтрации по стране: {err}") from err
@@ -135,3 +135,35 @@ class ArticleFilter(FilterSet):
 
         # автор — свои + опубликованные
         return base_qs.filter(models.Q(is_published=True, is_moderated=True) | models.Q(author=user))
+
+
+class ArticleMediaFilter(FilterSet):
+    """
+    Фильтры для медиа статей
+    """
+
+    is_cover = BooleanFilter(
+        field_name="is_cover",
+        help_text="Фильтр по обложкам (true/false)",
+    )
+
+    media_type = ChoiceFilter(
+        method="filter_by_type",
+        choices=[("photo", "Фото"), ("video", "Видео")],
+        help_text="Тип медиа: photo или video",
+    )
+
+    class Meta:
+        model = ArticleMedia
+        fields = ["article", "is_cover"]
+
+    def filter_by_type(self, queryset, name, value):
+        """
+        Кастомный фильтр по типу медиа
+        """
+
+        if value == "photo":
+            return queryset.filter(photo__isnull=False)
+        elif value == "video":
+            return queryset.filter(video__isnull=False)
+        return queryset

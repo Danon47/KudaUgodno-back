@@ -1,7 +1,15 @@
 from django.contrib import admin
 
 from all_fixture.choices import CountryChoices
-from blogs.models import Article, ArticleImage, Category, Comment, CommentLike, Tag, Theme
+from blogs.models import (
+    Article,
+    ArticleMedia,
+    Category,
+    Comment,
+    CommentLike,
+    Tag,
+    Theme,
+)
 
 
 # noinspection PyUnresolvedReferences
@@ -18,22 +26,30 @@ class SlugNameAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(SlugNameAdmin):
-    """Админ панель для модели Category (наследует SlugNameAdmin)."""
+    """
+    Админ панель для модели Category (наследует SlugNameAdmin).
+    """
 
 
 @admin.register(Tag)
 class TagsAdmin(SlugNameAdmin):
-    """Админ панель для модели Tag."""
+    """
+    Админ панель для модели Tag.
+    """
 
 
 @admin.register(Theme)
 class ThemeAdmin(SlugNameAdmin):
-    """Админ панель для модели Theme."""
+    """
+    Админ панель для модели Theme.
+    """
 
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    """Админ панель для модели статья."""
+    """
+    Админ панель для модели статья.
+    """
 
     list_display = (
         "title",
@@ -78,7 +94,9 @@ class ArticleAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    """Админ панель для модели комментарии."""
+    """
+    Админ панель для модели комментарии.
+    """
 
     list_display = (
         "article",
@@ -102,6 +120,7 @@ class CommentAdmin(admin.ModelAdmin):
         """
         Отображение лайков.
         """
+
         return obj.likes_count
 
     likes_count_display.short_description = "Лайки"
@@ -125,16 +144,41 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(CommentLike)
 class CommentLikeAdmin(admin.ModelAdmin):
-    """Админ панель для модели лайки/дизлайки к комментариям."""
+    """
+    Админ панель для модели лайки/дизлайки к комментариям.
+    """
 
     list_display = ("comment", "user", "is_like", "created_at")
     list_filter = ("is_like",)
 
 
-@admin.register(ArticleImage)
-class ArticleImageAdmin(admin.ModelAdmin):
-    """Админ панель для модели фотографии."""
+@admin.register(ArticleMedia)
+class ArticleMediaAdmin(admin.ModelAdmin):
+    """
+    Админ-панель для управления медиафайлами статей.
+    """
 
-    list_display = ("image", "order")
-    list_filter = ("image",)
-    search_fields = ("image",)
+    list_display = ("id", "article", "is_cover")
+    fields = ("article", "photo", "video", "video_duration", "is_cover")
+    search_fields = ("article__title",)
+
+    def media_type_display(self, obj):
+        """
+        Отображает тип медиа для админа в списке и при редактировании.
+        """
+        if obj.photo:
+            return "📷 Фото"
+        elif obj.video:
+            return "🎥 Видео"
+        return "❓ Неизвестно"
+
+    media_type_display.short_description = "Тип медиа"
+
+    def save_model(self, request, obj, form, change):
+        """
+        Автоматический сброс предыдущих обложек при сохранении.
+        """
+
+        if obj.is_cover and obj.photo:
+            ArticleMedia.objects.filter(article=obj.article, is_cover=True).exclude(pk=obj.pk).update(is_cover=False)
+        super().save_model(request, obj, form, change)
