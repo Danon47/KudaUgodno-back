@@ -1,374 +1,282 @@
-from django.core.validators import FileExtensionValidator, MaxValueValidator
-from django.db import models
+from __future__ import annotations
 
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+from django.utils.text import slugify
+
+from all_fixture.choices import CountryChoices
 from all_fixture.views_fixture import NULLABLE
 from blogs.constants import (
-    MAX_PHOTO_SIZE_MB,
-    MAX_VIDEO_DURATION,
-    MAX_VIDEO_SIZE_MB,
+    ALLOWED_VIDEO_EXT,
+    MAX_FILE_SIZE,
 )
-from blogs.validators import validate_media_file_size
+from blogs.validators import enforce_media_limit, validate_media_file
 
 
+# ──────────────────────────── валидаторы, завязанные на константы ────────────────────────────
+def validate_file_size(file):
+    """Общий чек размера (10 МБ)."""
+    if file.size > MAX_FILE_SIZE:
+        raise ValidationError("Файл слишком большой (>10 МБ)")
+
+
+def validate_video_ext(file):
+    """Доп-проверка формата для видео."""
+    if Path(file.name).suffix.lower() not in ALLOWED_VIDEO_EXT:
+        raise ValidationError("Поддерживаются только MP4 и WebM")
+
+
+# ───────────────────────────── название / slug mixin ─────────────────────────────
 class SlugNameModel(models.Model):
-    """
-    Абстрактная модель с полями name и slug.
-    """
-
-    name = models.CharField(
-        max_length=100,
-        verbose_name="Название",
-        help_text="Укажите название, не больше 100 символов",
-    )
-    slug = models.SlugField(
-        max_length=100,
-        unique=True,
-        verbose_name="Slug",
-        help_text="Уникальный идентификатор для URL, не больше 100 символов",
-    )
+    name = models.CharField(max_length=100, verbose_name="Название")
+    slug = models.SlugField(max_length=100, unique=True, blank=True, verbose_name="Slug")
 
     class Meta:
         abstract = True
         ordering = ["name"]
 
-    def __str__(self):
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.name)[:90]
+            slug = base
+            n = 1
+            while self.__class__.objects.filter(slug=slug).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
         return self.name
 
 
 class Category(SlugNameModel):
-    """Модель категории для статей блога."""
-
     class Meta(SlugNameModel.Meta):
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
 
 
 class Tag(SlugNameModel):
-    """Модель тега для статей блога."""
-
     class Meta(SlugNameModel.Meta):
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
 
 
 class Theme(SlugNameModel):
-    """Модель тема статьи."""
-
     class Meta(SlugNameModel.Meta):
-        verbose_name = "Тема"
-        verbose_name_plural = "Темы"
+        verbose_name = "Тема статьи"
+        verbose_name_plural = "Темы статей"
+
+
+# ──────────────────────────── статья и окружение ─────────────────────────────
+class ArticleStatus(models.TextChoices):
+    DRAFT = "draft", "Черновик"
+    ON_REVIEW = "on_review", "На модерации"
+    PUBLISHED = "published", "Опубликована"
+    REJECTED = "rejected", "Отклонена"
 
 
 class Article(models.Model):
-    """Модель статья."""
+    # реакции
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles", verbose_name="Автор"
+    )
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="articles", verbose_name="Категория")
+    theme = models.ForeignKey(
+        Theme, on_delete=models.SET_NULL, related_name="articles", verbose_name="Тема", **NULLABLE
+    )
+    tags = models.ManyToManyField(Tag, blank=True, verbose_name="Теги")
 
-    title = models.CharField(
-        max_length=100,
-        verbose_name="Заголовок статьи",
-        help_text="Заголовок статьи (максимум 100 символов)",
-    )
-    content = models.TextField(
-        verbose_name="Текст статьи",
-        help_text="Текст статьи",
-    )
-    pub_date = models.DateField(
-        verbose_name="Когда выложили статью",
-        help_text="Когда выложили статью. Формат: ГГГГ-ММ-ДД",
-    )
-    short_description = models.CharField(
-        max_length=250,
-        verbose_name="Краткое описание, для ленты новостей",
-        help_text="Краткое описание, для ленты новостей (максимум 250 символов)",
-    )
-    is_published = models.BooleanField(
-        default=False,
-        verbose_name="Опубликована ли статья",
-        help_text="Опубликована ли статья",
-    )
-    views_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Счетчик просмотров",
-        help_text="Счетчик просмотров",
-    )
-    rating = models.FloatField(
-        default=0,
-        verbose_name="Оценка статьи",
-        help_text="Оценка статьи",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания",
-        help_text="Дата создания",
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Дата последнего изменения",
-        help_text="Дата последнего изменения",
-    )
-    is_moderated = models.BooleanField(
-        default=False,
-        verbose_name="Прошла модерацию",
-        help_text="Прошла модерацию",
+    # базовые поля
+    title = models.CharField(max_length=200, verbose_name="Заголовок")
+    slug = models.SlugField(max_length=220, unique=True, blank=True, verbose_name="Slug")
+    short_description = models.CharField(max_length=250, verbose_name="Краткое описание")
+    cover_image = models.ImageField(
+        upload_to="articles/covers/", validators=[validate_file_size], verbose_name="Обложка"
     )
 
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        **NULLABLE,
-        verbose_name="категория",
-        help_text="категория",
-    )
-    tags = models.ManyToManyField(
-        Tag,
-        blank=True,
-        verbose_name="Теги",
-        help_text="Теги",
-    )
-    countries = models.JSONField(
+    # география
+    countries = ArrayField(
+        base_field=models.CharField(max_length=2, choices=CountryChoices.choices),
         default=list,
         blank=True,
         verbose_name="Страны",
-        help_text="Список стран в формате ['Россия', 'Казахстан']",
     )
-    author = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        verbose_name="Автор статьи",
-        **NULLABLE,
-        help_text="Автор статьи",
+
+    # SEO
+    meta_title = models.CharField(max_length=255, **NULLABLE, verbose_name="SEO title")
+    meta_description = models.CharField(max_length=160, **NULLABLE, verbose_name="SEO description")
+
+    # содержание и метрики
+    content = models.TextField(verbose_name="Полный текст статьи")
+    rating = models.FloatField(default=0, verbose_name="Рейтинг")
+    views_count = models.PositiveIntegerField(default=0, verbose_name="Просмотры")
+
+    # workflow
+    status = models.CharField(
+        max_length=15, choices=ArticleStatus.choices, default=ArticleStatus.DRAFT, db_index=True, verbose_name="Статус"
     )
-    theme = models.ForeignKey(
-        Theme,
-        on_delete=models.SET_NULL,
-        **NULLABLE,
-        verbose_name="Тема статьи",
-        help_text="Тема статьи",
-    )
+    published_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name="Дата публикации")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
 
     class Meta:
         verbose_name = "Статья"
         verbose_name_plural = "Статьи"
-        ordering = ["-pub_date", "-created_at"]
+        ordering = ["-published_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-published_at"], name="status_pub_idx"),
+            GinIndex(fields=["countries"], name="countries_gin"),
+        ]
 
-    def __str__(self):
+    # ─────────────── helpers ───────────────
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)[:210]
+            slug, n = base, 1
+            while Article.objects.filter(slug=slug).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    # workflow
+    def submit_for_review(self):
+        self.status = ArticleStatus.ON_REVIEW
+        self.save(update_fields=["status"])
+
+    def publish(self):
+        self.status = ArticleStatus.PUBLISHED
+        if not self.published_at:
+            self.published_at = timezone.now()
+        self.save(update_fields=["status", "published_at"])
+
+    # computed
+    @property
+    def is_published(self) -> bool:
+        return self.status == ArticleStatus.PUBLISHED
+
+    @property
+    def reading_time_minutes(self) -> int:
+        words = len(self.content.split())
+        return max(1, round(words / 200))
+
+    # perms
+    def can_edit(self, user) -> bool:
+        return user.is_authenticated and (user.is_staff or self.author_id == user.id)
+
+    def __str__(self) -> str:
         return self.title
 
-    def user_can_edit(self, user):
-        """Проверяет, может ли пользователь редактировать статью"""
 
-        return user.is_staff or self.author == user
+# ───────────────────────────── медиа ──────────────────────────────
+class MediaType(models.TextChoices):
+    IMAGE = "image", "Фото"
+    VIDEO = "video", "Видео"
+
+
+class MediaAsset(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="media", verbose_name="Статья")
+    type = models.CharField(max_length=10, choices=MediaType.choices, verbose_name="Тип")
+    file = models.FileField(upload_to="articles/media/", validators=[validate_file_size], verbose_name="Файл")
+    order = models.PositiveSmallIntegerField(default=0, verbose_name="Порядок")
+
+    class Meta:
+        verbose_name = "Медиа-файл"
+        verbose_name_plural = "Медиа-файлы"
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["article", "order"], name="unique_media_order_per_article"),
+        ]
+
+    def clean(self):
+        super().clean()
+        # 1. Лимит «не более 10 медиафайлов на статью»
+        # считаем только при создании
+        # проверка готовой функции из валидатора, проще поддерживать
+        if self._state.adding:
+            enforce_media_limit(self.article)
+        # 2. Проверяем размер (и расширение, если видео)
+        validate_media_file(
+            self.file,
+            is_video=self.type == MediaType.VIDEO,
+        )
+
+    def __str__(self) -> str:
+        return f"{self.get_type_display()} для «{self.article.title}»"
+
+
+# ──────────────────────── реакции / комментарии ─────────────────────────
+class Reaction(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reactions", verbose_name="Пользователь"
+    )
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="reactions", verbose_name="Статья")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Когда")
+
+    class Meta:
+        verbose_name = "Лайк"
+        verbose_name_plural = "Лайки"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "article"], name="unique_article_reaction"),
+        ]
+        indexes = [models.Index(fields=["article", "-created_at"], name="reaction_idx")]
+
+    def __str__(self) -> str:
+        return f"Лайк от {self.user} для «{self.article.title}»"
 
 
 class Comment(models.Model):
-    """Модель комментария к статье."""
-
-    article = models.ForeignKey(
-        Article,
-        on_delete=models.CASCADE,
-        related_name="comments",
-        verbose_name="Статья",
-        help_text="Статья",
-    )
-    author = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        verbose_name="Автор",
-        help_text="Автор",
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="comments", verbose_name="Статья")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments", verbose_name="Автор"
     )
     parent = models.ForeignKey(
         "self",
-        on_delete=models.CASCADE,
-        **NULLABLE,
-        related_name="replies",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="children",
         verbose_name="Родительский комментарий",
-        help_text="Родительский комментарий",
     )
-    text = models.TextField(
-        verbose_name="Текст комментария",
-        help_text="Текст комментария",
+    text = models.TextField(verbose_name="Текст", help_text="Максимум 2000 символов")
+    status = models.CharField(
+        max_length=10,
+        choices=[("pending", "На модерации"), ("approved", "Одобрен"), ("rejected", "Отклонён")],
+        default="pending",
+        verbose_name="Статус",
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания",
-        help_text="Дата создания",
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Дата обновления",
-        help_text="Дата обновления",
-    )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name="Активен",
-        help_text="Активен",
-    )
-
-    @property
-    def likes_count(self) -> int:
-        return self.likes.filter(is_like=True).count()
-
-    @property
-    def dislikes_count(self):
-        return self.likes.filter(is_like=False).count()
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлён")
 
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
-        ordering = ["-created_at"]  # от новой к старой
+        ordering = ["created_at"]
 
-    def __str__(self):
-        return f"Комментарий от {self.author} к статье '{self.article.title}'"
+    def __str__(self) -> str:
+        return f"Комментарий #{self.pk} от {self.user}"
 
 
 class CommentLike(models.Model):
-    """Лайки/дизлайки к комментариям."""
-
-    comment = models.ForeignKey(
-        Comment,
-        on_delete=models.CASCADE,
-        related_name="likes",
-        help_text="likes",
-    )
-    user = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        verbose_name="Комментарии пользователя",
-        help_text="Комментарии пользователя",
-    )
-    is_like = models.BooleanField(
-        default=True,
-        verbose_name="Лайк (True) / дизлайк (False)",
-        help_text="Лайк (True) / дизлайк (False)",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата и время создания",
-        help_text="Дата и время создания",
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Дата и время обновления",
-        help_text="Дата и время обновления",
-    )
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes", verbose_name="Комментарий")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Пользователь")
+    is_like = models.BooleanField(default=True, verbose_name="Лайк / Дизлайк")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Когда")
 
     class Meta:
-        unique_together = (
-            "comment",
-            "user",
-        )  # Один пользователь — одна реакция на комментарий
-        verbose_name = "Лайк комментария"
-        verbose_name_plural = "Лайки комментариев"
-
-    def __str__(self):
-        return f"{'Лайк' if self.is_like else 'Дизлайк'} от {self.user} к комментарию #{self.comment.id}"
-
-
-class ArticleMedia(models.Model):
-    """
-    Модель для медиаконтента статей.
-    Поддерживает:
-    - До 10 фото на статью (макс. 5MB каждое)
-    - До 3 видео на статью (макс. 50MB, до 5 мин)
-    - Возможность отметить одно фото как обложку статьи
-    """
-
-    MAX_PHOTO_SIZE_MB = MAX_PHOTO_SIZE_MB
-    MAX_VIDEO_SIZE_MB = MAX_VIDEO_SIZE_MB
-    MAX_VIDEO_DURATION = MAX_VIDEO_DURATION
-
-    article = models.ForeignKey(
-        Article,
-        on_delete=models.CASCADE,
-        related_name="media",
-        verbose_name="Связанная статья",
-        help_text="Статья, к которой прикрепляется медиаконтент",
-    )
-    photo = models.ImageField(
-        upload_to="blog/article_photos/%Y/%m/%d/",
-        **NULLABLE,
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=["jpg", "jpeg", "png", "gif"],
-                message="Допустимы только изображения в форматах JPG, PNG или GIF",
-            ),
-        ],
-        verbose_name="Фотография",
-        help_text=f"Загрузите изображение (JPG/PNG/GIF), макс. размер {MAX_PHOTO_SIZE_MB}MB",
-    )
-    video = models.FileField(
-        upload_to="blog/article_videos/%Y/%m/%d/",
-        **NULLABLE,
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=["mp4", "mov", "webm"],
-                message="Допустимы только видео в форматах MP4, MOV или WEBM",
-            ),
-        ],
-        verbose_name="Видеофайл",
-        help_text=f"Загрузите видео (MP4/MOV/WEBM), макс. размер {MAX_VIDEO_SIZE_MB}MB, длительность до 5 минут",
-    )
-    video_duration = models.PositiveIntegerField(
-        **NULLABLE,
-        validators=[MaxValueValidator(MAX_VIDEO_DURATION)],
-        verbose_name="Длительность видео (сек)",
-        help_text="Длительность видео в секундах (макс. 300 сек)",
-    )
-    is_cover = models.BooleanField(
-        default=False,
-        verbose_name="Обложка статьи",
-        help_text="Отметьте, чтобы использовать это фото как обложку статьи",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Дата и время загрузки файла",
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Дата и время обновления",
-        help_text="Дата и время обновления",
-    )
-
-    class Meta:
-        verbose_name = "Медиа статьи"
-        verbose_name_plural = "Медиа статей"
-        ordering = ["-created_at"]
+        verbose_name = "Реакция на комментарий"
+        verbose_name_plural = "Реакции на комментарии"
         constraints = [
-            models.CheckConstraint(
-                check=models.Q(photo__isnull=False) | models.Q(video__isnull=False),
-                name="photo_or_video_required",
-            ),
-            models.UniqueConstraint(
-                fields=["article", "is_cover"],
-                condition=models.Q(is_cover=True),
-                name="unique_article_cover",
-            ),
+            models.UniqueConstraint(fields=["comment", "user"], name="unique_comment_reaction"),
         ]
 
-    def __str__(self):
-        return f"Медиа #{self.id} для статьи {self.article_id}"
-
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        if self.photo and self.video:
-            raise ValidationError("Нельзя загружать фото и видео одновременно")
-
-        if self.is_cover and not self.photo:
-            raise ValidationError("Обложкой может быть только фотография")
-
-        if self.photo:
-            validate_media_file_size(self.photo)
-
-        if self.video:
-            validate_media_file_size(self.video, is_video=True)
-            if not self.video_duration:
-                raise ValidationError("Укажите длительность видео")
-
-    def save(self, *args, **kwargs):
-        """
-        Автоматически сбрасываем другие обложки при сохранении
-        """
-
-        if self.is_cover and self.photo:
-            ArticleMedia.objects.filter(article=self.article, is_cover=True).exclude(pk=self.pk).update(is_cover=False)
-        super().save(*args, **kwargs)
+    def __str__(self) -> str:
+        return "Лайк" if self.is_like else "Дизлайк"
