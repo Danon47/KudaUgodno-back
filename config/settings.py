@@ -9,7 +9,10 @@ from dotenv import load_dotenv
 from all_fixture.views_fixture import (
     APPLICATION_SETTINGS,
     AUTH_SETTINGS,
+    BLOG_SETTINGS,
     CALENDAR_SETTINGS,
+    CATEGORY_SETTINGS,
+    COMMENTS_SETTINGS,
     DISCOUNT_SETTINGS,
     ENTREPRISE_SETTINGS,
     FLIGHT_SETTINGS,
@@ -17,15 +20,17 @@ from all_fixture.views_fixture import (
     HOTEL_PHOTO_SETTINGS,
     HOTEL_SETTINGS,
     INSURANCE_SETTINGS,
+    LIKES_SETTINGS,
     MAILING_SETTINGS,
     ROOM_PHOTO_SETTINGS,
     ROOM_SETTINGS,
+    TAG_SETTINGS,
+    THEME_SETTINGS,
     TOUR_SETTINGS,
     TYPE_OF_MEAL_SETTINGS,
     USER_SETTINGS,
     VZHUH_SETTINGS,
     WHAT_ABOUT_SETTINGS,
-    # BLOG_SETTINGS # TODO: удалить, если не понадобится
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -274,6 +279,12 @@ SPECTACULAR_SETTINGS = {
         WHAT_ABOUT_SETTINGS,
         MAILING_SETTINGS,
         DISCOUNT_SETTINGS,
+        BLOG_SETTINGS,
+        CATEGORY_SETTINGS,
+        TAG_SETTINGS,
+        THEME_SETTINGS,
+        COMMENTS_SETTINGS,
+        LIKES_SETTINGS,
     ],
     "SORT_OPERATIONS": True,
     "SORT_OPERATION_PARAMETERS": False,
