@@ -1,5 +1,6 @@
 from drf_spectacular.utils import OpenApiParameter
 
+from all_fixture.choices import CountryChoices
 from blogs.constants import (
     MAX_PHOTO_SIZE_MB,
     MAX_PHOTOS,
@@ -90,7 +91,30 @@ BLOG_SETTINGS = {
     "name": "Блог",
     "description": "Методы для работы с блогом",
 }
-
+BLOG_SETTINGS = {
+    "name": "Блог: Статьи",
+    "description": "Методы для работы со статьями блога",
+}
+CATEGORY_SETTINGS = {
+    "name": "Блог: Категории",
+    "description": "Методы для работы со справочником категорий",
+}
+TAG_SETTINGS = {
+    "name": "Блог: Теги",
+    "description": "Методы для работы со справочником тегов",
+}
+THEME_SETTINGS = {
+    "name": "Блог: Темы",
+    "description": "Методы для работы со справочником тем статей",
+}
+COMMENTS_SETTINGS = {
+    "name": "Блог: Комментарии",
+    "description": "Методы для работы с комментариями к статьям",
+}
+LIKES_SETTINGS = {
+    "name": "Блог: Реакции",
+    "description": "Методы для работы с лайками/дизлайками комментариев",
+}
 
 # ID пользователя
 USER_ID = OpenApiParameter(
@@ -756,4 +780,97 @@ WARM_CITY = [
 DISCOUNT = (
     "Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - это уже величина. "
     "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей."
+)
+
+
+# ─── Параметры для Blog API ──────────────────────────────────────────────────
+DATE_FROM = OpenApiParameter(
+    name="date_from",
+    location=OpenApiParameter.QUERY,
+    description="Статьи, опубликованные после указанной даты (YYYY-MM-DD)",
+    required=False,
+    type=str,
+)
+DATE_TO = OpenApiParameter(
+    name="date_to",
+    location=OpenApiParameter.QUERY,
+    description="Статьи, опубликованные до указанной даты (YYYY-MM-DD)",
+    required=False,
+    type=str,
+)
+COUNTRY = OpenApiParameter(
+    name="country",
+    location=OpenApiParameter.QUERY,
+    description="Список русских названий стран",
+    required=False,
+    type=str,
+    enum=[name for _, name in CountryChoices.choices],
+)
+THEME_ID = OpenApiParameter(
+    name="theme_id",
+    location=OpenApiParameter.QUERY,
+    description="ID темы статьи",
+    required=False,
+    type=int,
+)
+ORDERING = OpenApiParameter(
+    name="ordering",
+    location=OpenApiParameter.QUERY,
+    description="Поле для сортировки статей по необходимому параметру: тире перед именем поля => означает убывание",
+    required=False,
+    type=str,
+    enum=[
+        "published_at",
+        "-published_at",
+        "created_at",
+        "-created_at",
+        "views_count",
+        "-views_count",
+        "rating",
+        "-rating",
+    ],
+)
+SEARCH = OpenApiParameter(
+    name="search",
+    location=OpenApiParameter.QUERY,
+    description="Текстовый поиск по заголовку и содержимому статьи",
+    required=False,
+    type=str,
+)
+# path-параметры
+ARTICLE_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID статьи",
+    required=True,
+)
+CATEGORY_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID категории",
+    required=True,
+)
+TAG_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID тега",
+    required=True,
+)
+COMMENT_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID комментария",
+    required=True,
+)
+LIKE_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID реакции",
+    required=True,
+)
+COMMENT_Q = OpenApiParameter(
+    name="comment",
+    location=OpenApiParameter.QUERY,
+    description="Фильтр по комментарию (ID)",
+    required=False,
 )
