@@ -1,7 +1,13 @@
+from django.core.validators import FileExtensionValidator, MaxValueValidator
 from django.db import models
 
 from all_fixture.views_fixture import NULLABLE
-from users.models import User
+from blogs.constants import (
+    MAX_PHOTO_SIZE_MB,
+    MAX_VIDEO_DURATION,
+    MAX_VIDEO_SIZE_MB,
+)
+from blogs.validators import validate_media_file_size
 
 
 class SlugNameModel(models.Model):
@@ -125,7 +131,7 @@ class Article(models.Model):
         help_text="Список стран в формате ['Россия', 'Казахстан']",
     )
     author = models.ForeignKey(
-        User,
+        "users.User",
         on_delete=models.CASCADE,
         verbose_name="Автор статьи",
         **NULLABLE,
@@ -164,7 +170,7 @@ class Comment(models.Model):
         help_text="Статья",
     )
     author = models.ForeignKey(
-        User,
+        "users.User",
         on_delete=models.CASCADE,
         verbose_name="Автор",
         help_text="Автор",
@@ -224,7 +230,7 @@ class CommentLike(models.Model):
         help_text="likes",
     )
     user = models.ForeignKey(
-        User,
+        "users.User",
         on_delete=models.CASCADE,
         verbose_name="Комментарии пользователя",
         help_text="Комментарии пользователя",
@@ -246,7 +252,10 @@ class CommentLike(models.Model):
     )
 
     class Meta:
-        unique_together = ("comment", "user")  # Один пользователь — одна реакция на комментарий
+        unique_together = (
+            "comment",
+            "user",
+        )  # Один пользователь — одна реакция на комментарий
         verbose_name = "Лайк комментария"
         verbose_name_plural = "Лайки комментариев"
 
@@ -254,28 +263,112 @@ class CommentLike(models.Model):
         return f"{'Лайк' if self.is_like else 'Дизлайк'} от {self.user} к комментарию #{self.comment.id}"
 
 
-class ArticleImage(models.Model):
-    """Модель фотографии к статье."""
+class ArticleMedia(models.Model):
+    """
+    Модель для медиаконтента статей.
+    Поддерживает:
+    - До 10 фото на статью (макс. 5MB каждое)
+    - До 3 видео на статью (макс. 50MB, до 5 мин)
+    - Возможность отметить одно фото как обложку статьи
+    """
+
+    MAX_PHOTO_SIZE_MB = MAX_PHOTO_SIZE_MB
+    MAX_VIDEO_SIZE_MB = MAX_VIDEO_SIZE_MB
+    MAX_VIDEO_DURATION = MAX_VIDEO_DURATION
 
     article = models.ForeignKey(
         Article,
         on_delete=models.CASCADE,
-        related_name="images",
-        help_text="images",
+        related_name="media",
+        verbose_name="Связанная статья",
+        help_text="Статья, к которой прикрепляется медиаконтент",
     )
-    image = models.ImageField(
-        upload_to="blog/post/",
-        help_text="место хранения image",
+    photo = models.ImageField(
+        upload_to="blog/article_photos/%Y/%m/%d/",
+        **NULLABLE,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png", "gif"],
+                message="Допустимы только изображения в форматах JPG, PNG или GIF",
+            ),
+        ],
+        verbose_name="Фотография",
+        help_text=f"Загрузите изображение (JPG/PNG/GIF), макс. размер {MAX_PHOTO_SIZE_MB}MB",
     )
-    order = models.PositiveIntegerField(
-        default=0,
-        help_text="порядок отображения изображений",
-    )  # Поле для указания порядка отображения изображений в статье
+    video = models.FileField(
+        upload_to="blog/article_videos/%Y/%m/%d/",
+        **NULLABLE,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["mp4", "mov", "webm"],
+                message="Допустимы только видео в форматах MP4, MOV или WEBM",
+            ),
+        ],
+        verbose_name="Видеофайл",
+        help_text=f"Загрузите видео (MP4/MOV/WEBM), макс. размер {MAX_VIDEO_SIZE_MB}MB, длительность до 5 минут",
+    )
+    video_duration = models.PositiveIntegerField(
+        **NULLABLE,
+        validators=[MaxValueValidator(MAX_VIDEO_DURATION)],
+        verbose_name="Длительность видео (сек)",
+        help_text="Длительность видео в секундах (макс. 300 сек)",
+    )
+    is_cover = models.BooleanField(
+        default=False,
+        verbose_name="Обложка статьи",
+        help_text="Отметьте, чтобы использовать это фото как обложку статьи",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Дата и время загрузки файла",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата и время обновления",
+        help_text="Дата и время обновления",
+    )
 
     class Meta:
-        verbose_name = "Изображение статьи"
-        verbose_name_plural = "Изображения для статьи"
-        ordering = ["order"]
+        verbose_name = "Медиа статьи"
+        verbose_name_plural = "Медиа статей"
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(photo__isnull=False) | models.Q(video__isnull=False),
+                name="photo_or_video_required",
+            ),
+            models.UniqueConstraint(
+                fields=["article", "is_cover"],
+                condition=models.Q(is_cover=True),
+                name="unique_article_cover",
+            ),
+        ]
 
     def __str__(self):
-        return f"Изображение для {self.article.title}"
+        return f"Медиа #{self.id} для статьи {self.article_id}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.photo and self.video:
+            raise ValidationError("Нельзя загружать фото и видео одновременно")
+
+        if self.is_cover and not self.photo:
+            raise ValidationError("Обложкой может быть только фотография")
+
+        if self.photo:
+            validate_media_file_size(self.photo)
+
+        if self.video:
+            validate_media_file_size(self.video, is_video=True)
+            if not self.video_duration:
+                raise ValidationError("Укажите длительность видео")
+
+    def save(self, *args, **kwargs):
+        """
+        Автоматически сбрасываем другие обложки при сохранении
+        """
+
+        if self.is_cover and self.photo:
+            ArticleMedia.objects.filter(article=self.article, is_cover=True).exclude(pk=self.pk).update(is_cover=False)
+        super().save(*args, **kwargs)

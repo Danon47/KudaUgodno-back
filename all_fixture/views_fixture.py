@@ -1,6 +1,12 @@
 from drf_spectacular.utils import OpenApiParameter
 
-from blogs.models import ArticleMedia
+from blogs.constants import (
+    MAX_PHOTO_SIZE_MB,
+    MAX_PHOTOS,
+    MAX_VIDEO_DURATION,
+    MAX_VIDEO_SIZE_MB,
+    MAX_VIDEOS,
+)
 
 NULLABLE = {"blank": True, "null": True}
 # Теги для settings
@@ -552,18 +558,18 @@ IS_COVER = OpenApiParameter(
 )
 
 # Максимальное количество фото
-MAX_PHOTOS = OpenApiParameter(
+MAX_PHOTOS_PARAM = OpenApiParameter(
     name="max_photos",
     type=int,
-    description=f"Максимальное количество фото на статью ({ArticleMedia.MAX_PHOTOS})",
+    description=f"Максимальное количество фото на статью ({MAX_PHOTOS})",
     required=False,
 )
 
 # Максимальное количество видео
-MAX_VIDEOS = OpenApiParameter(
+MAX_VIDEOS_PARAM = OpenApiParameter(
     name="max_videos",
     type=int,
-    description=f"Максимальное количество видео на статью ({ArticleMedia.MAX_VIDEOS})",
+    description=f"Максимальное количество видео на статью ({MAX_VIDEOS})",
     required=False,
 )
 
@@ -571,7 +577,7 @@ MAX_VIDEOS = OpenApiParameter(
 PHOTO_SIZE = OpenApiParameter(
     name="photo_size",
     type=int,
-    description=f"Максимальный размер фото в MB ({ArticleMedia.MAX_PHOTO_SIZE_MB})",
+    description=f"Максимальный размер фото в MB ({MAX_PHOTO_SIZE_MB})",
     required=False,
 )
 
@@ -579,7 +585,7 @@ PHOTO_SIZE = OpenApiParameter(
 VIDEO_SIZE = OpenApiParameter(
     name="video_size",
     type=int,
-    description=f"Максимальный размер видео в MB ({ArticleMedia.MAX_VIDEO_SIZE_MB})",
+    description=f"Максимальный размер видео в MB ({MAX_VIDEO_SIZE_MB})",
     required=False,
 )
 
@@ -587,7 +593,7 @@ VIDEO_SIZE = OpenApiParameter(
 VIDEO_DURATION = OpenApiParameter(
     name="video_duration",
     type=int,
-    description=f"Максимальная длительность видео в секундах ({ArticleMedia.MAX_VIDEO_DURATION})",
+    description=f"Максимальная длительность видео в секундах ({MAX_VIDEO_DURATION})",
     required=False,
 )
 
