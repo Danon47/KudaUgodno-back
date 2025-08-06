@@ -1,66 +1,49 @@
+from __future__ import annotations
+
 from pathlib import Path
 
-from rest_framework.exceptions import ValidationError
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.utils.functional import cached_property
 
-from blogs.constants import MAX_PHOTO_SIZE_MB, MAX_PHOTOS, MAX_VIDEO_SIZE_MB, MAX_VIDEOS
+from blogs.constants import (
+    ALLOWED_VIDEO_EXT,
+    MAX_FILE_SIZE,
+    MAX_MEDIA_PER_ARTICLE,
+)
 
 
+# ───────────────────────────── forbidden-words ──────────────────────────────
 class DynamicForbiddenWordValidator:
-    """
-    Валидатор, проверяющий наличие запрещенных слов.
-    """
+    """Проверяет текст на наличие запрещённых слов из файла."""
 
-    def __init__(self, field_name=None):
+    def __init__(self, field_name: str | None = None) -> None:
         self.field_name = field_name
-        self.forbidden_words = self._load_forbidden_words()
 
-    def _load_forbidden_words(self):
-        """
-        Загружает запрещенные слова из файла
-        """
+    @cached_property
+    def forbidden_words(self) -> set[str]:
+        words_file = Path(settings.BASE_DIR) / "all_fixture" / "validators" / "forbidden_words.txt"
+        if not words_file.exists():
+            raise FileNotFoundError(f"Не найден {words_file.relative_to(settings.BASE_DIR)}")
+        return {w.strip().lower() for w in words_file.read_text(encoding="utf-8").splitlines() if w.strip()}
 
-        base_dir = Path(__file__).parent
-        file_path = Path(r"C:\Users\andre\PycharmProjects\backend\all_fixture\validators\forbidden_words.txt")
-
-        try:
-            with open(file_path, encoding="utf-8") as f:
-                return [word.strip().lower() for word in f if word.strip()]
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Файл forbidden_words.txt не найден в {base_dir}.") from e
-
-    def __call__(self, value):
-        """
-        Проверка значения на наличие запрещенных слов
-        """
-
-        if isinstance(value, str) and any(word in value.lower() for word in self.forbidden_words):
-            raise ValidationError("Введено недопустимое слово")
+    def __call__(self, value: str) -> str:
+        if isinstance(value, str) and any(bad in value.lower() for bad in self.forbidden_words):
+            field = f" в поле «{self.field_name}»" if self.field_name else ""
+            raise ValidationError(f"Недопустимое слово{field}.")
         return value
 
 
-def validate_photo_count(article):
-    """
-    Проверка максимального количества фото
-    """
-
-    if article.media.filter(photo__isnull=False).count() >= MAX_PHOTOS:
-        raise ValidationError(f"Нельзя загрузить более {MAX_PHOTOS} фото на статью")
-
-
-def validate_video_count(article):
-    """
-    Проверка максимального количества видео
-    """
-
-    if article.media.filter(video__isnull=False).count() >= MAX_VIDEOS:
-        raise ValidationError(f"Нельзя загрузить более {MAX_VIDEOS} видео на статью")
+# ───────────────────────── media-helpers (size / count) ─────────────────────
+def validate_media_file(file, *, is_video: bool = False) -> None:
+    """Размер ≤ 10 МБ; для видео — ещё и расширение."""
+    if file.size > MAX_FILE_SIZE:
+        raise ValidationError("Файл весит больше 10 МБ")
+    if is_video and Path(file.name).suffix.lower() not in ALLOWED_VIDEO_EXT:
+        raise ValidationError("Видео допускается только в MP4 / WebM")
 
 
-def validate_media_file_size(file, is_video=False):
-    """
-    Проверка размера файла
-    """
-
-    max_size = MAX_VIDEO_SIZE_MB if is_video else MAX_PHOTO_SIZE_MB
-    if file.size > max_size * 1024 * 1024:
-        raise ValidationError(f"Максимальный размер файла: {max_size}MB")
+def enforce_media_limit(article) -> None:
+    """Не более 10 фото/видео на одну статью."""
+    if article.media.count() >= MAX_MEDIA_PER_ARTICLE:
+        raise ValidationError(f"Лимит {MAX_MEDIA_PER_ARTICLE} файлов на статью превышен")
