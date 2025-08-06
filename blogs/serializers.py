@@ -1,214 +1,245 @@
+from __future__ import annotations
+
+from typing import Any
+
 from rest_framework import serializers
-from rest_framework.fields import (
-    BooleanField,
-    CharField,
-    CurrentUserDefault,
-    ImageField,
-    ListField,
-)
-from rest_framework.relations import PrimaryKeyRelatedField, StringRelatedField
+from rest_framework.fields import CurrentUserDefault
 
 from all_fixture.choices import CountryChoices
-from all_fixture.validators.validators import ForbiddenWordValidator
 from blogs.models import (
     Article,
-    ArticleImage,
     Category,
     Comment,
     CommentLike,
+    MediaAsset,
+    MediaType,
     Tag,
     Theme,
 )
+from blogs.validators import (
+    DynamicForbiddenWordValidator,
+    enforce_media_limit,
+    validate_media_file,
+)
 
-# ───────────────────────────── базовые справочники ──────────────────────────────
 
-
+# ────────────────────────── базовые справочники ──────────────────────────
 class CategorySerializer(serializers.ModelSerializer):
-    """Категория статьи."""
-
     class Meta:
         model = Category
-        fields = ["id", "name", "slug"]
+        fields = ("id", "name", "slug")
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Тег статьи."""
-
     class Meta:
         model = Tag
-        fields = ["id", "name", "slug"]
+        fields = ("id", "name", "slug")
 
 
 class ThemeSerializer(serializers.ModelSerializer):
-    """Тематика статьи."""
-
     class Meta:
         model = Theme
-        fields = ["id", "name", "slug"]
+        fields = ("id", "name", "slug")
 
 
-# ─────────────────────────── изображения к статье ──────────────────────────────
-
-
-class ArticleImageSerializer(serializers.ModelSerializer):
-    """Изображение, прикреплённое к статье."""
-
-    image = ImageField()
+# ───────────────────────────── медиа-файлы ────────────────────────────────
+class MediaAssetSerializer(serializers.ModelSerializer):
+    file = serializers.FileField(write_only=True)
 
     class Meta:
-        model = ArticleImage
-        fields = ["id", "article", "image", "order"]
-        read_only_fields = ["id"]
+        model = MediaAsset
+        fields = ("id", "article", "type", "file", "order")
+        read_only_fields = ("id",)
+
+    # валидация на уровне объекта
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        article = data.get("article") or getattr(self.instance, "article", None)
+
+        # 1. лимит 10 файлов
+        if self.instance is None and article is not None:
+            enforce_media_limit(article)
+
+        # 2. размер + расширение
+        validate_media_file(
+            data["file"],
+            is_video=data["type"] == MediaType.VIDEO,
+        )
+        return data
 
 
-# ───────────────────────────── комментарии и лайки ──────────────────────────────
-
-
+# ─────────────────────────── комментарии / лайки ──────────────────────────
 class CommentLikeSerializer(serializers.ModelSerializer):
-    """Реакция (лайк / дизлайк) на комментарий."""
-
     class Meta:
         model = CommentLike
-        fields = ["id", "comment", "user", "is_like", "created_at", "updated_at"]
-        read_only_fields = ["id", "user", "created_at", "updated_at"]
+        fields = ("id", "comment", "user", "is_like", "created_at")
+        read_only_fields = ("id", "user", "created_at")
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Комментарий с вложенными ответами (до 2-го уровня) и счётчиками реакций."""
-
-    author = StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
     replies = serializers.SerializerMethodField()
-    likes_count = serializers.SerializerMethodField(read_only=True)
-    dislikes_count = serializers.SerializerMethodField(read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = [
+        fields = (
             "id",
             "article",
-            "author",
+            "user",
             "parent",
             "text",
             "replies",
             "likes_count",
             "dislikes_count",
+            "status",
             "created_at",
             "updated_at",
-            "is_active",
-        ]
-        read_only_fields = [
+        )
+        read_only_fields = (
             "id",
-            "author",
+            "user",
             "replies",
             "likes_count",
             "dislikes_count",
             "created_at",
             "updated_at",
-        ]
+        )
 
-    # ───────── helpers ─────────
-
+    # рекурсивная выдача ответов (до 2-го уровня)
     def get_replies(self, obj):
         depth = self.context.get("depth", 0)
         if depth >= 2:
             return []
-        qs = Comment.objects.filter(parent=obj)
-        return CommentSerializer(qs, many=True, context={"depth": depth + 1}).data
+        qs = Comment.objects.filter(parent=obj, status="approved")
+        ctx = {**self.context, "depth": depth + 1}
+        return CommentSerializer(qs, many=True, context=ctx).data
 
     @staticmethod
-    def get_likes_count(obj):
+    def get_likes_count(obj):  # noqa: D401
         return obj.likes.filter(is_like=True).count()
 
     @staticmethod
-    def get_dislikes_count(obj):
+    def get_dislikes_count(obj):  # noqa: D401
         return obj.likes.filter(is_like=False).count()
 
 
-# ───────────────────────────── основная сущность ────────────────────────────────
-
-
+# ─────────────────────────────── статьи ──────────────────────────────────
 class ArticleSerializer(serializers.ModelSerializer):
-    """Статья со связанными сущностями и поддержкой русских названий стран."""
-
-    images = ArticleImageSerializer(many=True, read_only=True)
-    category = CategorySerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    category = CategorySerializer()
+    tags = TagSerializer(many=True, required=False)
+    theme = ThemeSerializer(required=False, allow_null=True)
+    media = MediaAssetSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
+    author = serializers.HiddenField(default=CurrentUserDefault())
+    reading_time = serializers.IntegerField(source="reading_time_minutes", read_only=True)
 
-    # страны приходят/уходят как список русских названий
-    countries = ListField(
-        child=CharField(),
+    countries = serializers.ListField(
+        child=serializers.CharField(),
         required=False,
-        help_text="Список русских названий стран (например, ['Россия', 'США'])",
+        help_text="Список русских названий стран",
     )
-
-    author = PrimaryKeyRelatedField(read_only=True, default=CurrentUserDefault())
-    theme = PrimaryKeyRelatedField(queryset=Theme.objects.all(), allow_null=True)
-    is_published = BooleanField(read_only=True)
-    is_moderated = BooleanField(read_only=True)
-
-    # запрет на некорректные слова
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["title"].validators.append(ForbiddenWordValidator(["title"]))
-        self.fields["content"].validators.append(ForbiddenWordValidator(["content"]))
-
-    # ───────── countries helpers ─────────
-
-    @staticmethod
-    def validate_countries(value):
-        """Проверка, что все названия стран валидны (по Russian name)."""
-        valid_names = {name for _, name in CountryChoices.choices}
-        invalid = [name for name in value if name not in valid_names]
-        if invalid:
-            raise serializers.ValidationError(f"Неизвестные страны: {', '.join(invalid)}")
-        return value
-
-    def to_internal_value(self, data):
-        """Преобразуем русские названия в коды перед сохранением."""
-        if "countries" in data:
-            name_to_code = {name: code for code, name in CountryChoices.choices}
-            data["countries"] = [name_to_code[n] for n in data["countries"] if n in name_to_code]
-        return super().to_internal_value(data)
-
-    def to_representation(self, instance):
-        """Преобразуем коды в русские названия при отдаче данных."""
-        rep = super().to_representation(instance)
-        if "countries" in rep:
-            code_to_name = dict(CountryChoices.choices)
-            rep["countries"] = [code_to_name.get(code, code) for code in rep["countries"]]
-        return rep
 
     class Meta:
         model = Article
-        fields = [
+        fields = (
             "id",
             "title",
-            "content",
-            "pub_date",
+            "slug",
             "short_description",
-            "is_published",
-            "is_moderated",
-            "views_count",
+            "meta_title",
+            "meta_description",
+            "cover_image",
+            "countries",
             "rating",
-            "created_at",
-            "updated_at",
+            "status",
+            "views_count",
+            "reading_time",
+            "content",
             "category",
             "tags",
-            "countries",
             "theme",
             "author",
-            "images",
+            "media",
             "comments",
-        ]
-        read_only_fields = [
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
             "id",
-            "is_published",
-            "is_moderated",
+            "slug",
+            "status",
             "views_count",
+            "reading_time",
             "rating",
             "created_at",
             "updated_at",
-            "images",
+            "media",
             "comments",
-        ]
+        )
+
+    # ─── валидаторы «плохих слов» ─────────────────────────────────────────
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        banned = DynamicForbiddenWordValidator()
+        self.fields["title"].validators.append(banned)
+        self.fields["content"].validators.append(banned)
+
+    # ─── страны: валидация и маппинг код ⇄ рус. название ──────────────────
+    def validate_countries(self, value):
+        valid_names = {name for _, name in CountryChoices.choices}
+        unknown = [n for n in value if n not in valid_names]
+        if unknown:
+            raise serializers.ValidationError(f"Неизвестные страны: {', '.join(unknown)}")
+        return value
+
+    def to_internal_value(self, data):
+        mapping = {name: code for code, name in CountryChoices.choices}
+        if "countries" in data:
+            data["countries"] = [mapping[n] for n in data["countries"] if n in mapping]
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rev = dict(CountryChoices.choices)
+        rep["countries"] = [rev.get(code, code) for code in rep.get("countries", [])]
+        return rep
+
+    # ─── nested create/update ─────────────────────────────────────────────
+    def _get_or_create_tag(self, tag_dict):
+        return Tag.objects.get_or_create(**tag_dict)[0]
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop("tags", [])
+        category_data = validated_data.pop("category")
+        theme_data = validated_data.pop("theme", None)
+
+        category, _ = Category.objects.get_or_create(**category_data)
+        theme = Theme.objects.get_or_create(**theme_data)[0] if theme_data else None
+
+        article = Article.objects.create(
+            category=category,
+            theme=theme,
+            **validated_data,
+        )
+        # теги
+        article.tags.set(self._get_or_create_tag(t) for t in tags_data)
+        return article
+
+    def update(self, instance, validated_data):
+        if "category" in validated_data:
+            cat_data = validated_data.pop("category")
+            instance.category, _ = Category.objects.get_or_create(**cat_data)
+
+        if "theme" in validated_data:
+            theme_data = validated_data.pop("theme")
+            instance.theme = Theme.objects.get_or_create(**theme_data)[0] if theme_data else None
+
+        if "tags" in validated_data:
+            instance.tags.set(self._get_or_create_tag(t) for t in validated_data.pop("tags"))
+
+        # остальные простые поля
+        for attr, val in validated_data.items():
+            setattr(instance, attr, val)
+        instance.save()
+        return instance
