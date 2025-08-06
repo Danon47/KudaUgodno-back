@@ -1,15 +1,10 @@
 from django.contrib import admin
 
 from all_fixture.choices import CountryChoices
-from blogs.models import Article, ArticleImage, Category, Comment, CommentLike, Tag, Theme
+from blogs.models import Article, Category, Comment, CommentLike, MediaAsset, Tag, Theme
 
 
-# noinspection PyUnresolvedReferences
 class SlugNameAdmin(admin.ModelAdmin):
-    """
-    Базовый класс админки для моделей с полями name и slug.
-    """
-
     list_display = ("name", "slug")
     list_filter = ("name", "slug")
     search_fields = ("name",)
@@ -18,123 +13,106 @@ class SlugNameAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(SlugNameAdmin):
-    """Админ панель для модели Category (наследует SlugNameAdmin)."""
+    pass
 
 
 @admin.register(Tag)
-class TagsAdmin(SlugNameAdmin):
-    """Админ панель для модели Tag."""
+class TagAdmin(SlugNameAdmin):
+    pass
 
 
 @admin.register(Theme)
 class ThemeAdmin(SlugNameAdmin):
-    """Админ панель для модели Theme."""
+    pass
+
+
+class CountryListFilter(admin.SimpleListFilter):
+    title = "Страна"
+    parameter_name = "country"
+
+    def lookups(self, request, model_admin):
+        return CountryChoices.choices
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(countries__contains=[self.value()])
+        return queryset
 
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    """Админ панель для модели статья."""
-
     list_display = (
         "title",
         "author",
-        "content",
-        "pub_date",
-        "short_description",
-        "is_published",
+        "status",
         "views_count",
-        "rating",
+        "reading_time_minutes",
         "created_at",
         "updated_at",
         "display_countries",
     )
     list_filter = (
-        "title",
+        "status",
+        "category",
+        "theme",
+        CountryListFilter,
         "author",
-        "content",
-        "pub_date",
-        "short_description",
-        "is_published",
-        "views_count",
-        "rating",
         "created_at",
-        "updated_at",
     )
-    search_fields = (
-        "title",
-        "countries",
-    )
+    search_fields = ("title", "content", "countries")
+    prepopulated_fields = {"slug": ("title",)}
+    autocomplete_fields = ("tags", "theme", "category")
+    list_select_related = ("author", "category", "theme")
+    prefetch_related = ("tags",)
 
     def display_countries(self, obj):
-        """
-        Преобразует коды стран статьи в строку с русскими названиями.
-        """
-
-        country_mapping = dict(CountryChoices.choices)
-        return ", ".join(country_mapping.get(code, code) for code in obj.countries)
+        mapping = dict(CountryChoices.choices)
+        return ", ".join(mapping.get(c, c) for c in obj.countries)
 
     display_countries.short_description = "Страны"
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    """Админ панель для модели комментарии."""
-
     list_display = (
         "article",
-        "text",
-        "author",
+        "user",
+        "status",
         "created_at",
-        "is_active",
         "likes_count_display",
         "dislikes_count_display",
     )
-    list_filter = (
-        "is_active",
-        "article",
-        "author",
-        "created_at",
-    )
+    list_filter = ("status", "article", "user", "created_at")
     search_fields = ["text"]
     actions = ["approve_comments"]
+    list_select_related = ("article", "user")
 
     def likes_count_display(self, obj):
-        """
-        Отображение лайков.
-        """
-        return obj.likes_count
+        return obj.likes.count()
 
     likes_count_display.short_description = "Лайки"
-    likes_count_display.admin_order_field = "likes_count"
 
     def dislikes_count_display(self, obj):
-        """
-        Отображение дизлайков.
-        """
-
-        return obj.dislikes_count
+        return obj.likes.filter(is_like=False).count()
 
     dislikes_count_display.short_description = "Дизлайки"
-    dislikes_count_display.admin_order_field = "dislikes_count"
 
     def approve_comments(self, queryset):
-        queryset.update(is_active=True)
+        queryset.update(status="approved")
 
     approve_comments.short_description = "Одобрить выбранные комментарии"
 
 
 @admin.register(CommentLike)
 class CommentLikeAdmin(admin.ModelAdmin):
-    """Админ панель для модели лайки/дизлайки к комментариям."""
-
     list_display = ("comment", "user", "is_like", "created_at")
     list_filter = ("is_like",)
+    list_select_related = ("comment", "user")
 
 
-@admin.register(ArticleImage)
-class ArticleImageAdmin(admin.ModelAdmin):
-    """Админ панель для модели фотографии."""
-
-    list_display = ("image", "order")
-    list_filter = ("image",)
-    search_fields = ("image",)
+@admin.register(MediaAsset)
+class MediaAssetAdmin(admin.ModelAdmin):
+    list_display = ("article", "type", "file", "order")
+    list_filter = ("type", "article")
+    search_fields = ("file",)
+    list_select_related = ("article",)
