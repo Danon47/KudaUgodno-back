@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.postgres.fields import ArrayField
 
 from all_fixture.choices import CountryChoices
 from blogs.models import Article, Category, Comment, CommentLike, MediaAsset, Tag, Theme
@@ -31,7 +33,13 @@ class CountryListFilter(admin.SimpleListFilter):
     parameter_name = "country"
 
     def lookups(self, request, model_admin):
-        return CountryChoices.choices
+        used_countries = set()
+        articles = model_admin.get_queryset(request).exclude(countries__len=0)
+        for countries in articles.values_list("countries", flat=True):
+            used_countries.update(countries)
+
+        return [(code, name) for code, name in CountryChoices.choices if code in used_countries]
+        # return CountryChoices.choices
 
     def queryset(self, request, queryset):
         if self.value():
@@ -64,6 +72,12 @@ class ArticleAdmin(admin.ModelAdmin):
     autocomplete_fields = ("tags", "theme", "category")
     list_select_related = ("author", "category", "theme")
     prefetch_related = ("tags",)
+
+    formfield_overrides = {
+        ArrayField: {
+            "widget": forms.SelectMultiple(choices=CountryChoices.sorted_choices()),
+        },
+    }
 
     def display_countries(self, obj):
         mapping = dict(CountryChoices.choices)
