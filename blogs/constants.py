@@ -1,12 +1,13 @@
 # ─── текущие константы ─────────────────────────────────────────────────────────
 MAX_MEDIA_PER_ARTICLE = 10
 MAX_FILE_SIZE = 10 * 1024 * 1024  # в байтах (10 МБ)
+MAX_NUM_VIDEOS = 1
 ALLOWED_VIDEO_EXT = {".mp4", ".webm"}
 
 # ─── алиасы !!!СЫЕРИТЬ!!! с views_fixture.py ────────────────────────────────────
 # Максимальное число фото/видео
 MAX_PHOTOS = MAX_MEDIA_PER_ARTICLE
-MAX_VIDEOS = MAX_MEDIA_PER_ARTICLE
+MAX_VIDEOS = MAX_NUM_VIDEOS
 
 # Максимальный размер в мегабайтах
 MAX_PHOTO_SIZE_MB = MAX_FILE_SIZE // (1024 * 1024)  # == 10
