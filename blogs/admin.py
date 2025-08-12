@@ -1,31 +1,44 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
+from django.utils.text import capfirst
 
 from all_fixture.choices import CountryChoices
-from blogs.models import Article, Category, Comment, CommentLike, MediaAsset, Tag, Theme
+from blogs.models import (
+    Article,
+    Category,
+    Comment,
+    MediaAsset,
+    Tag,
+    Theme,
+)
+
+# ---- Базовый админ для справочников name/slug --------------------------------
 
 
 class SlugNameAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
-    list_filter = ("name", "slug")
+    list_filter = ("name",)
     search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Category)
 class CategoryAdmin(SlugNameAdmin):
-    pass
+    """Админка для категорий."""
 
 
 @admin.register(Tag)
 class TagAdmin(SlugNameAdmin):
-    pass
+    """Админка для тегов."""
 
 
 @admin.register(Theme)
 class ThemeAdmin(SlugNameAdmin):
-    pass
+    """Админка для тем."""
+
+
+# ---- Фильтры -----------------------------------------------------------------
 
 
 class CountryListFilter(admin.SimpleListFilter):
@@ -33,25 +46,85 @@ class CountryListFilter(admin.SimpleListFilter):
     parameter_name = "country"
 
     def lookups(self, request, model_admin):
-        used_countries = set()
-        articles = model_admin.get_queryset(request).exclude(countries__len=0)
-        for countries in articles.values_list("countries", flat=True):
-            used_countries.update(countries)
-
-        return [(code, name) for code, name in CountryChoices.choices if code in used_countries]
-        # return CountryChoices.choices
+        # Полный справочник стран (красиво отсортированный), а не только "используемые"
+        return CountryChoices.sorted_choices()
 
     def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(countries__contains=[self.value()])
-        return queryset
+        return queryset.filter(countries__contains=[self.value()]) if self.value() else queryset
+
+
+class AuthorListFilter(admin.SimpleListFilter):
+    title = "Автор"
+    parameter_name = "author"
+
+    # показывать фильтр даже если список пуст
+    def has_output(self):
+        return True
+
+    def lookups(self, request, model_admin):
+        user_model = get_user_model()
+        author_ids = model_admin.get_queryset(request).values_list("author_id", flat=True).distinct()
+
+        if author_ids:  # есть статьи -> авторы из статей
+            users = user_model.objects.filter(id__in=author_ids)
+        else:  # статей нет -> подстраховка (иначе фильтр был бы пуст и скрыт)
+            users = user_model.objects.filter(is_staff=True)
+
+        users = users.order_by("last_name", "first_name", "email")[:50]
+
+        def label(u):
+            return u.get_full_name() or getattr(u, "email", None) or getattr(u, "phone_number", None) or f"ID {u.pk}"
+
+        return [(u.pk, capfirst(label(u))) for u in users]
+
+    def queryset(self, request, queryset):
+        return queryset.filter(author_id=self.value()) if self.value() else queryset
+
+
+class CommentAuthorListFilter(admin.SimpleListFilter):
+    title = "Автор"
+    parameter_name = "user"  # параметр в URL
+
+    def has_output(self):
+        # показывать фильтр даже если пока пусто
+        return True
+
+    def lookups(self, request, model_admin):
+        user_model = get_user_model()
+        user_ids = model_admin.get_queryset(request).values_list("user_id", flat=True).distinct()
+
+        if user_ids:
+            users = user_model.objects.filter(id__in=user_ids)
+        else:
+            users = user_model.objects.filter(is_staff=True)  # подстраховка для пустых данных
+
+        users = users.order_by("last_name", "first_name", "email")[:100]
+
+        def label(u):
+            # показываем ФИО; если его нет — email/телефон; без «tourists.<uuid>@…»
+            return (
+                (u.get_full_name() or "").strip()
+                or getattr(u, "email", None)
+                or getattr(u, "phone_number", None)
+                or f"ID {u.pk}"
+            )
+
+        return [(u.pk, capfirst(label(u))) for u in users]
+
+    def queryset(self, request, qs):
+        return qs.filter(user_id=self.value()) if self.value() else qs
+
+
+# ---- Article -----------------------------------------------------------------
 
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
+    """Админка для статей."""
+
     list_display = (
         "title",
-        "author",
+        "author_display",
         "status",
         "views_count",
         "reading_time_minutes",
@@ -64,7 +137,7 @@ class ArticleAdmin(admin.ModelAdmin):
         "category",
         "theme",
         CountryListFilter,
-        "author",
+        AuthorListFilter,
         "created_at",
     )
     search_fields = ("title", "content", "countries")
@@ -73,55 +146,70 @@ class ArticleAdmin(admin.ModelAdmin):
     list_select_related = ("author", "category", "theme")
     prefetch_related = ("tags",)
 
+    # удобный виджет для ArrayField стран
     formfield_overrides = {
         ArrayField: {
             "widget": forms.SelectMultiple(choices=CountryChoices.sorted_choices()),
         },
     }
 
+    @admin.display(description="Страны")
     def display_countries(self, obj):
         mapping = dict(CountryChoices.choices)
-        return ", ".join(mapping.get(c, c) for c in obj.countries)
+        return ", ".join(mapping.get(code, code) for code in (obj.countries or []))
 
-    display_countries.short_description = "Страны"
+    @admin.display(description="Автор", ordering="author__last_name")
+    def author_display(self, obj):
+        u = obj.author
+        return u.get_full_name() or getattr(u, "email", None) or getattr(u, "phone_number", None) or f"ID {u.pk}"
+
+
+# ---- Комментарии -------------------------------------------------------------
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = (
         "article",
-        "user",
+        "text",
+        "user_display",
         "status",
-        "created_at",
         "likes_count_display",
         "dislikes_count_display",
+        "created_at",
     )
-    list_filter = ("status", "article", "user", "created_at")
-    search_fields = ["text"]
-    actions = ["approve_comments"]
+    list_filter = ("status", "article", CommentAuthorListFilter, "created_at")
+    search_fields = ("text", "user__email", "user__first_name", "user__last_name", "user__phone_number")
     list_select_related = ("article", "user")
+    actions = ("approve_comments",)
 
+    @admin.display(description="Автор", ordering="user__last_name")
+    def user_display(self, obj):
+        u = obj.user
+        return (
+            (u.get_full_name() or "").strip()
+            or getattr(u, "email", None)
+            or getattr(u, "phone_number", None)
+            or f"ID {u.pk}"
+        )
+
+    @admin.display(description="Лайки")
     def likes_count_display(self, obj):
-        return obj.likes.count()
+        # если есть аннотированное поле likes_count — используем его, иначе считаем
+        return getattr(obj, "likes_count", obj.likes.filter(is_like=True).count())
 
-    likes_count_display.short_description = "Лайки"
-
+    @admin.display(description="Дизлайки")
     def dislikes_count_display(self, obj):
-        return obj.likes.filter(is_like=False).count()
+        return getattr(obj, "dislikes_count", obj.likes.filter(is_like=False).count())
 
-    dislikes_count_display.short_description = "Дизлайки"
-
-    def approve_comments(self, queryset):
+    # правильная сигнатура action: (self, request, queryset)
+    def approve_comments(self, request, queryset):
         queryset.update(status="approved")
 
     approve_comments.short_description = "Одобрить выбранные комментарии"
 
 
-@admin.register(CommentLike)
-class CommentLikeAdmin(admin.ModelAdmin):
-    list_display = ("comment", "user", "is_like", "created_at")
-    list_filter = ("is_like",)
-    list_select_related = ("comment", "user")
+# ---- Медиа -------------------------------------------------------------------
 
 
 @admin.register(MediaAsset)
