@@ -171,11 +171,17 @@ class LoginAttempt(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="login_attempts",
+        verbose_name="Пользователь",
     )
-    ts = models.DateTimeField(auto_now_add=True)
-    success = models.BooleanField()
-    ip = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Когда",  # бывш. ts
+    )
+    success = models.BooleanField(verbose_name="Успех")
+    ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP")
 
     class Meta:
-        indexes = [models.Index(fields=["user", "-ts"])]
-        ordering = ["-ts"]
+        verbose_name = "Попытка входа"
+        verbose_name_plural = "Попытки входа"
+        indexes = [models.Index(fields=["user", "-created_at"])]
+        ordering = ["-created_at"]
