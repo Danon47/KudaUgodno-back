@@ -52,7 +52,7 @@ from users.serializers import (
     VerifyCodeResponseSerializer,
     VerifyCodeSerializer,
 )
-from users.services import check_ban, record_login_attempt
+from users.services import check_ban, get_login_state, record_login_attempt
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +66,375 @@ def blacklist_user_tokens(user):
             BlacklistedToken.objects.get_or_create(token=token)
     except Exception as e:
         logger.warning(f"[User DELETE] Ошибка при аннулировании токенов: {e}")
+
+
+class RefreshRequestSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
+class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """ViewSet для аутентификации по email-коду (без ID пользователя)."""
+
+    permission_classes = [AllowAny]
+    serializer_class = EmailLoginSerializer
+
+    def get_serializer_class(self):
+        """Определяем сериализатор в зависимости от действия."""
+        if self.action == "create":
+            return EmailLoginSerializer
+        elif self.action == "verify":
+            return VerifyCodeSerializer
+        return self.serializer_class
+
+    @extend_schema(
+        summary="Запросить код для входа",
+        description="Отправляет 4-значный код на email пользователя для входа в систему.",
+        tags=[AUTH_SETTINGS["name"]],
+        request={"multipart/form-data": EmailLoginSerializer},
+        responses={
+            200: OpenApiResponse(
+                response=EmailCodeResponseSerializer,
+                description="Код успешно отправлен",
+            ),
+            404: OpenApiResponse(description="Пользователь не найден"),
+        },
+        examples=[
+            OpenApiExample(
+                name="Пример запроса",
+                value={"email": "user@example.com"},
+                request_only=True,
+            )
+        ],
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        is_registered = User.objects.filter(email=email).exists()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Пользователь не найден", "register": is_registered},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        code = random.randint(1000, 9999)
+        user.set_password(str(code))
+        user.save(update_fields=["password"])
+
+        self.send_email(user.email, code)
+
+        return Response(
+            {"message": "Код отправлен на email", "register": is_registered},
+            status=status.HTTP_200_OK,
+        )
+
+    @staticmethod
+    def send_email(email, code):
+        """Отправка email с кодом."""
+        email_message = EmailMessage(
+            subject="Ваш код для входа",
+            body=f"""
+                <html>
+                    <body>
+                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
+                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
+                        <p><strong>Никому не сообщайте этот код!</strong>
+                        Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
+                    </body>
+                </html>
+            """,
+            from_email=EMAIL_HOST_USER,
+            to=[email],
+        )
+        email_message.content_subtype = "html"
+        email_message.send()
+
+    @extend_schema(
+        summary="Подтвердить код и установить токены",
+        description=(
+            "Проверка email и кода. В случае успеха — установка JWT токенов (access и refresh) "
+            "в cookie. В теле ответа возвращаются только роль и ID пользователя."
+        ),
+        tags=[AUTH_SETTINGS["name"]],
+        request={"multipart/form-data": VerifyCodeSerializer},
+        responses={
+            200: OpenApiResponse(
+                response=VerifyCodeResponseSerializer,
+                description="Успешный ответ с ролью и ID пользователя. Токены установлены в cookie.",
+            ),
+            400: OpenApiResponse(
+                description="Неверный код",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка",
+                        value={"error": "Неверный код"},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+    )
+    @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
+    def verify(self, request):
+        """
+        Проверка email-кода, логирование попытки и выдача JWT-токенов.
+        Блокирует пользователя после 5 неудач с нарастающим таймаутом.
+        """
+        serializer = VerifyCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+
+        # ─── 1. Проверяем существование пользователя и активные баны ─────────────
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+        # деактивирован — возвращаем 403, а не уходим в "неверный код"
+        if not user.is_active:
+            return Response({"error": "Аккаунт деактивирован"}, status=status.HTTP_403_FORBIDDEN)
+
+        # активная блокировка — сразу 423 + детали
+        try:
+            check_ban(user)
+        except PermissionError:
+            state = get_login_state(user)
+            return Response(
+                {
+                    "error": "Слишком много неверных попыток",
+                    "remaining_attempts": 0,
+                    "blocked_until": state.blocked_until,
+                },
+                status=status.HTTP_423_LOCKED,
+            )
+        # ─── 2. Пробуем аутентифицировать по коду ────────────────────────────────
+        authenticated_user = authenticate(email=email, password=str(code))
+        success = authenticated_user is not None
+
+        # ─── 3. Записываем попытку ───────────────────────────────────────────────
+        state = record_login_attempt(user, success, request.META.get("REMOTE_ADDR"))
+        if not success:
+            return Response(
+                {
+                    "error": "Неверный код",
+                    "remaining_attempts": state.remaining_attempts,
+                    "blocked_until": state.blocked_until,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # ─── 4. Всё ок – выдаем токены и куки (оригинальный код без изменений) ───
+        refresh = RefreshToken.for_user(authenticated_user)
+        response = Response(
+            {"role": authenticated_user.role, "id": authenticated_user.id},
+            status=status.HTTP_200_OK,
+        )
+
+        expires = now() + timedelta(days=30)
+        secure = not settings.DEBUG
+
+        response.set_cookie(
+            key="access_token",
+            value=str(refresh.access_token),
+            httponly=True,
+            secure=secure,
+            samesite="Lax",
+            expires=expires,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=secure,
+            samesite="Lax",
+            expires=expires,
+        )
+        return response
+
+    @extend_schema(
+        summary="Выход из системы (Logout)",
+        description="Аннулирует refresh-токен и завершает сессию пользователя.",
+        tags=[AUTH_SETTINGS["name"]],
+        request={"multipart/form-data": LogoutSerializer},
+        responses={
+            205: OpenApiResponse(
+                response=LogoutSuccessResponseSerializer,
+                description="Вы успешно вышли из системы",
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description="Ошибка при выходе",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка: токен не передан",
+                        value={"error": "Refresh-токен не передан"},
+                        response_only=True,
+                    ),
+                    OpenApiExample(
+                        name="Ошибка: некорректный токен",
+                        value={"error": "Token is invalid or expired"},
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="logout",
+        permission_classes=[IsAuthenticated],
+    )
+    def logout(self, request):
+        """
+        Выход из системы: аннулирование refresh-токена и удаление cookies.
+        """
+
+        # Пробуем взять refresh из тела запроса
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=False)
+
+        refresh_token = (
+            serializer.validated_data.get("refresh") if serializer.is_valid() else request.COOKIES.get("refresh_token")
+        )
+
+        if not refresh_token:
+            return Response(
+                {"error": "Refresh-токен не передан"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            response = Response({"message": "Вы вышли"}, status=status.HTTP_200_OK)
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
+
+        except TokenError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        summary="Проверка активности access-токена",
+        description="Проверяет, действителен ли access-токен. Если токен истёк или отсутствует, возвращает 401.",
+        tags=[AUTH_SETTINGS["name"]],
+        responses={
+            200: OpenApiResponse(
+                response=CheckTokenSuccessResponseSerializer,
+                description="Токен действителен",
+            ),
+            401: OpenApiResponse(
+                response=CheckTokenErrorResponseSerializer,
+                description="Токен недействителен или отсутствует",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка",
+                        value={"error": "Недействительный или отсутствующий токен"},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="fetch_me",
+        permission_classes=[IsAuthenticated],
+    )
+    def fetch_me(self, request):
+        """Проверяет токен и возвращает текущего пользователя."""
+        user = request.user
+
+        if user.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
+            serializer = CompanyUserSerializer(user, context={"request": request})
+        else:
+            serializer = UserSerializer(user, context={"request": request})
+
+        return Response(
+            {
+                "message": "Токен активен",
+                "user": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        summary="Обновление токенов",
+        description="Обновляет access и refresh токены. Возвращает новые токены и обновляет cookies.",
+        tags=[AUTH_SETTINGS["name"]],
+        request=RefreshRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                description="Новые токены выданы",
+                examples=[
+                    OpenApiExample(
+                        name="OK",
+                        value={"access": "str", "refresh": "str"},
+                        response_only=True,
+                    )
+                ],
+            ),
+            401: OpenApiResponse(
+                description="Невалидный или отозванный токен",
+                examples=[
+                    OpenApiExample(
+                        name="Ошибка",
+                        value={"error": "Token is invalid or expired"},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="refresh",
+        permission_classes=[AllowAny],
+    )
+    def refresh(self, request):
+        serializer = RefreshRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            refresh = RefreshToken(serializer.validated_data["refresh"])
+            access = refresh.access_token
+
+            response = Response(
+                {"refresh": str(refresh), "access": str(access)},
+                status=status.HTTP_200_OK,
+            )
+
+            expires = now() + timedelta(days=30)
+            secure = not settings.DEBUG
+
+            response.set_cookie(
+                "access_token",
+                str(access),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
+            )
+            response.set_cookie(
+                "refresh_token",
+                str(refresh),
+                httponly=True,
+                secure=secure,
+                samesite="Lax",
+                expires=expires,
+            )
+            return response
+
+        except TokenError as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @extend_schema_view(
@@ -381,354 +750,3 @@ class CompanyUserViewSet(viewsets.ModelViewSet):
 
         self.perform_destroy(instance)
         return Response({"message": "Компания удалена"}, status=status.HTTP_204_NO_CONTENT)
-
-
-class RefreshRequestSerializer(serializers.Serializer):
-    refresh = serializers.CharField()
-
-
-class AuthViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """ViewSet для аутентификации по email-коду (без ID пользователя)."""
-
-    permission_classes = [AllowAny]
-    serializer_class = EmailLoginSerializer
-
-    def get_serializer_class(self):
-        """Определяем сериализатор в зависимости от действия."""
-        if self.action == "create":
-            return EmailLoginSerializer
-        elif self.action == "verify":
-            return VerifyCodeSerializer
-        return self.serializer_class
-
-    @extend_schema(
-        summary="Запросить код для входа",
-        description="Отправляет 4-значный код на email пользователя для входа в систему.",
-        tags=[AUTH_SETTINGS["name"]],
-        request={"multipart/form-data": EmailLoginSerializer},
-        responses={
-            200: OpenApiResponse(
-                response=EmailCodeResponseSerializer,
-                description="Код успешно отправлен",
-            ),
-            404: OpenApiResponse(description="Пользователь не найден"),
-        },
-        examples=[
-            OpenApiExample(
-                name="Пример запроса",
-                value={"email": "user@example.com"},
-                request_only=True,
-            )
-        ],
-    )
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        email = serializer.validated_data["email"]
-        is_registered = User.objects.filter(email=email).exists()
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "Пользователь не найден", "register": is_registered},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        code = random.randint(1000, 9999)
-        user.set_password(str(code))
-        user.save(update_fields=["password"])
-
-        self.send_email(user.email, code)
-
-        return Response(
-            {"message": "Код отправлен на email", "register": is_registered},
-            status=status.HTTP_200_OK,
-        )
-
-    @staticmethod
-    def send_email(email, code):
-        """Отправка email с кодом."""
-        email_message = EmailMessage(
-            subject="Ваш код для входа",
-            body=f"""
-                <html>
-                    <body>
-                        <p>Код для входа в сервис <strong>'Куда Угодно'</strong>:
-                        <strong style="font-size:18px;color:#007bff;">{code}</strong>.</p>
-                        <p><strong>Никому не сообщайте этот код!</strong>
-                        Если вы не запрашивали код, просто проигнорируйте это сообщение.</p>
-                    </body>
-                </html>
-            """,
-            from_email=EMAIL_HOST_USER,
-            to=[email],
-        )
-        email_message.content_subtype = "html"
-        email_message.send()
-
-    @extend_schema(
-        summary="Подтвердить код и установить токены",
-        description=(
-            "Проверка email и кода. В случае успеха — установка JWT токенов (access и refresh) "
-            "в cookie. В теле ответа возвращаются только роль и ID пользователя."
-        ),
-        tags=[AUTH_SETTINGS["name"]],
-        request={"multipart/form-data": VerifyCodeSerializer},
-        responses={
-            200: OpenApiResponse(
-                response=VerifyCodeResponseSerializer,
-                description="Успешный ответ с ролью и ID пользователя. Токены установлены в cookie.",
-            ),
-            400: OpenApiResponse(
-                description="Неверный код",
-                examples=[
-                    OpenApiExample(
-                        name="Ошибка",
-                        value={"error": "Неверный код"},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-    )
-    @action(detail=False, methods=["post"], url_path="verify", permission_classes=[AllowAny])
-    def verify(self, request):
-        """
-        Проверка email-кода, логирование попытки и выдача JWT-токенов.
-        Блокирует пользователя после 5 неудач с нарастающим таймаутом.
-        """
-        serializer = VerifyCodeSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        email = serializer.validated_data["email"]
-        code = serializer.validated_data["code"]
-
-        # ─── 1. Проверяем существование пользователя и активные баны ─────────────
-        try:
-            user = User.objects.get(email=email)
-            check_ban(user)  # 🔒 бросит PermissionError
-        except PermissionError as e:
-            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
-        except User.DoesNotExist:
-            # Ложиться сюда пользователь, которого вообще нет
-            return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
-
-        # ─── 2. Пробуем аутентифицировать по коду ────────────────────────────────
-        authenticated_user = authenticate(email=email, password=str(code))
-        success = authenticated_user is not None
-
-        # ─── 3. Записываем попытку ───────────────────────────────────────────────
-        record_login_attempt(user, success, request.META.get("REMOTE_ADDR"))
-
-        if not success:
-            return Response({"error": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # ─── 4. Всё ок – выдаём токены и куки (оригинальный код без изменений) ───
-        refresh = RefreshToken.for_user(authenticated_user)
-        response = Response(
-            {"role": authenticated_user.role, "id": authenticated_user.id},
-            status=status.HTTP_200_OK,
-        )
-
-        expires = now() + timedelta(days=30)
-        secure = not settings.DEBUG
-
-        response.set_cookie(
-            key="access_token",
-            value=str(refresh.access_token),
-            httponly=True,
-            secure=secure,
-            samesite="Lax",
-            expires=expires,
-        )
-        response.set_cookie(
-            key="refresh_token",
-            value=str(refresh),
-            httponly=True,
-            secure=secure,
-            samesite="Lax",
-            expires=expires,
-        )
-        return response
-
-    @extend_schema(
-        summary="Выход из системы (Logout)",
-        description="Аннулирует refresh-токен и завершает сессию пользователя.",
-        tags=[AUTH_SETTINGS["name"]],
-        request={"multipart/form-data": LogoutSerializer},
-        responses={
-            205: OpenApiResponse(
-                response=LogoutSuccessResponseSerializer,
-                description="Вы успешно вышли из системы",
-            ),
-            400: OpenApiResponse(
-                response=ErrorResponseSerializer,
-                description="Ошибка при выходе",
-                examples=[
-                    OpenApiExample(
-                        name="Ошибка: токен не передан",
-                        value={"error": "Refresh-токен не передан"},
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Ошибка: некорректный токен",
-                        value={"error": "Token is invalid or expired"},
-                        response_only=True,
-                    ),
-                ],
-            ),
-        },
-    )
-    @action(
-        detail=False,
-        methods=["post"],
-        url_path="logout",
-        permission_classes=[IsAuthenticated],
-    )
-    def logout(self, request):
-        """
-        Выход из системы: аннулирование refresh-токена и удаление cookies.
-        """
-
-        # Пробуем взять refresh из тела запроса
-        serializer = LogoutSerializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
-
-        refresh_token = (
-            serializer.validated_data.get("refresh") if serializer.is_valid() else request.COOKIES.get("refresh_token")
-        )
-
-        if not refresh_token:
-            return Response(
-                {"error": "Refresh-токен не передан"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-
-            response = Response({"message": "Вы вышли"}, status=status.HTTP_200_OK)
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
-            return response
-
-        except TokenError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    @extend_schema(
-        summary="Проверка активности access-токена",
-        description="Проверяет, действителен ли access-токен. Если токен истёк или отсутствует, возвращает 401.",
-        tags=[AUTH_SETTINGS["name"]],
-        responses={
-            200: OpenApiResponse(
-                response=CheckTokenSuccessResponseSerializer,
-                description="Токен действителен",
-            ),
-            401: OpenApiResponse(
-                response=CheckTokenErrorResponseSerializer,
-                description="Токен недействителен или отсутствует",
-                examples=[
-                    OpenApiExample(
-                        name="Ошибка",
-                        value={"error": "Недействительный или отсутствующий токен"},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-    )
-    @action(
-        detail=False,
-        methods=["get"],
-        url_path="fetch_me",
-        permission_classes=[IsAuthenticated],
-    )
-    def fetch_me(self, request):
-        """Проверяет токен и возвращает текущего пользователя."""
-        user = request.user
-
-        if user.role in [RoleChoices.TOUR_OPERATOR, RoleChoices.HOTELIER]:
-            serializer = CompanyUserSerializer(user, context={"request": request})
-        else:
-            serializer = UserSerializer(user, context={"request": request})
-
-        return Response(
-            {
-                "message": "Токен активен",
-                "user": serializer.data,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    @extend_schema(
-        summary="Обновление токенов",
-        description="Обновляет access и refresh токены. Возвращает новые токены и обновляет cookies.",
-        tags=[AUTH_SETTINGS["name"]],
-        request=RefreshRequestSerializer,
-        responses={
-            200: OpenApiResponse(
-                description="Новые токены выданы",
-                examples=[
-                    OpenApiExample(
-                        name="OK",
-                        value={"access": "str", "refresh": "str"},
-                        response_only=True,
-                    )
-                ],
-            ),
-            401: OpenApiResponse(
-                description="Невалидный или отозванный токен",
-                examples=[
-                    OpenApiExample(
-                        name="Ошибка",
-                        value={"error": "Token is invalid or expired"},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-    )
-    @action(
-        detail=False,
-        methods=["post"],
-        url_path="refresh",
-        permission_classes=[AllowAny],
-    )
-    def refresh(self, request):
-        serializer = RefreshRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            refresh = RefreshToken(serializer.validated_data["refresh"])
-            access = refresh.access_token
-
-            response = Response(
-                {"refresh": str(refresh), "access": str(access)},
-                status=status.HTTP_200_OK,
-            )
-
-            expires = now() + timedelta(days=30)
-            secure = not settings.DEBUG
-
-            response.set_cookie(
-                "access_token",
-                str(access),
-                httponly=True,
-                secure=secure,
-                samesite="Lax",
-                expires=expires,
-            )
-            response.set_cookie(
-                "refresh_token",
-                str(refresh),
-                httponly=True,
-                secure=secure,
-                samesite="Lax",
-                expires=expires,
-            )
-            return response
-
-        except TokenError as e:
-            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)

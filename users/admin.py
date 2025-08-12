@@ -12,7 +12,7 @@ def admin_deactivate(modeladmin, request, queryset):
 
 @admin.action(description="Реактивировать выбранных пользователей")
 def admin_reactivate(modeladmin, request, queryset):
-    queryset.update(is_active=True, ban_until=None)
+    queryset.update(is_active=True, ban_until=None, ban_level=0, failed_login_count=0)
 
 
 # ─────────── Admin class ─────────────────────────────────────────────

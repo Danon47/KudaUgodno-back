@@ -237,6 +237,14 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 }
 
+LOGIN_ATTEMPTS_LIMIT = 5  # после 5 неверных попыток — бан по ступеням
+LOGIN_BAN_STEPS = [
+    timedelta(minutes=15),
+    timedelta(hours=1),
+    timedelta(days=1),
+    timedelta(days=7),
+]
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "API приложения Куда Угодно",
     "DESCRIPTION": "Полная документация API приложения Куда Угодно",
