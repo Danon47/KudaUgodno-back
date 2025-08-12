@@ -88,10 +88,6 @@ VZHUH_SETTINGS = {
     "description": "Список актуальных спецпредложений по направлениям",
 }
 BLOG_SETTINGS = {
-    "name": "Блог",
-    "description": "Методы для работы с блогом",
-}
-BLOG_SETTINGS = {
     "name": "Блог: Статьи",
     "description": "Методы для работы со статьями блога",
 }

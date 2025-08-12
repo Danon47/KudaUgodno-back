@@ -65,9 +65,11 @@ class AuthorListFilter(admin.SimpleListFilter):
         user_model = get_user_model()
         author_ids = model_admin.get_queryset(request).values_list("author_id", flat=True).distinct()
 
-        if author_ids:  # есть статьи -> авторы из статей
+        # есть статьи -> авторы из статей
+        if author_ids:
             users = user_model.objects.filter(id__in=author_ids)
-        else:  # статей нет -> подстраховка (иначе фильтр был бы пуст и скрыт)
+        # статей нет -> подстраховка (иначе фильтр был бы пуст и скрыт)
+        else:
             users = user_model.objects.filter(is_staff=True)
 
         users = users.order_by("last_name", "first_name", "email")[:50]
@@ -83,7 +85,7 @@ class AuthorListFilter(admin.SimpleListFilter):
 
 class CommentAuthorListFilter(admin.SimpleListFilter):
     title = "Автор"
-    parameter_name = "user"  # параметр в URL
+    parameter_name = "user"
 
     def has_output(self):
         # показывать фильтр даже если пока пусто
@@ -96,7 +98,8 @@ class CommentAuthorListFilter(admin.SimpleListFilter):
         if user_ids:
             users = user_model.objects.filter(id__in=user_ids)
         else:
-            users = user_model.objects.filter(is_staff=True)  # подстраховка для пустых данных
+            # подстраховка для пустых данных
+            users = user_model.objects.filter(is_staff=True)
 
         users = users.order_by("last_name", "first_name", "email")[:100]
 
