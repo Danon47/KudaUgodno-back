@@ -96,13 +96,7 @@ class ArticleFilter(FilterSet):
                 else:
                     unknown.append(ru)
             if unknown:
-<<<<<<< HEAD
-                raise APIException(f"Неизвестные страны: {', '.join(unknown)}") from None
-
-            # `countries` — ArrayField(CharField) => lookup contains list-intersection
-=======
                 raise APIException(f"Неизвестные страны: {', '.join(unknown)}")
->>>>>>> e5cf967 ([~]: рефактор фильтров статей)
             return queryset.filter(countries__contains=codes)
         except Exception as err:
             raise APIException(f"Ошибка фильтрации по стране: {err}") from err
@@ -128,12 +122,5 @@ class ArticleFilter(FilterSet):
         if not user or not user.is_authenticated:
             return base.filter(is_published=True, is_moderated=True)
         if user.is_superuser:
-<<<<<<< HEAD
-            return base_qs
-
-        # автор — свои + опубликованные
-        return base_qs.filter(models.Q(is_published=True, is_moderated=True) | models.Q(author=user))
-=======
             return base
         return base.filter(models.Q(is_published=True, is_moderated=True) | models.Q(author=user))
->>>>>>> e5cf967 ([~]: рефактор фильтров статей)
