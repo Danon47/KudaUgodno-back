@@ -8,8 +8,8 @@ from django.utils.functional import cached_property
 
 from blogs.constants import (
     ALLOWED_VIDEO_EXT,
-    MAX_FILE_SIZE,
-    MAX_MEDIA_PER_ARTICLE,
+    MAX_FILE_SIZE_BYTES,
+    MAX_PHOTOS,
 )
 
 
@@ -37,7 +37,7 @@ class DynamicForbiddenWordValidator:
 # ───────────────────────── media-helpers (size / count) ─────────────────────
 def validate_media_file(file, *, is_video: bool = False) -> None:
     """Размер ≤ 10 МБ; для видео — ещё и расширение."""
-    if file.size > MAX_FILE_SIZE:
+    if file.size > MAX_FILE_SIZE_BYTES:
         raise ValidationError("Файл весит больше 10 МБ")
     if is_video and Path(file.name).suffix.lower() not in ALLOWED_VIDEO_EXT:
         raise ValidationError("Видео допускается только в MP4 / WebM")
@@ -45,5 +45,5 @@ def validate_media_file(file, *, is_video: bool = False) -> None:
 
 def enforce_media_limit(article) -> None:
     """Не более 10 фото/видео на одну статью."""
-    if article.media.count() >= MAX_MEDIA_PER_ARTICLE:
-        raise ValidationError(f"Лимит {MAX_MEDIA_PER_ARTICLE} файлов на статью превышен")
+    if article.media.count() >= MAX_PHOTOS:
+        raise ValidationError(f"Лимит {MAX_PHOTOS} файлов на статью превышен")

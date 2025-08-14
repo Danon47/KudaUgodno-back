@@ -1,17 +1,14 @@
-# ─── текущие константы ─────────────────────────────────────────────────────────
-MAX_MEDIA_PER_ARTICLE = 10
-MAX_FILE_SIZE = 10 * 1024 * 1024  # в байтах (10 МБ)
-MAX_NUM_VIDEOS = 1
-ALLOWED_VIDEO_EXT = {".mp4", ".webm"}
+# Константы политики медиа для приложения «Блог»
+from typing import Final
 
-# ─── алиасы !!!СЫЕРИТЬ!!! с views_fixture.py ────────────────────────────────────
-# Максимальное число фото/видео
-MAX_PHOTOS = MAX_MEDIA_PER_ARTICLE
-MAX_VIDEOS = MAX_NUM_VIDEOS
+# Количество
+MAX_PHOTOS: Final[int] = 10
+MAX_VIDEOS: Final[int] = 1
 
-# Максимальный размер в мегабайтах
-MAX_PHOTO_SIZE_MB = MAX_FILE_SIZE // (1024 * 1024)  # == 10
-MAX_VIDEO_SIZE_MB = MAX_PHOTO_SIZE_MB  # тоже 10 МБ
+# Размеры
+MAX_FILE_SIZE_MB: Final[int] = 10
+MAX_FILE_SIZE_BYTES: Final[int] = MAX_FILE_SIZE_MB * 1024 * 1024  # 10 МБ
 
-# Длительность видео (секунд)
-MAX_VIDEO_DURATION = 2 * 60  # <-- например (какое нужно в действительности число секунд?)
+# Видео
+ALLOWED_VIDEO_EXT: Final[tuple[str, ...]] = (".mp4", ".webm")
+MAX_VIDEO_DURATION_SEC: Final[int] = 2 * 60  # 120 секунд

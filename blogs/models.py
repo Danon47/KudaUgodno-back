@@ -14,7 +14,7 @@ from all_fixture.choices import CountryChoices
 from all_fixture.views_fixture import NULLABLE
 from blogs.constants import (
     ALLOWED_VIDEO_EXT,
-    MAX_FILE_SIZE,
+    MAX_FILE_SIZE_BYTES,
 )
 from blogs.validators import enforce_media_limit, validate_media_file
 
@@ -22,7 +22,7 @@ from blogs.validators import enforce_media_limit, validate_media_file
 # ──────────────────────────── валидаторы, завязанные на константы ────────────────────────────
 def validate_file_size(file):
     """Общий чек размера (10 МБ)."""
-    if file.size > MAX_FILE_SIZE:
+    if file.size > MAX_FILE_SIZE_BYTES:
         raise ValidationError("Файл слишком большой (>10 МБ)")
 
 
