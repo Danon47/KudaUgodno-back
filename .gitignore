@@ -162,3 +162,5 @@ cython_debug/
 static/media/
 static/admin/
 static/rest_framework/
+/static/media/*
+!/static/media/.gitkeep
