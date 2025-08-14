@@ -18,13 +18,13 @@ from all_fixture.views_fixture import (
     COMMENT_Q,
     COMMENTS_SETTINGS,
     COUNTRY,
-    DATE_FROM,
-    DATE_TO,
     LIKE_ID,
     LIKES_SETTINGS,
     LIMIT,
     OFFSET,
     ORDERING,
+    PUBLISHED_AT_AFTER,
+    PUBLISHED_AT_BEFORE,
     SEARCH,
     TAG_ID,
     TAG_SETTINGS,
@@ -43,9 +43,8 @@ from blogs.serializers import (
     ThemeSerializer,
 )
 
+
 # ─── Справочники ───────────────────────────────────────────────────────────────
-
-
 @extend_schema_view(
     list=extend_schema(
         summary="Список категорий",
@@ -104,15 +103,13 @@ class ThemeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
 
 
 # ─── Статьи: CRUD + модерация ───────────────────────────────────────────────────
-
-
 @extend_schema_view(
     list=extend_schema(
         summary="Список статей",
         tags=[BLOG_SETTINGS["name"]],
         parameters=[
-            DATE_FROM,
-            DATE_TO,
+            PUBLISHED_AT_AFTER,
+            PUBLISHED_AT_BEFORE,
             COUNTRY,
             THEME_ID,
             ORDERING,
@@ -198,7 +195,6 @@ class ArticleViewSet(
         serializer.save(author=self.request.user, status=ArticleStatus.DRAFT)
 
     # ─── Действия пользователя ─────────────────────────────────────────────────────
-
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
         """Автор отправляет статью на модерацию."""
@@ -220,8 +216,6 @@ class ArticleViewSet(
 
 
 # ─── Комментарии и реакции ─────────────────────────────────────────────────────
-
-
 @extend_schema_view(
     list=extend_schema(
         summary="Список комментариев",

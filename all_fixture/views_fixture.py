@@ -1,3 +1,4 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 
 from all_fixture.choices import CountryChoices
@@ -780,26 +781,26 @@ DISCOUNT = (
 
 
 # ─── Параметры для Blog API ──────────────────────────────────────────────────
-DATE_FROM = OpenApiParameter(
-    name="date_from",
+PUBLISHED_AT_AFTER = OpenApiParameter(
+    name="published_at_after",
     location=OpenApiParameter.QUERY,
-    description="Статьи, опубликованные после указанной даты (YYYY-MM-DD)",
+    description="Статьи, опубликованные начиная с указанной даты (YYYY-MM-DD)",
     required=False,
-    type=str,
+    type=OpenApiTypes.DATE,
 )
-DATE_TO = OpenApiParameter(
-    name="date_to",
+PUBLISHED_AT_BEFORE = OpenApiParameter(
+    name="published_at_before",
     location=OpenApiParameter.QUERY,
-    description="Статьи, опубликованные до указанной даты (YYYY-MM-DD)",
+    description="Статьи, опубликованные не позднее указанной даты (YYYY-MM-DD)",
     required=False,
-    type=str,
+    type=OpenApiTypes.DATE,
 )
 COUNTRY = OpenApiParameter(
     name="country",
     location=OpenApiParameter.QUERY,
     description="Список русских названий стран",
     required=False,
-    type=str,
+    type=OpenApiTypes.STR,
     enum=[name for _, name in CountryChoices.choices],
 )
 THEME_ID = OpenApiParameter(
