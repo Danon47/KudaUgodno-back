@@ -159,8 +159,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 # Generated static (do not commit)
-static/media/
 static/admin/
 static/rest_framework/
-/static/media/*
-!/static/media/.gitkeep
+# ВАЖНО: static/media НЕ игнорируем : файлы храним в репо (пока так 14/08/2025)
