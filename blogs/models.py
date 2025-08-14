@@ -18,6 +18,8 @@ from blogs.constants import (
 )
 from blogs.validators import enforce_media_limit, validate_media_file
 
+USER_MODEL = settings.AUTH_USER_MODEL
+
 
 # ──────────────────────────── валидаторы, завязанные на константы ────────────────────────────
 def validate_file_size(file):
@@ -84,9 +86,7 @@ class ArticleStatus(models.TextChoices):
 
 class Article(models.Model):
     # реакции
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="articles", verbose_name="Автор"
-    )
+    author = models.ForeignKey(USER_MODEL, on_delete=models.CASCADE, related_name="articles", verbose_name="Автор")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="articles", verbose_name="Категория")
     theme = models.ForeignKey(
         Theme, on_delete=models.SET_NULL, related_name="articles", verbose_name="Тема", **NULLABLE
@@ -216,7 +216,7 @@ class MediaAsset(models.Model):
 # ──────────────────────── реакции / комментарии ─────────────────────────
 class Reaction(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reactions", verbose_name="Пользователь"
+        USER_MODEL, on_delete=models.CASCADE, related_name="reactions", verbose_name="Пользователь"
     )
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="reactions", verbose_name="Статья")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Когда")
@@ -235,9 +235,7 @@ class Reaction(models.Model):
 
 class Comment(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="comments", verbose_name="Статья")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments", verbose_name="Автор"
-    )
+    user = models.ForeignKey(USER_MODEL, on_delete=models.CASCADE, related_name="comments", verbose_name="Автор")
     parent = models.ForeignKey(
         "self",
         null=True,
