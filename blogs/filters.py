@@ -78,18 +78,20 @@ class ArticleFilter(FilterSet):
             return queryset.filter(**{lookup: stop})
         return queryset
 
-    # ────────────────────────── Популярность / просмотры ─────────────────────
+        # ────────────────────────── Популярность / просмотры ─────────────────────
+        """
     # Если понадобится отдельный фильтр, можно задействовать этот метод с ChoiceFilter.
-    @staticmethod
+    # Сейчас сортировка по просмотрам на OrderingFilter, что логично.
+    # Но если вдруг, то вот функция.
     def filter_popularity(queryset, name, value):  # noqa: ARG003
         if value == "asc":
             return queryset.order_by("views_count")
         if value == "desc":
             return queryset.order_by("-views_count")
         raise ValidationError({"popularity": "Значение должно быть 'asc' или 'desc'."})
+        """
 
     # ─────────────────────────────── Страна ──────────────────────────────────
-
     @staticmethod
     def filter_country(queryset, name, value):  # noqa: ARG003
         name_to_code = {ru_name: code for code, ru_name in CountryChoices.choices}
