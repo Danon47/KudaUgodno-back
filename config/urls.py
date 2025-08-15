@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/v1/", include("mailings.urls")),
     path("api/v1/", include("promocodes.urls")),
     path("api/v1/", include("calendars.urls")),
+    path("api/v1/blogs/", include("blogs.urls")),
 ]
 
 if settings.DEBUG:

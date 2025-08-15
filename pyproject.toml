@@ -2,7 +2,12 @@
 name = "36-kuda-ugodno-backend-api"
 version = "0.3.0"
 description = "API сервис для веб-сайта 'Куда Угодно'"
-authors = ["Никита Шидогубов", "Анна Зылёва", "Евгений Кудряшов", "Андрей Гусельников"]
+authors = [
+    "Никита Шидогубов",
+    "Анна Зылёва",
+    "Евгений Кудряшов",
+    "Андрей Гусельников",
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -48,7 +53,7 @@ exclude = [
     "poetry.lock",
     "pyproject.toml",
     "migrations",
-    "tests.py"
+    "tests.py",
 ]
 target-version = "py312"
 fix = true

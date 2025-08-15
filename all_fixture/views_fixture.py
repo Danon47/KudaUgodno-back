@@ -1,4 +1,14 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
+
+from all_fixture.choices import CountryChoices
+from blogs.constants import (
+    MAX_PHOTO_SIZE_MB,
+    MAX_PHOTOS,
+    MAX_VIDEO_DURATION,
+    MAX_VIDEO_SIZE_MB,
+    MAX_VIDEOS,
+)
 
 NULLABLE = {"blank": True, "null": True}
 # Теги для settings
@@ -78,7 +88,30 @@ VZHUH_SETTINGS = {
     "name": "Вжухи",
     "description": "Список актуальных спецпредложений по направлениям",
 }
-
+BLOG_SETTINGS = {
+    "name": "Блог: Статьи",
+    "description": "Методы для работы со статьями блога",
+}
+CATEGORY_SETTINGS = {
+    "name": "Блог: Категории",
+    "description": "Методы для работы со справочником категорий",
+}
+TAG_SETTINGS = {
+    "name": "Блог: Теги",
+    "description": "Методы для работы со справочником тегов",
+}
+THEME_SETTINGS = {
+    "name": "Блог: Темы",
+    "description": "Методы для работы со справочником тем статей",
+}
+COMMENTS_SETTINGS = {
+    "name": "Блог: Комментарии",
+    "description": "Методы для работы с комментариями к статьям",
+}
+LIKES_SETTINGS = {
+    "name": "Блог: Реакции",
+    "description": "Методы для работы с лайками/дизлайками комментариев",
+}
 
 # ID пользователя
 USER_ID = OpenApiParameter(
@@ -453,6 +486,137 @@ OFFSET = OpenApiParameter(
     description="Начальный индекс для пагинации",
     required=False,
 )
+# ID статьи
+ARTICLE_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID статьи",
+    required=True,
+)
+
+# Лимит статей
+ARTICLE_LIMIT = OpenApiParameter(
+    name="limit",
+    type=int,
+    description="Количество статей на странице",
+    required=False,
+)
+
+# Смещение
+ARTICLE_OFFSET = OpenApiParameter(
+    name="offset",
+    type=int,
+    description="Смещение от начала списка",
+    required=False,
+)
+
+# Дата от
+ARTICLE_DATE_FROM = OpenApiParameter(
+    name="date_from",
+    type=str,
+    description="Дата публикации от (YYYY-MM-DD)",
+    required=False,
+)
+
+# Дата до
+ARTICLE_DATE_TO = OpenApiParameter(
+    name="date_to",
+    type=str,
+    description="Дата публикации до (YYYY-MM-DD)",
+    required=False,
+)
+
+# Сортировка
+ARTICLE_POPULARITY = OpenApiParameter(
+    name="popularity",
+    type=str,
+    description="Сортировка по популярности (asc/desc)",
+    enum=["asc", "desc"],
+    required=False,
+)
+
+# Страна
+ARTICLE_COUNTRY = OpenApiParameter(
+    name="country",
+    type=str,
+    description="Страна (русское название)",
+    required=False,
+)
+
+# ID темы
+ARTICLE_THEME_ID = OpenApiParameter(
+    name="theme_id",
+    type=int,
+    description="ID темы статьи",
+    required=False,
+)
+
+# Медиа статьи - ID
+ARTICLE_MEDIA_ID = OpenApiParameter(
+    location=OpenApiParameter.PATH,
+    name="id",
+    type=int,
+    description="ID медиафайла статьи",
+    required=True,
+)
+
+# Тип медиа (photo/video)
+MEDIA_TYPE = OpenApiParameter(
+    name="media_type",
+    type=str,
+    enum=["photo", "video"],
+    description="Тип медиа: 'photo' или 'video'",
+    required=False,
+)
+
+# Фото является обложкой
+IS_COVER = OpenApiParameter(
+    name="is_cover",
+    type=bool,
+    description="Является ли фото обложкой статьи (true/false)",
+    required=False,
+)
+
+# Максимальное количество фото
+MAX_PHOTOS_PARAM = OpenApiParameter(
+    name="max_photos",
+    type=int,
+    description=f"Максимальное количество фото на статью ({MAX_PHOTOS})",
+    required=False,
+)
+
+# Максимальное количество видео
+MAX_VIDEOS_PARAM = OpenApiParameter(
+    name="max_videos",
+    type=int,
+    description=f"Максимальное количество видео на статью ({MAX_VIDEOS})",
+    required=False,
+)
+
+# Размер фото (MB)
+PHOTO_SIZE = OpenApiParameter(
+    name="photo_size",
+    type=int,
+    description=f"Максимальный размер фото в MB ({MAX_PHOTO_SIZE_MB})",
+    required=False,
+)
+
+# Размер видео (MB)
+VIDEO_SIZE = OpenApiParameter(
+    name="video_size",
+    type=int,
+    description=f"Максимальный размер видео в MB ({MAX_VIDEO_SIZE_MB})",
+    required=False,
+)
+
+# Длительность видео (секунды)
+VIDEO_DURATION = OpenApiParameter(
+    name="video_duration",
+    type=int,
+    description=f"Максимальная длительность видео в секундах ({MAX_VIDEO_DURATION})",
+    required=False,
+)
 
 WARM_COUNTRIES = [
     "Египет",
@@ -613,4 +777,97 @@ WARM_CITY = [
 DISCOUNT = (
     "Введите размер скидки, где 0.01 - это 1%, 1.00 - это 100%, а всё что больше 1.00 - это уже величина. "
     "Например 0.53 - это 53%, а 2000 - это величина скидки в виде 2000 рублей."
+)
+
+
+# ─── Параметры для Blog API ──────────────────────────────────────────────────
+PUBLISHED_AT_AFTER = OpenApiParameter(
+    name="published_at_after",
+    location=OpenApiParameter.QUERY,
+    description="Статьи, опубликованные начиная с указанной даты (YYYY-MM-DD)",
+    required=False,
+    type=OpenApiTypes.DATE,
+)
+PUBLISHED_AT_BEFORE = OpenApiParameter(
+    name="published_at_before",
+    location=OpenApiParameter.QUERY,
+    description="Статьи, опубликованные не позднее указанной даты (YYYY-MM-DD)",
+    required=False,
+    type=OpenApiTypes.DATE,
+)
+COUNTRY = OpenApiParameter(
+    name="country",
+    location=OpenApiParameter.QUERY,
+    description="Список русских названий стран",
+    required=False,
+    type=OpenApiTypes.STR,
+    enum=[name for _, name in CountryChoices.choices],
+)
+THEME_ID = OpenApiParameter(
+    name="theme_id",
+    location=OpenApiParameter.QUERY,
+    description="ID темы статьи",
+    required=False,
+    type=int,
+)
+ORDERING = OpenApiParameter(
+    name="ordering",
+    location=OpenApiParameter.QUERY,
+    description="Поле для сортировки статей по необходимому параметру: тире перед именем поля => означает убывание",
+    required=False,
+    type=str,
+    enum=[
+        "published_at",
+        "-published_at",
+        "created_at",
+        "-created_at",
+        "views_count",
+        "-views_count",
+        "rating",
+        "-rating",
+    ],
+)
+SEARCH = OpenApiParameter(
+    name="search",
+    location=OpenApiParameter.QUERY,
+    description="Текстовый поиск по заголовку и содержимому статьи",
+    required=False,
+    type=str,
+)
+# path-параметры
+ARTICLE_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID статьи",
+    required=True,
+)
+CATEGORY_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID категории",
+    required=True,
+)
+TAG_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID тега",
+    required=True,
+)
+COMMENT_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID комментария",
+    required=True,
+)
+LIKE_ID = OpenApiParameter(
+    name="id",
+    location=OpenApiParameter.PATH,
+    description="ID реакции",
+    required=True,
+)
+COMMENT_Q = OpenApiParameter(
+    name="comment",
+    location=OpenApiParameter.QUERY,
+    description="Фильтр по комментарию (ID)",
+    required=False,
 )
