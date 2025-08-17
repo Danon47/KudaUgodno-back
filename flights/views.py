@@ -7,18 +7,12 @@ from all_fixture.errors.list_error import FLIGHT_ERROR
 from all_fixture.errors.serializers_error import FlightErrorIdSerializer
 from all_fixture.pagination import CustomLOPagination
 from all_fixture.views_fixture import (
-    FLIGHT_ARRIVAL_CITY,
-    FLIGHT_ARRIVAL_COUNTRY,
-    FLIGHT_ARRIVAL_DATE,
-    FLIGHT_DEPARTURE_CITY,
-    FLIGHT_DEPARTURE_COUNTRY,
-    FLIGHT_DEPARTURE_DATE,
     FLIGHT_ID,
-    FLIGHT_NUMBER,
     FLIGHT_SETTINGS,
     LIMIT,
     OFFSET,
 )
+from flights.filters import FlightsFilter
 from flights.models import Flight
 from flights.serializers import FlightSerializer
 
@@ -31,13 +25,6 @@ from flights.serializers import FlightSerializer
         parameters=[
             LIMIT,
             OFFSET,
-            FLIGHT_DEPARTURE_COUNTRY,
-            FLIGHT_DEPARTURE_CITY,
-            FLIGHT_DEPARTURE_DATE,
-            FLIGHT_ARRIVAL_COUNTRY,
-            FLIGHT_ARRIVAL_CITY,
-            FLIGHT_ARRIVAL_DATE,
-            FLIGHT_NUMBER,
         ],
         responses={
             200: OpenApiResponse(
@@ -124,15 +111,7 @@ class FlightViewSet(viewsets.ModelViewSet):
     serializer_class = FlightSerializer
     pagination_class = CustomLOPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = (
-        "departure_country",
-        "departure_city",
-        "departure_date",
-        "arrival_country",
-        "arrival_city",
-        "arrival_date",
-        "flight_number",
-    )
+    filterset_class = FlightsFilter
 
     def get_object(self):
         try:
