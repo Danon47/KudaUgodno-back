@@ -1,6 +1,6 @@
 from random import choice
 
-from django.db.models import Count, F, Min, OuterRef, Prefetch, Q, Subquery, Window
+from django.db.models import Case, Count, DecimalField, F, Min, OuterRef, Prefetch, Q, Subquery, When, Window
 from django.db.models.functions import RowNumber
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -262,21 +262,40 @@ class HotelsHotView(viewsets.ModelViewSet):
                 calendar_date__discount=True,
                 calendar_date__available_for_booking=True,
                 room__hotel=OuterRef("pk"),
+                price__isnull=False,
             )
-            .order_by("price")
-            .values("price")[:1]
+            .annotate(
+                price_with_discount=Case(
+                    When(calendar_date__discount_amount__gt=1, then=F("price") - F("calendar_date__discount_amount")),
+                    When(
+                        calendar_date__discount_amount__gt=0,
+                        then=F("price") * (1 - F("calendar_date__discount_amount")),
+                    ),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )
+            .order_by("price_with_discount", "price")
+            .values("price", "price_with_discount")[:1]
         )
 
         queryset = (
             Hotel.objects.filter(is_active=True)
             .prefetch_related("hotel_photos")
-            .annotate(min_price=Subquery(min_price_subquery))
-            .exclude(min_price=None)
+            .annotate(
+                min_price_without_discount=Subquery(
+                    min_price_subquery.values("price"),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+                min_price_with_discount=Subquery(
+                    min_price_subquery.values("price_with_discount"),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+            )
             .annotate(
                 grouped_countries=Window(
                     expression=RowNumber(),
                     partition_by=[F("country")],
-                    order_by=F("min_price").asc(),
+                    order_by=F("min_price_with_discount").asc(),
                 )
             )
             .filter(grouped_countries=1)
