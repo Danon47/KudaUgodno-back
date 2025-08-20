@@ -27,6 +27,11 @@ class TourFilter(FilterSet):
     guests = NumberFilter(
         method="filter_by_guests",
     )
+    arrival_country = CharFilter(
+        field_name="arrival_country",
+        lookup_expr="iexact",
+        label="Страна прибытия",
+    )
     city = CharFilter(
         field_name="hotel__city",
         lookup_expr="iexact",

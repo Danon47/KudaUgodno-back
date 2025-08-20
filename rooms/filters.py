@@ -85,7 +85,7 @@ class IntMultiChoiceFilter(MultipleChoiceFilter):
         kwargs.setdefault("coerce", int)
 
         # генерируем одинаковые value/label с ведущим нулём
-        kwargs["choices"] = [(f"{i:02}", f"{i:02}") for i in range(0, 11)]
+        kwargs["choices"] = [(f"{i:02}", f"{i:02}") for i in range(1, 11)]
 
         super().__init__(*args, **kwargs)
 
@@ -95,13 +95,22 @@ class RoomFilter(FilterSet):
         method="filter_date_range",
         label="Диапазон дат (YYYY-MM-DD)",
     )
-    number_of_adults = IntMultiChoiceFilter(
+    # number_of_adults = IntMultiChoiceFilter(
+    #     field_name="number_of_adults",
+    #     label="Количество взрослых",
+    # )
+
+    number_of_adults = MultipleChoiceFilter(
         field_name="number_of_adults",
+        choices=[(i, i) for i in range(1, 10)],
+        conjoined=False,
         label="Количество взрослых",
     )
 
-    number_of_children = IntMultiChoiceFilter(
+    number_of_children = MultipleChoiceFilter(
         field_name="number_of_children",
+        choices=[(i, i) for i in range(1, 10)],
+        conjoined=False,
         label="Количество детей",
     )
     category = MultipleChoiceFilter(

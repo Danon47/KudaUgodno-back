@@ -17,6 +17,10 @@ class HotelFilter(FilterSet):
     guests = NumberFilter(
         method="filter_by_guests",
     )
+    country = CharFilter(
+        field_name="country",
+        lookup_expr="iexact",
+    )
     city = CharFilter(
         field_name="city",
         lookup_expr="iexact",
