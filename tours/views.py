@@ -1,5 +1,5 @@
 from dal import autocomplete
-from django.db.models import Count, F, OuterRef, Subquery, Window
+from django.db.models import Count, F, OuterRef, Prefetch, Subquery, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -7,9 +7,8 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
-from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
+from rest_framework import viewsets
+from rest_framework.exceptions import NotFound, ValidationError
 
 from all_fixture.errors.list_error import TOUR_ERROR
 from all_fixture.errors.serializers_error import TourErrorSerializer
@@ -21,24 +20,10 @@ from all_fixture.errors.views_error import (
 from all_fixture.pagination import CustomLOPagination
 from all_fixture.views_fixture import (
     DISCOUNT_SETTINGS,
-    FILTER_CITY,
-    FILTER_DISTANCE_TO_THE_AIRPORT,
-    FILTER_PLACE,
-    FILTER_STAR_CATEGORY,
-    FILTER_TOUR_OPERATOR,
-    FILTER_TYPE_OF_REST,
-    FILTER_USER_RATING,
     LIMIT,
     OFFSET,
-    TOUR_ARRIVAL_CITY,
-    TOUR_DEPARTURE_CITY,
-    TOUR_GUESTS,
     TOUR_ID,
-    TOUR_NIGHTS,
-    TOUR_PRICE_GTE,
-    TOUR_PRICE_LTE,
     TOUR_SETTINGS,
-    TOUR_START_DATE,
 )
 from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
@@ -60,20 +45,6 @@ from tours.serializers import (
         summary="Список туров",
         description="Получение списка всех туров с пагинацией и возможностью фильтрации.",
         parameters=[
-            TOUR_DEPARTURE_CITY,
-            TOUR_ARRIVAL_CITY,
-            TOUR_START_DATE,
-            TOUR_NIGHTS,
-            TOUR_GUESTS,
-            FILTER_CITY,
-            FILTER_TYPE_OF_REST,
-            FILTER_PLACE,
-            TOUR_PRICE_GTE,
-            TOUR_PRICE_LTE,
-            FILTER_USER_RATING,
-            FILTER_STAR_CATEGORY,
-            FILTER_DISTANCE_TO_THE_AIRPORT,
-            FILTER_TOUR_OPERATOR,
             LIMIT,
             OFFSET,
         ],
@@ -183,37 +154,37 @@ class TourViewSet(viewsets.ModelViewSet):
             return TourSerializer
 
     def get_queryset(self):
-        """Получение кверисета с применением фильтров для действия list."""
-        queryset = super().get_queryset()
+        """Базовый queryset с оптимизациями + поддержка фильтров."""
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(is_active=True)
+            .select_related("hotel")
+            .prefetch_related("hotel__hotel_photos")
+        )
+
+        # --- Настройка Prefetch для комнат ---
+        adults = self.request.query_params.get("number_of_adults")
+        children = self.request.query_params.get("number_of_children")
+
+        room_qs = Room.objects.all()
+        if adults:
+            adults = int(adults)
+            room_qs = room_qs.filter(number_of_adults__in=[adults, adults + 1])
+        if children:
+            children = int(children)
+            room_qs = room_qs.filter(number_of_children__in=[children, children + 1])
+
+        queryset = queryset.prefetch_related(Prefetch("rooms", queryset=room_qs)).filter(rooms__in=room_qs)
+
+        # --- применяем фильтры ---
         if self.action == "list":
-            # Аннотация с максимальным количеством гостей в комнате
-            guests_subquery = (
-                Room.objects.filter(hotel_id=OuterRef("hotel_id"))
-                .order_by(-(F("number_of_adults") + F("number_of_children")))
-                .values("number_of_adults", "number_of_children")[:1]
-            )
-            queryset = (
-                queryset.filter(is_active=True)
-                .annotate(
-                    number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
-                    number_of_children=Subquery(guests_subquery.values("number_of_children")),
-                )
-                .select_related("hotel")
-                .prefetch_related("hotel__hotel_photos")
-                .order_by("arrival_country")
-            )
-            # Применение фильтров
-            filterset = self.filterset_class(
-                self.request.query_params,
-                queryset=queryset,
-            )
+            filterset = self.filterset_class(self.request.query_params, queryset=queryset)
             if not filterset.is_valid():
-                return Response(
-                    {"errors": filterset.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            return filterset.qs
-        return queryset
+                raise ValidationError(filterset.errors)
+            queryset = filterset.qs
+
+        return queryset.distinct()
 
     def get_object(self):
         try:

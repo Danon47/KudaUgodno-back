@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
     CharField,
     DateField,
@@ -270,12 +269,11 @@ class TourShortSerializer(ModelSerializer):
     Сериализатор для списка горящих туров.
     """
 
-    hotel = HotelShortSerializer()
+    hotel = HotelShortSerializer(read_only=True)
     tour_operator = SlugRelatedField(
         slug_field="company_name",
         read_only=True,
     )
-    guests = SerializerMethodField()
     total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -284,33 +282,20 @@ class TourShortSerializer(ModelSerializer):
         error_messages=DECIMAL_INVALID,
         default="150000.00",
     )
+    number_of_adults = IntegerField(default=0)
+    number_of_children = IntegerField(default=0)
 
     class Meta:
         model = Tour
         fields = (
             "hotel",
+            "number_of_adults",
+            "number_of_children",
             "total_price",
             "start_date",
             "end_date",
-            "guests",
             "tour_operator",
         )
-
-    @extend_schema_field(
-        {
-            "type": "string",
-            "format": "string",
-            "example": {
-                "number_of_adults": 2,
-                "number_of_children": 1,
-            },
-        }
-    )
-    def get_guests(self, obj: Tour):
-        return {
-            "number_of_adults": obj.number_of_adults,
-            "number_of_children": obj.number_of_children,
-        }
 
 
 class TourFiltersRequestSerializer(Serializer):
