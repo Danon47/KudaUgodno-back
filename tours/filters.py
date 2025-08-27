@@ -1,18 +1,29 @@
 from datetime import timedelta
 
-from django.db.models import F, Q
+from django.db.models import IntegerField, OuterRef, Q, Subquery
 from django_filters import (
+    BooleanFilter,
     ChoiceFilter,
     DateFilter,
     FilterSet,
     MultipleChoiceFilter,
     NumberFilter,
-    NumericRangeFilter,
+    RangeFilter,
 )
 from rest_framework.exceptions import ValidationError
 
 from all_fixture.choices import PlaceChoices, TypeOfHolidayChoices
-from all_fixture.views_fixture import MAX_PRICE, MAX_STARS, MIN_PRICE, MIN_STARS
+from all_fixture.filters.filter_fixture import filter_choices
+from all_fixture.views_fixture import (
+    MAX_ADULT_CHILDREN,
+    MAX_PRICE,
+    MAX_STARS,
+    MIN_ADULT,
+    MIN_CHILDREN,
+    MIN_PRICE,
+    MIN_STARS,
+)
+from rooms.models import Room
 from tours.models import Tour
 from users.models import User
 
@@ -24,40 +35,27 @@ class TourFilter(FilterSet):
         field_name="departure_city",
         lookup_expr="iexact",
         label="Город вылета",
-        choices=[
-            (name, name)
-            for name in Tour.objects.values_list("departure_city", flat=True).distinct().order_by("departure_city")
-            if name
-        ],
+        choices=filter_choices(model=Tour, field="departure_city"),
     )
     arrival_country = MultipleChoiceFilter(
         field_name="arrival_country",
         lookup_expr="iexact",
         label="Страна прибытия",
-        choices=[
-            (name, name)
-            for name in Tour.objects.values_list("arrival_country", flat=True).distinct().order_by("arrival_country")
-            if name
-        ],
+        choices=filter_choices(model=Tour, field="arrival_country"),
     )
     arrival_city = MultipleChoiceFilter(
         field_name="arrival_city",
         lookup_expr="iexact",
         label="Город прибытия",
-        choices=[
-            (name, name)
-            for name in Tour.objects.values_list("arrival_city", flat=True).distinct().order_by("arrival_city")
-            if name
-        ],
+        choices=filter_choices(model=Tour, field="arrival_city"),
     )
-    start_date = DateFilter(
-        field_name="start_date",
-        # lookup_expr="gte",
-        label="Дата начала тура",
+    publish_start_date = DateFilter(
+        method="filter_publish_start_date",
+        label="Дата начала публикации тура",
     )
     nights = NumberFilter(
         method="filter_by_nights",
-        label="Количество ночей",
+        label="Количество ночей в туре",
     )
     type_of_rest = ChoiceFilter(
         field_name="hotel__type_of_rest",
@@ -66,10 +64,10 @@ class TourFilter(FilterSet):
     )
     place = ChoiceFilter(
         field_name="hotel__place",
-        choices=PlaceChoices.choices,
         label="Тип размещения",
+        choices=PlaceChoices.choices,
     )
-    price = NumericRangeFilter(
+    total_price = RangeFilter(
         method="filter_by_price",
         label=f"Диапазон цен стоимости тура (от {MIN_PRICE} до {MAX_PRICE})",
     )
@@ -80,7 +78,7 @@ class TourFilter(FilterSet):
     )
     star_category = MultipleChoiceFilter(
         field_name="hotel__star_category",
-        choices=[(i, i) for i in range(MIN_STARS, MAX_STARS + 1)],
+        choices=[(i, str(i)) for i in range(MIN_STARS, MAX_STARS + 1)],
         label=f"Категория отеля (от {MIN_STARS} до {MAX_STARS})",
     )
     distance_to_the_airport = NumberFilter(
@@ -90,22 +88,21 @@ class TourFilter(FilterSet):
     )
     tour_operator = ChoiceFilter(
         field_name="tour_operator__company_name",
-        choices=[
-            (name, name)
-            for name in User.objects.values_list("company_name", flat=True).distinct().order_by("company_name")
-            if name
-        ],
         lookup_expr="exact",
         label="Туроператор",
+        choices=filter_choices(model=User, field="company_name"),
     )
     number_of_adults = NumberFilter(
-        field_name="rooms__number_of_adults",
-        label="Количество взрослых",
+        method="filter_adults",
+        label=f"Количество взрослых от {MIN_ADULT} человек",
     )
     number_of_children = NumberFilter(
-        field_name="rooms__number_of_children",
-        lookup_expr="gte",
-        label="Количество детей до 17 лет",
+        method="filter_childrens",
+        label=f"Количество детей до 17 лет от {MIN_CHILDREN} человек",
+    )
+    is_active = BooleanFilter(
+        method="filter_active",
+        label="Тур активен?",
     )
 
     class Meta:
@@ -114,52 +111,99 @@ class TourFilter(FilterSet):
 
     def _validate_price(self, value):
         """Валидация цены."""
-        price_gte = None
-        price_lte = None
-        if value.start is not None:
-            try:
-                price_gte = float(value.start)
-                if price_gte < MIN_PRICE:
-                    raise ValidationError({"price": f"Минимальная цена не может быть меньше {MIN_PRICE}"})
-            except (ValueError, TypeError) as e:
-                raise ValidationError({"price": "Минимальная цена должна быть числом"}) from e
-        if value.stop is not None:
-            try:
-                price_lte = float(value.stop)
-                if price_lte > MAX_PRICE:
-                    raise ValidationError({"price": f"Максимальная цена не может быть больше {MAX_PRICE}"})
-            except (ValueError, TypeError) as e:
-                raise ValidationError({"price": "Максимальная цена должна быть числом"}) from e
-        if price_gte is not None and price_lte is not None and price_gte > price_lte:
-            raise ValidationError({"price": "Минимальная цена не может быть больше максимальной цены"})
-        return price_gte, price_lte
+        total_price_min = float(value.start)
+        total_price_max = float(value.stop)
+        if total_price_min is not None:
+            if total_price_min < MIN_PRICE:
+                raise ValidationError({"total_price_min": f"Минимальная цена не может быть меньше {MIN_PRICE}"})
+        if total_price_max is not None:
+            if total_price_max > MAX_PRICE:
+                raise ValidationError({"total_price_max": f"Максимальная цена не может быть больше {MAX_PRICE}"})
+        if total_price_min == total_price_max:
+            raise ValidationError(
+                {
+                    "total_price": f"Минимальная цена {total_price_min} не может быть равна "
+                    f"максимальной цене {total_price_max}"
+                }
+            )
+        if total_price_min is not None and total_price_max is not None and total_price_min > total_price_max:
+            raise ValidationError({"total_price_min": "Минимальная цена не может быть больше максимальной цены"})
+        return total_price_min, total_price_max
+
+    def filter_adults(self, queryset, name, value):
+        self.number_of_adults = value
+        return queryset
+
+    def filter_childrens(self, queryset, name, value):
+        self.number_of_children = value
+        return queryset
+
+    def _filter_guests(self, queryset):
+        adults_min = getattr(self, "number_of_adults", None)
+        children_min = getattr(self, "number_of_children", None)
+
+        if adults_min is None:
+            adults_min = MIN_ADULT
+            adults_max = MAX_ADULT_CHILDREN
+        else:
+            adults_max = adults_min + 1
+
+        if children_min is None:
+            children_min = MIN_CHILDREN
+            children_max = MAX_ADULT_CHILDREN
+        else:
+            children_max = children_min + 1
+
+        rooms_subquery = Room.objects.filter(
+            tours=OuterRef("pk"),
+            number_of_adults__gte=adults_min,
+            number_of_adults__lte=adults_max,
+            number_of_children__gte=children_min,
+            number_of_children__lte=children_max,
+        ).order_by("number_of_adults", "number_of_children")
+
+        queryset = queryset.annotate(
+            number_of_adults=Subquery(rooms_subquery.values("number_of_adults")[:1], output_field=IntegerField()),
+            number_of_children=Subquery(rooms_subquery.values("number_of_children")[:1], output_field=IntegerField()),
+        ).filter(number_of_adults__isnull=False, number_of_children__isnull=False)
+        return queryset
+
+    def filter_publish_start_date(self, queryset, name, value):
+        self.publish_start_date = value
+        queryset = queryset.filter(publish_start_date__lte=value)
+        return queryset
 
     def filter_by_nights(self, queryset, name, value):
         """Фильтрация по 'start_date'."""
-        try:
-            nights = int(value)
-            return queryset.filter(
-                end_date__gte=F("start_date") + timedelta(days=nights),
-            )
-        except (ValueError, TypeError):
-            return queryset.none()
+        self.nights = int(value)
+        if hasattr(self, "publish_start_date"):
+            publish_start_date = self.publish_start_date
+            queryset = queryset.filter(publish_end_date__gte=publish_start_date + timedelta(days=self.nights))
+        return queryset
+
+    def filter_active(self, queryset, name, value):
+        self.is_active = value
+        return queryset.filter(is_active=value)
 
     def filter_by_price(self, queryset, name, value):
         """Фильтрация по цене."""
-        self.price_gte, self.price_lte = self._validate_price(value)
+        total_price_min, total_price_max = self._validate_price(value)
+
+        price_filter = Q()
+        if total_price_min:
+            price_filter &= Q(total_price__gte=total_price_min)
+        if total_price_max:
+            price_filter &= Q(total_price__lte=total_price_max)
+        queryset = queryset.filter(price_filter)
         return queryset
 
     def filter_queryset(self, queryset):
         """Основная фильтрация с обработкой ошибок валидации."""
         try:
             queryset = super().filter_queryset(queryset)
-            if hasattr(self, "price_gte") or hasattr(self, "price_lte"):
-                price_filter = Q()
-                if hasattr(self, "price_gte") and self.price_gte:
-                    price_filter &= Q(total_price__gte=self.price_gte)
-                if hasattr(self, "price_lte") and self.price_lte:
-                    price_filter &= Q(total_price__lte=self.price_lte)
-                queryset = queryset.filter(price_filter)
+            queryset = self._filter_guests(queryset)
+            if not hasattr(self, "is_active"):
+                queryset = queryset.filter(is_active=True)
             return queryset.distinct().order_by("total_price")
         except ValidationError as e:
             raise e

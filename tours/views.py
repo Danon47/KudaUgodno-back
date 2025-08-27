@@ -1,5 +1,5 @@
 from dal import autocomplete
-from django.db.models import Count, F, OuterRef, Prefetch, Subquery, Window
+from django.db.models import Count, F, OuterRef, Subquery, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -50,7 +50,7 @@ from tours.serializers import (
         ],
         responses={
             200: OpenApiResponse(
-                response=TourListSerializer(many=True),
+                response=TourShortSerializer(many=True),
                 description="Успешное получение списка туров",
             )
         },
@@ -142,12 +142,10 @@ class TourViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от действия и параметров запроса."""
-        if self.action in ["list", "retrieve"]:
-            query_params = set(self.request.query_params.keys())
-            pagination_params = {"limit", "offset"}
-            if query_params.issubset(pagination_params) or not query_params:
-                return TourListSerializer
+        if self.action == "list":
             return TourShortSerializer
+        elif self.action == "retrieve":
+            return TourListSerializer
         elif self.action == "partial_update":
             return TourPatchSerializer
         else:
@@ -155,29 +153,7 @@ class TourViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Базовый queryset с оптимизациями + поддержка фильтров."""
-        queryset = (
-            super()
-            .get_queryset()
-            .filter(is_active=True)
-            .select_related("hotel")
-            .prefetch_related("hotel__hotel_photos")
-        )
-
-        # --- Настройка Prefetch для комнат ---
-        adults = self.request.query_params.get("number_of_adults")
-        children = self.request.query_params.get("number_of_children")
-
-        room_qs = Room.objects.all()
-        if adults:
-            adults = int(adults)
-            room_qs = room_qs.filter(number_of_adults__in=[adults, adults + 1])
-        if children:
-            children = int(children)
-            room_qs = room_qs.filter(number_of_children__in=[children, children + 1])
-
-        queryset = queryset.prefetch_related(Prefetch("rooms", queryset=room_qs)).filter(rooms__in=room_qs)
-
-        # --- применяем фильтры ---
+        queryset = super().get_queryset().select_related("hotel").prefetch_related("hotel__hotel_photos")
         if self.action == "list":
             filterset = self.filterset_class(self.request.query_params, queryset=queryset)
             if not filterset.is_valid():

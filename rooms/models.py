@@ -155,8 +155,10 @@ class Room(models.Model):
         verbose_name_plural = "Номера"
         ordering = ("hotel",)
         indexes = [
-            models.Index(fields=["number_of_adults"]),
-            models.Index(fields=["number_of_children"]),
+            models.Index(
+                fields=["hotel", "number_of_adults", "number_of_children"],
+                name="idx_rooms_hotel_guests",
+            ),
         ]
 
     def __str__(self):
