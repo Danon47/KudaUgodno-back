@@ -116,48 +116,48 @@ class HotelFilter(FilterSet):
 
     def _annotate_with_prices(self, queryset, start_date, end_date):
         price_sql = """
-                    WITH date_series AS (
-                        SELECT generate_series(%s::date, (%s::date - interval '1 day'), interval '1 day')::date AS day
-                    ),
-                    missing_days AS (
-                        SELECT r.id as room_id
-                        FROM date_series ds
-                        JOIN rooms_room r ON r.hotel_id = hotels_hotel.id
-                        WHERE NOT EXISTS (
-                            SELECT 1
-                            FROM calendars_calendardate cd
-                            JOIN calendars_calendarprice cp ON cp.calendar_date_id = cd.id
-                            WHERE cp.room_id = r.id
-                            AND ds.day BETWEEN cd.start_date AND cd.end_date
-                        )
-                        GROUP BY r.id
-                    ),
-                    room_prices AS (
-                        SELECT
-                            r.id as room_id,
-                            SUM(cp.price) as total_price_without_discount,
-                            SUM(
+            WITH date_series AS (
+                SELECT generate_series(%s::date, (%s::date - interval '1 day'), interval '1 day')::date AS day
+            ),
+            missing_days AS (
+                SELECT r.id as room_id
+                FROM date_series ds
+                JOIN rooms_room r ON r.hotel_id = hotels_hotel.id
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM calendars_calendardate cd
+                    JOIN calendars_calendarprice cp ON cp.calendar_date_id = cd.id
+                    WHERE cp.room_id = r.id
+                    AND ds.day BETWEEN cd.start_date AND cd.end_date
+                )
+                GROUP BY r.id
+            ),
+            room_prices AS (
+                SELECT
+                    r.id as room_id,
+                    SUM(cp.price) as total_price_without_discount,
+                    SUM(
+                        CASE
+                            WHEN cd.discount = TRUE AND cd.discount_amount IS NOT NULL THEN
                                 CASE
-                                    WHEN cd.discount = TRUE AND cd.discount_amount IS NOT NULL THEN
-                                        CASE
-                                            WHEN cd.discount_amount <= 1.0 THEN GREATEST(cp.price * (1 - cd.discount_amount), 0)
-                                            ELSE GREATEST(cp.price - cd.discount_amount, 0)
-                                        END
-                                    ELSE cp.price
+                                    WHEN cd.discount_amount <= 1.0 THEN GREATEST(cp.price * (1 - cd.discount_amount), 0)
+                                    ELSE GREATEST(cp.price - cd.discount_amount, 0)
                                 END
-                            ) as total_price_with_discount
-                        FROM date_series ds
-                        JOIN rooms_room r ON r.hotel_id = hotels_hotel.id
-                        JOIN calendars_calendardate cd ON ds.day BETWEEN cd.start_date AND cd.end_date
-                        JOIN calendars_calendarprice cp ON cp.calendar_date_id = cd.id AND cp.room_id = r.id
-                        WHERE r.id NOT IN (SELECT room_id FROM missing_days)
-                        GROUP BY r.id
-                    )
-                    SELECT
-                        MIN(total_price_without_discount) as min_price_without_discount,
-                        MIN(total_price_with_discount) as min_price_with_discount
-                    FROM room_prices
-                """
+                            ELSE cp.price
+                        END
+                    ) as total_price_with_discount
+                FROM date_series ds
+                JOIN rooms_room r ON r.hotel_id = hotels_hotel.id
+                JOIN calendars_calendardate cd ON ds.day BETWEEN cd.start_date AND cd.end_date
+                JOIN calendars_calendarprice cp ON cp.calendar_date_id = cd.id AND cp.room_id = r.id
+                WHERE r.id NOT IN (SELECT room_id FROM missing_days)
+                GROUP BY r.id
+            )
+            SELECT
+                MIN(total_price_without_discount) as min_price_without_discount,
+                MIN(total_price_with_discount) as min_price_with_discount
+            FROM room_prices
+        """
         params = (start_date, end_date)
         queryset = queryset.annotate(
             min_price_without_discount=RawSQL(

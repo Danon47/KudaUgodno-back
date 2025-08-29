@@ -1,4 +1,3 @@
-from django.core.mail import EmailMessage
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.exceptions import NotFound
@@ -8,7 +7,7 @@ from rest_framework.response import Response
 from all_fixture.errors.list_error import MAILING_ID_ERROR
 from all_fixture.errors.views_error import MAILING_400, MAILING_404
 from all_fixture.views_fixture import LIMIT, MAILING_ID, MAILING_SETTINGS, OFFSET
-from config.settings import EMAIL_HOST_USER
+from config.tasks import send_email
 from mailings.models import Mailing
 from mailings.serializers import MailingSerializer
 
@@ -103,9 +102,9 @@ class MailingViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         email = serializer.data["email"]
         try:
-            email_message = EmailMessage(
+            send_email.delay(
                 subject="Вы подписались на рассылку",
-                body="""
+                html_content="""
                     <html>
                         <body>
                             <p>Вы подписались на рассылку в сервис <strong>'Куда Угодно'</strong>:</p>
@@ -113,11 +112,8 @@ class MailingViewSet(viewsets.ModelViewSet):
                         </body>
                     </html>
                 """,
-                from_email=EMAIL_HOST_USER,
-                to=[email],
+                to_email=[email],
             )
-            email_message.content_subtype = "html"
-            email_message.send()
             return Response(
                 {"message": "Спасибо за подписку!", "data": serializer.data},
                 status=status.HTTP_201_CREATED,
