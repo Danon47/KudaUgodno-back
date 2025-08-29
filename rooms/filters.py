@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from django.db.models import Prefetch
 from django.db.models.expressions import RawSQL
@@ -10,14 +10,12 @@ from django_filters import (
 from rest_framework.exceptions import ValidationError
 
 from all_fixture.choices import RoomCategoryChoices
+from all_fixture.views_fixture import MAX_DAYS
 from calendars.models import CalendarDate
 from rooms.models import Room
 
 
 def annotate_with_prices(queryset, start_date, end_date):
-    # Приводим к date, чтобы исключить влияние времени
-    start_date = start_date.date() if isinstance(start_date, datetime) else start_date
-    end_date = end_date.date() if isinstance(end_date, datetime) else end_date
     total_nights = max((end_date - start_date).days, 1)
 
     price_sql = """
@@ -105,23 +103,31 @@ class RoomFilter(FilterSet):
             "category",
         )
 
+    def _validate_date_range(self, value):
+        """Валидация диапазона дат."""
+        try:
+            date_range_after = value.start.date() if isinstance(value.start, datetime) else value.start
+            date_range_before = value.stop.date() if isinstance(value.stop, datetime) else value.stop
+            if date_range_after < date.today():
+                raise ValidationError({"date_range": "Дата заезда не может быть в прошлом"})
+            if (date_range_before - date_range_after).days > MAX_DAYS:
+                raise ValidationError({"date_range": f"Максимальный срок проживания - {MAX_DAYS} дней"})
+            if date_range_before <= date_range_after:
+                raise ValidationError({"date_range": "Дата выезда должна быть позже даты заезда"})
+            return date_range_after, date_range_before
+        except (TypeError, ValueError) as e:
+            raise ValidationError({"date_range": "Неверный формат дат. Используйте YYYY-MM-DD"}) from e
+
     def filter_date_range(self, queryset, name, value):
-        start_date = value.start
-        end_date = value.stop
-        if start_date and end_date:
-            if start_date > end_date:
-                raise ValidationError("Дата начала должна быть раньше даты окончания")
-
-            # Используем объединенную аннотацию
-            queryset = annotate_with_prices(queryset, start_date, end_date)
-
-            # Добавляем prefetch_related для отображения дат
-            prefetch_queryset = CalendarDate.objects.filter(
-                start_date__lte=end_date,
-                end_date__gte=start_date,
-                available_for_booking=True,
-            )
-            queryset = queryset.prefetch_related(Prefetch("calendar_dates", queryset=prefetch_queryset))
-
-            return queryset
+        date_range_after, date_range_before = self._validate_date_range(value)
+        print(date_range_after, date_range_before)
+        queryset = annotate_with_prices(queryset, date_range_after, date_range_before)
+        print(date_range_after, date_range_before)
+        # Добавляем prefetch_related для отображения дат
+        prefetch_queryset = CalendarDate.objects.filter(
+            start_date__lte=date_range_before,
+            end_date__gte=date_range_after,
+            available_for_booking=True,
+        )
+        queryset = queryset.prefetch_related(Prefetch("calendar_dates", queryset=prefetch_queryset))
         return queryset

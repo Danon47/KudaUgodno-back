@@ -1,8 +1,6 @@
-from datetime import datetime
 from decimal import Decimal
 
 from django.db import transaction
-from drf_spectacular.utils import extend_schema_field
 from rest_framework.fields import TimeField
 from rest_framework.serializers import (
     CharField,
@@ -13,7 +11,6 @@ from rest_framework.serializers import (
     IntegerField,
     ModelSerializer,
     Serializer,
-    SerializerMethodField,
 )
 
 from all_fixture.errors.list_error import (
@@ -369,39 +366,21 @@ class HotelFiltersResponseSerializer(HotelShortWithPriceSerializer):
     Сериализатор отеля для получения ответа из поиска.
     """
 
-    nights = SerializerMethodField()
-    guests = SerializerMethodField()
+    nights = IntegerField(default=None)
+    date_range_before = DateField(default="")
+    date_range_after = DateField(default="")
+    number_of_adults = IntegerField(default=None)
+    number_of_children = IntegerField(default=None)
 
     class Meta:
         model = Hotel
         fields = HotelShortWithPriceSerializer.Meta.fields + (
+            "date_range_after",
+            "date_range_before",
             "nights",
-            "guests",
+            "number_of_adults",
+            "number_of_children",
         )
-
-    @extend_schema_field(int)
-    def get_nights(self, obj) -> int:
-        """
-        Подсчет количества ночей.
-        """
-        check_in = self.context.get("check_in_date")
-        check_out = self.context.get("check_out_date")
-        nights_default = 1
-        if not check_in or not check_out:
-            return nights_default
-        try:
-            check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
-            check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
-            return max((check_out_date - check_in_date).days, nights_default)
-        except (ValueError, TypeError):
-            return nights_default
-
-    @extend_schema_field(int)
-    def get_guests(self, obj) -> int:
-        """
-        Получение количества гостей из контекста.
-        """
-        return int(self.context.get("guests", 1))
 
 
 class HotelFiltersRequestSerializer(Serializer):

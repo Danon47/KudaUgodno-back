@@ -475,3 +475,19 @@ class CountryChoices(models.TextChoices):
     @classmethod
     def sorted_choices(cls):
         return sorted(cls.choices, key=lambda x: x[1])
+
+
+class AmenitiesChoices(models.TextChoices):
+    """
+    Выбор для удобств в отеле и в туре
+    """
+
+    POOL = "Бассейн", "Бассейн"
+    FREE_WI_FI = "Бесплатный Wi-Fi", "Бесплатный Wi-Fi"
+    RESTAURANT = "Ресторан a la carte", "Ресторан a la carte"
+    TENNIS = "Теннисный корт", "Теннисный корт"
+    AUQAPARK = "Аквапарк", "Аквапарк"
+    CHILDREN_CLUB = "Детский клуб", "Детский клуб"
+    FAMILY = "Семейный номер", "Семейный номер"
+    PRIVATE_BEACH = "Собственный пляж", "Собственный пляж"
+    ALL = "Общие", "Общие"

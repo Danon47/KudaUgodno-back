@@ -8,7 +8,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import viewsets
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound
 
 from all_fixture.errors.list_error import TOUR_ERROR
 from all_fixture.errors.serializers_error import TourErrorSerializer
@@ -43,7 +43,8 @@ from tours.serializers import (
 @extend_schema_view(
     list=extend_schema(
         summary="Список туров",
-        description="Получение списка всех туров с пагинацией и возможностью фильтрации.",
+        description="Получение списка всех туров с пагинацией и возможностью фильтрации."
+        "\n\nВозвращаются все туры, в которых `is_active=True`.",
         parameters=[
             LIMIT,
             OFFSET,
@@ -154,12 +155,6 @@ class TourViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Базовый queryset с оптимизациями + поддержка фильтров."""
         queryset = super().get_queryset().select_related("hotel").prefetch_related("hotel__hotel_photos")
-        if self.action == "list":
-            filterset = self.filterset_class(self.request.query_params, queryset=queryset)
-            if not filterset.is_valid():
-                raise ValidationError(filterset.errors)
-            queryset = filterset.qs
-
         return queryset.distinct()
 
     def get_object(self):

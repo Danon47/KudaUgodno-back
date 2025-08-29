@@ -204,7 +204,7 @@ class TourFilter(FilterSet):
             queryset = self._filter_guests(queryset)
             if not hasattr(self, "is_active"):
                 queryset = queryset.filter(is_active=True)
-            return queryset.distinct().order_by("total_price")
+            return queryset.order_by("total_price")
         except ValidationError as e:
             raise e
         except Exception as e:

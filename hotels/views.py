@@ -10,9 +10,8 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
 
 from all_fixture.errors.list_error import (
     HOTEL_ID_ERROR,
@@ -120,7 +119,8 @@ class HotelRelatedViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     list=extend_schema(
         summary="Список отелей",
-        description="Получение списка всех отелей с пагинацией и возможностью фильтрации.",
+        description="Получение списка всех отелей с пагинацией и возможностью фильтрации.\n\n"
+        "\n\nВозвращаются все отели, в которых `is_active=True`.",
         parameters=[
             LIMIT,
             OFFSET,
@@ -219,25 +219,6 @@ class HotelViewSet(viewsets.ModelViewSet):
         else:
             return HotelDetailSerializer
 
-    def get_serializer_context(self):
-        """Передача контекста в сериализатор для фильтрации."""
-        context = super().get_serializer_context()
-        if self.action == "list":
-            context.update(
-                {
-                    "guests": self.request.query_params.get("guests", 1),
-                    "check_in_date": self.request.query_params.get(
-                        "check_in_date",
-                        None,
-                    ),
-                    "check_out_date": self.request.query_params.get(
-                        "check_out_date",
-                        None,
-                    ),
-                }
-            )
-        return context
-
     def get_queryset(self):
         """Применение фильтров и оптимизация запросов к списку отелей."""
         queryset = super().get_queryset()
@@ -245,19 +226,7 @@ class HotelViewSet(viewsets.ModelViewSet):
         # Оптимизируем запрос, если действие требует получения фотографий
         if self.action in ["list", "retrieve"]:
             queryset = queryset.prefetch_related("hotel_photos")
-
-        if self.action == "list":
-            filterset = self.filterset_class(
-                self.request.query_params,
-                queryset=queryset,
-            )
-            if not filterset.is_valid():
-                return Response(
-                    {"errors": filterset.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            return filterset.qs
-        return queryset
+        return queryset.distinct()
 
     def get_object(self):
         """Оптимизация запроса для получения одного отеля с фотографиями."""
