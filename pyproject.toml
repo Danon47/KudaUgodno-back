@@ -7,17 +7,21 @@ authors = [
     "Анна Зылёва",
     "Евгений Кудряшов",
     "Андрей Гусельников",
+    "Антон Громов"
 ]
+package-mode = false
 
 [tool.poetry.dependencies]
+asyncpg = "^0.30.0"
 python = "^3.12"
-django = "^5.2.4"
+django = "^5.2.5"
 djangorestframework = "^3.16.0"
 pillow = "^11.3.0"
 psycopg2-binary = "^2.9.10"
 python-dotenv = "^1.1.1"
 gunicorn = "^23.0.0"
 django-phonenumber-field = "^8.1.0"
+flower = "^2.0.1"
 phonenumbers = "^9.0.8"
 celery = "^5.5.3"
 redis = "^6.2.0"
@@ -35,7 +39,7 @@ django-autocomplete-light = "^3.12.1"
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.2.0"
 black = "^25.1.0"
-ruff = "^0.12.4"
+ruff = "^0.12.11"
 
 [tool.poetry.group.test.dependencies]
 factory-boy = "^3.3.3"

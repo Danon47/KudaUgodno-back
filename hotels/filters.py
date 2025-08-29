@@ -276,7 +276,6 @@ class HotelFilter(FilterSet):
             number_of_adults=Subquery(rooms_subquery.values("number_of_adults")[:1], output_field=IntegerField()),
             number_of_children=Subquery(rooms_subquery.values("number_of_children")[:1], output_field=IntegerField()),
         ).filter(number_of_adults__isnull=False, number_of_children__isnull=False)
-        print(queryset)
         return queryset
 
     def filter_queryset(self, queryset):

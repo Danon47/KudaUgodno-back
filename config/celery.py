@@ -6,6 +6,20 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 app = Celery("config")
 app.config_from_object("django.conf:settings", namespace="CELERY")
-app.conf.broker_url = "redis://redis:6379/0"  # Указываем Redis как брокер
-app.conf.result_backend = "redis://redis:6379/0"
+
+app.conf.task_queues = {
+    "emails": {
+        "exchange": "emails",
+        "routing_key": "emails",
+    },
+    "default": {
+        "exchange": "default",
+        "routing_key": "default",
+    },
+}
+
+app.conf.task_default_queue = "default"
+app.conf.task_default_exchange = "default"
+app.conf.task_default_routing_key = "default"
+
 app.autodiscover_tasks()

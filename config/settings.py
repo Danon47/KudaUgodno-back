@@ -102,6 +102,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -144,6 +145,7 @@ DATABASES = {
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        # "OPTIONS": {"options": f"-c search_path={os.getenv('POSTGRES_SCHEMA')}"},
     }
 }
 
@@ -307,10 +309,21 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
+EMAIL_TASK_MAX_RETRIES = 3
+EMAIL_TASK_RETRY_DELAY = 60
+EMAIL_TASK_STATE_TIMEOUT = 600
+EMAIL_TASK_LOCK_TIMEOUT = 300
+
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 CORS_ALLOW_CREDENTIALS = True
 # Разрешенные домены для CORS (кросс-доменных запросов)
