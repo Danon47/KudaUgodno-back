@@ -1,5 +1,5 @@
 from dal import autocomplete
-from django.db.models import Count, F, OuterRef, Subquery, Window
+from django.db.models import Case, Count, DecimalField, F, OuterRef, Subquery, When, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -25,7 +25,6 @@ from all_fixture.views_fixture import (
     TOUR_ID,
     TOUR_SETTINGS,
 )
-from calendars.models import CalendarPrice
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
 from tours.filters import TourFilter
@@ -36,6 +35,7 @@ from tours.serializers import (
     TourPopularSerializer,
     TourSerializer,
     TourShortSerializer,
+    TourShortWithPriceSerializer,
 )
 
 
@@ -171,7 +171,7 @@ class TourViewSet(viewsets.ModelViewSet):
         description="Получение списка всех горящих туров",
         parameters=[LIMIT, OFFSET],
         responses={
-            200: TourShortSerializer(many=True),
+            200: TourShortWithPriceSerializer(many=True),
         },
     )
 )
@@ -179,30 +179,37 @@ class TourHotView(viewsets.ModelViewSet):
     """Горящие туры по одному из каждой страны по минимальной цене."""
 
     queryset = Tour.objects.none()
-    serializer_class = TourShortSerializer
+    serializer_class = TourShortWithPriceSerializer
     pagination_class = CustomLOPagination
 
     def get_queryset(self):
         """Получение тура по одному из каждой страны с минимальной ценой."""
         guests_subquery = (
-            CalendarPrice.objects.filter(
-                calendar_date__discount=True,
-                calendar_date__available_for_booking=True,
-                room__tours=OuterRef("pk"),
+            Room.objects.filter(
+                hotel=OuterRef("hotel_id"),
+                number_of_adults__isnull=False,
             )
-            .order_by("price")
-            .values("room__number_of_adults", "room__number_of_children")[:1]
+            .order_by("number_of_adults")
+            .values("number_of_adults", "number_of_children")[:1]
         )
 
         queryset = (
-            Tour.objects.filter(is_active=True, discount_amount__isnull=False)
+            Tour.objects.filter(
+                is_active=True,
+                discount_amount__isnull=False,
+            )
             .annotate(
-                number_of_adults=Subquery(guests_subquery.values("room__number_of_adults")),
-                number_of_children=Subquery(guests_subquery.values("room__number_of_children")),
+                number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
+                number_of_children=Subquery(guests_subquery.values("number_of_children")),
+                total_price_whith_discount=Case(
+                    When(discount_amount__gt=1, then=F("total_price") - F("discount_amount")),
+                    When(discount_amount__gt=0, then=F("total_price") * (1 - F("discount_amount"))),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
                 country_rank=Window(
                     expression=RowNumber(),
                     partition_by=[F("arrival_country")],
-                    order_by=F("total_price").asc(),
+                    order_by=F("total_price_whith_discount").asc(),
                 ),
             )
             .filter(country_rank=1)
