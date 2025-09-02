@@ -424,55 +424,6 @@ MAILING_ID = OpenApiParameter(
     description="ID Рассылки",
     required=True,
 )
-# Рейс страна вылета
-FLIGHT_DEPARTURE_COUNTRY = OpenApiParameter(
-    name="departure_country",
-    type=str,
-    description="Страна вылета",
-    required=False,
-)
-# Рейс город вылета
-FLIGHT_DEPARTURE_CITY = OpenApiParameter(
-    name="departure_city",
-    type=str,
-    description="Город вылета",
-    required=False,
-)
-# Рейс дата вылета
-FLIGHT_DEPARTURE_DATE = OpenApiParameter(
-    name="departure_date",
-    type=str,
-    description="Дата вылета",
-    required=False,
-)
-# Рейс страна вылета
-FLIGHT_ARRIVAL_COUNTRY = OpenApiParameter(
-    name="arrival_country",
-    type=str,
-    description="Страна прилёта",
-    required=False,
-)
-# Рейс город вылета
-FLIGHT_ARRIVAL_CITY = OpenApiParameter(
-    name="arrival_city",
-    type=str,
-    description="Город прилёта",
-    required=False,
-)
-# Рейс дата вылета
-FLIGHT_ARRIVAL_DATE = OpenApiParameter(
-    name="arrival_date",
-    type=str,
-    description="Дата прилёта",
-    required=False,
-)
-# Рейс номер
-FLIGHT_NUMBER = OpenApiParameter(
-    name="flight_number",
-    type=str,
-    description="Номер рейса",
-    required=False,
-)
 # Для пагинации
 LIMIT = OpenApiParameter(
     name="limit",
