@@ -837,3 +837,4 @@ MAX_NIGHTS = 20
 MIN_ADULT = 1
 MAX_ADULT_CHILDREN = 19
 MIN_CHILDREN = 0
+TOUR_COUNTRY = ["Тайланд", "Шри-ланка", "Египет", "Португалия", "Индонезия", "Казахстан"]

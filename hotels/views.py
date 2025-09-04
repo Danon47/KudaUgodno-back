@@ -299,7 +299,7 @@ class HotelsHotView(viewsets.ModelViewSet):
                 )
             )
             .filter(grouped_countries=1)
-            .order_by("country")
+            .order_by("?")
         )
 
         return queryset
