@@ -264,6 +264,8 @@ class HotelsHotView(viewsets.ModelViewSet):
                 room__hotel=OuterRef("pk"),
                 price__isnull=False,
             )
+            # чтобы отель без скидки не попал в выборку
+            .exclude(min_price_with_discount=None)
             .annotate(
                 price_with_discount=Case(
                     When(calendar_date__discount_amount__gt=1, then=F("price") - F("calendar_date__discount_amount")),

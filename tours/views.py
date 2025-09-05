@@ -241,7 +241,7 @@ class TourPopularView(viewsets.ModelViewSet):
     filterset_class = TourPromoFilter
 
     def get_queryset(self):
-        """Получение тура по одному из шести страны с минимальной ценой."""
+        """Получение тура по одному из списка стран с минимальной ценой."""
 
         country_tour_count = (
             Tour.objects.filter(
