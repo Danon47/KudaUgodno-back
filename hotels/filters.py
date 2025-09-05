@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from django.db.models import IntegerField, OuterRef, Q, Subquery, Value
+from django.db.models import Exists, IntegerField, OuterRef, Q, Subquery, Value
 from django.db.models.expressions import RawSQL
 from django_filters import (
     BooleanFilter,
@@ -27,6 +27,7 @@ from all_fixture.views_fixture import (
     MIN_RATING,
     MIN_STARS,
 )
+from calendars.models import CalendarDate
 from hotels.models import Hotel
 from rooms.models import Room
 
@@ -34,6 +35,10 @@ from rooms.models import Room
 class HotelFilter(FilterSet):
     """Класс фильтров для расширенного поиска отелей."""
 
+    promo = BooleanFilter(
+        method="filter_promo",
+        label="Акционные туры?",
+    )
     date_range = DateFromToRangeFilter(
         method="filter_by_dates",
         label="Диапазон дат в формате (YYYY-MM-DD)",
@@ -109,6 +114,11 @@ class HotelFilter(FilterSet):
     class Meta:
         model = Hotel
         fields = []
+
+    def filter_promo(self, queryset, name, value):
+        if value:
+            return queryset.filter(Exists(CalendarDate.objects.filter(hotel=OuterRef("pk"), discount=value)))
+        return queryset
 
     def filter_active(self, queryset, name, value):
         self.is_active = value

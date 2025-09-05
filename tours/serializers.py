@@ -2,15 +2,15 @@ from decimal import Decimal
 
 from drf_spectacular.utils import extend_schema_field
 from rest_framework.serializers import (
+    CharField,
     DateField,
     DecimalField,
+    FloatField,
     IntegerField,
     ModelSerializer,
+    Serializer,
     SerializerMethodField,
     SlugRelatedField,
-    Serializer,
-    CharField,
-    FloatField,
 )
 
 from all_fixture.errors.list_error import (
@@ -210,6 +210,11 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
     )
     hotel = HotelShortSerializer(read_only=True)
     tour_operator = SlugRelatedField(slug_field="company_name", read_only=True)
+    total_price_whith_discount = DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+    )
 
     class Meta(AbstractTourSerializer.Meta):
         fields = (
@@ -220,6 +225,7 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
             "publish_end_date",
             "tour_operator",
             "total_price",
+            "total_price_whith_discount",
         )
 
     @extend_schema_field(

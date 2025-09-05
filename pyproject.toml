@@ -9,7 +9,6 @@ authors = [
     "Андрей Гусельников",
     "Антон Громов"
 ]
-package-mode = false
 
 [tool.poetry.dependencies]
 asyncpg = "^0.30.0"

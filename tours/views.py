@@ -27,7 +27,7 @@ from all_fixture.views_fixture import (
 )
 from hotels.models import Hotel, TypeOfMeal
 from rooms.models import Room
-from tours.filters import TourFilter
+from tours.filters import TourFilter, TourPromoFilter
 from tours.models import Tour
 from tours.serializers import (
     TourListSerializer,
@@ -213,7 +213,7 @@ class TourHotView(viewsets.ModelViewSet):
                 ),
             )
             .filter(country_rank=1)
-            .order_by("arrival_country")
+            .order_by("?")
         )
 
         return queryset
@@ -237,9 +237,11 @@ class TourPopularView(viewsets.ModelViewSet):
     queryset = Tour.objects.none()
     serializer_class = TourPopularSerializer
     pagination_class = CustomLOPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TourPromoFilter
 
     def get_queryset(self):
-        """Получение тура по одному из шести страны с минимальной ценой."""
+        """Получение тура по одному из списка стран с минимальной ценой."""
 
         country_tour_count = (
             Tour.objects.filter(

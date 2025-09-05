@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import IntegerField, OuterRef, Q, Subquery
+from django.db.models import Case, DecimalField, F, IntegerField, OuterRef, Q, Subquery, When
 from django_filters import (
     BooleanFilter,
     ChoiceFilter,
@@ -22,13 +22,31 @@ from all_fixture.views_fixture import (
     MIN_CHILDREN,
     MIN_PRICE,
     MIN_STARS,
+    TOUR_COUNTRY,
 )
 from rooms.models import Room
 from tours.models import Tour
 from users.models import User
 
 
-class TourFilter(FilterSet):
+class TourPromoFilter(FilterSet):
+    """Фильтр для акционных туров."""
+
+    promo = BooleanFilter(
+        method="filter_promo",
+        label="Акционные туры?",
+    )
+
+    def filter_promo(self, queryset, name, value):
+        if value:
+            self.promo = value
+            return queryset.filter(
+                discount_amount__isnull=False,
+            )
+        return queryset.filter(arrival_country__in=TOUR_COUNTRY)
+
+
+class TourFilter(TourPromoFilter):
     """Фильтры для расширенного поиска туров."""
 
     departure_city = ChoiceFilter(
@@ -204,6 +222,14 @@ class TourFilter(FilterSet):
             queryset = self._filter_guests(queryset)
             if not hasattr(self, "is_active"):
                 queryset = queryset.filter(is_active=True)
+            if hasattr(self, "promo"):
+                queryset = queryset.annotate(
+                    total_price_whith_discount=Case(
+                        When(discount_amount__gt=1, then=F("total_price") - F("discount_amount")),
+                        When(discount_amount__gt=0, then=F("total_price") * (1 - F("discount_amount"))),
+                        output_field=DecimalField(max_digits=10, decimal_places=2),
+                    ),
+                )
             return queryset.order_by("total_price")
         except ValidationError as e:
             raise e
