@@ -251,60 +251,61 @@ class HotelViewSet(viewsets.ModelViewSet):
 class HotelsHotView(viewsets.ModelViewSet):
     """Отели по специальной цене."""
 
-    serializer_class = HotelShortWithPriceSerializer
-    pagination_class = CustomLOPagination
-    queryset = Hotel.objects.none()
 
-    def get_queryset(self):
-        """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
-        min_price_subquery = (
-            CalendarPrice.objects.filter(
-                calendar_date__discount=True,
-                calendar_date__available_for_booking=True,
-                room__hotel=OuterRef("pk"),
-                price__isnull=False,
-            )
-            # чтобы отель без скидки не попал в выборку
-            .exclude(min_price_with_discount=None)
-            .annotate(
-                price_with_discount=Case(
-                    When(calendar_date__discount_amount__gt=1, then=F("price") - F("calendar_date__discount_amount")),
-                    When(
-                        calendar_date__discount_amount__gt=0,
-                        then=F("price") * (1 - F("calendar_date__discount_amount")),
-                    ),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
-                )
-            )
-            .order_by("price_with_discount", "price")
-            .values("price", "price_with_discount")[:1]
+serializer_class = HotelShortWithPriceSerializer
+pagination_class = CustomLOPagination
+queryset = Hotel.objects.none()
+
+
+def get_queryset(self):
+    """Получение запроса с отелями по одному из каждой страны с минимальной ценой."""
+    total_price_subquery = (
+        CalendarPrice.objects.filter(
+            calendar_date__discount=True,
+            calendar_date__available_for_booking=True,
+            room__hotel=OuterRef("pk"),
+            price__isnull=False,
         )
-
-        queryset = (
-            Hotel.objects.filter(is_active=True)
-            .prefetch_related("hotel_photos")
-            .annotate(
-                min_price_without_discount=Subquery(
-                    min_price_subquery.values("price"),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
+        .annotate(
+            total_price_with_discount=Case(
+                When(calendar_date__discount_amount__gt=1, then=F("price") - F("calendar_date__discount_amount")),
+                When(
+                    calendar_date__discount_amount__gt=0,
+                    then=F("price") * (1 - F("calendar_date__discount_amount")),
                 ),
-                min_price_with_discount=Subquery(
-                    min_price_subquery.values("price_with_discount"),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
-                ),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
             )
-            .annotate(
-                grouped_countries=Window(
-                    expression=RowNumber(),
-                    partition_by=[F("country")],
-                    order_by=F("min_price_with_discount").asc(),
-                )
-            )
-            .filter(grouped_countries=1)
-            .order_by("?")
         )
+        .order_by("total_price_with_discount", "price")
+        .exclude(total_price_with_discount=None)
+        .values("price", "total_price_with_discount")[:1]
+    )
 
-        return queryset
+    queryset = (
+        Hotel.objects.filter(is_active=True)
+        .prefetch_related("hotel_photos")
+        .annotate(
+            total_price_without_discount=Subquery(
+                total_price_subquery.values("price"),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
+            ),
+            total_price_with_discount=Subquery(
+                total_price_subquery.values("total_price_with_discount"),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
+            ),
+        )
+        .annotate(
+            grouped_countries=Window(
+                expression=RowNumber(),
+                partition_by=[F("country")],
+                order_by=F("total_price_with_discount").asc(),
+            )
+        )
+        .filter(grouped_countries=1)
+        .order_by("?")
+    )
+
+    return queryset
 
 
 @extend_schema(tags=[DISCOUNT_SETTINGS["name"]])

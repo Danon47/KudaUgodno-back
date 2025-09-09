@@ -342,12 +342,12 @@ class HotelShortSerializer(HotelBaseShortSerializer):
 
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
-    min_price_without_discount = DecimalField(
+    total_price_without_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="25000.00",
     )
-    min_price_with_discount = DecimalField(
+    total_price_with_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="20000.00",
@@ -356,8 +356,8 @@ class HotelShortWithPriceSerializer(HotelShortSerializer):
     class Meta:
         model = Hotel
         fields = HotelShortSerializer.Meta.fields + (
-            "min_price_without_discount",
-            "min_price_with_discount",
+            "total_price_without_discount",
+            "total_price_with_discount",
         )
 
 
