@@ -224,7 +224,7 @@ class TourFilter(TourPromoFilter):
                 queryset = queryset.filter(is_active=True)
             if hasattr(self, "promo"):
                 queryset = queryset.annotate(
-                    total_price_whith_discount=Case(
+                    total_price_with_discount=Case(
                         When(discount_amount__gt=1, then=F("total_price") - F("discount_amount")),
                         When(discount_amount__gt=0, then=F("total_price") * (1 - F("discount_amount"))),
                         output_field=DecimalField(max_digits=10, decimal_places=2),

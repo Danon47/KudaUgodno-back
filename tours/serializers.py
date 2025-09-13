@@ -210,7 +210,7 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
     )
     hotel = HotelShortSerializer(read_only=True)
     tour_operator = SlugRelatedField(slug_field="company_name", read_only=True)
-    total_price_whith_discount = DecimalField(
+    total_price_with_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         read_only=True,
@@ -218,6 +218,7 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
 
     class Meta(AbstractTourSerializer.Meta):
         fields = (
+            "id",
             "hotel",
             "number_of_adults",
             "number_of_children",
@@ -225,7 +226,7 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
             "publish_end_date",
             "tour_operator",
             "total_price",
-            "total_price_whith_discount",
+            "total_price_with_discount",
         )
 
     @extend_schema_field(
@@ -248,7 +249,7 @@ class TourShortSerializer(PriceFieldsMixin, DateFieldsMixin, AbstractTourSeriali
 
 
 class TourShortWithPriceSerializer(TourShortSerializer):
-    total_price_whith_discount = DecimalField(
+    total_price_with_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="100000.00",
@@ -256,7 +257,10 @@ class TourShortWithPriceSerializer(TourShortSerializer):
 
     class Meta:
         model = Tour
-        fields = TourShortSerializer.Meta.fields + ("total_price_whith_discount",)
+        fields = TourShortSerializer.Meta.fields + (
+            "id",
+            "total_price_with_discount",
+        )
 
 
 class TourFiltersRequestSerializer(Serializer):

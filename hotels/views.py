@@ -1,6 +1,6 @@
 from random import choice
 
-from django.db.models import Case, Count, DecimalField, F, Min, OuterRef, Prefetch, Q, Subquery, When, Window
+from django.db.models import Case, Count, DecimalField, F, OuterRef, Prefetch, Subquery, When, Window
 from django.db.models.functions import RowNumber
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -286,7 +286,7 @@ class HotelsHotView(viewsets.ModelViewSet):
             Hotel.objects.filter(is_active=True)
             .prefetch_related("hotel_photos")
             .annotate(
-                total_price_without_discount=Subquery(
+                total_price=Subquery(
                     total_price_subquery.values("price"),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 ),
@@ -532,20 +532,45 @@ class HotelWarpUpViewSet(viewsets.ModelViewSet):
         Возвращает случайную подборку отелей с минимальными ценами,
         начиная с текущей даты, с учетом скидок
         """
-        today = timezone.now().date()
         all_ids = list(HotelWhatAbout.objects.values_list("id", flat=True))
         if not all_ids:
             return HotelWhatAbout.objects.none()
 
         # Выбираем случайную подборку
-        random_id = choice(all_ids)
+        random_id = str(choice(all_ids))
 
-        # Находим минимальную цену, начиная с текущей даты
-        # Без ограничения по конечной дате
+        total_price_subquery = (
+            CalendarPrice.objects.filter(
+                # calendar_date__discount=True,
+                calendar_date__available_for_booking=True,
+                room__hotel=OuterRef("pk"),
+                price__isnull=False,
+            )
+            .annotate(
+                total_price_with_discount=Case(
+                    When(
+                        calendar_date__discount_amount__gt=1,
+                        then=F("price") - F("calendar_date__discount_amount"),
+                    ),
+                    When(
+                        calendar_date__discount_amount__gt=0,
+                        then=F("price") * (1 - F("calendar_date__discount_amount")),
+                    ),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )
+            .order_by("total_price_with_discount", "price")
+            # .exclude(total_price_with_discount=None)
+            .values("price", "total_price_with_discount")[:1]
+        )
         hotels_with_prices = Hotel.objects.annotate(
-            min_price_without_discount=Min(
-                "calendar_dates__calendar_prices__price",
-                filter=Q(calendar_dates__start_date__gte=today, calendar_dates__calendar_prices__price__gt=0),
+            total_price=Subquery(
+                total_price_subquery.values("price"),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
+            ),
+            total_price_with_discount=Subquery(
+                total_price_subquery.values("total_price_with_discount"),
+                output_field=DecimalField(max_digits=10, decimal_places=2),
             ),
         )
         # Создаем префетч для оптимизации запросов
