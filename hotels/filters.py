@@ -145,7 +145,7 @@ class HotelFilter(FilterSet):
             room_prices AS (
                 SELECT
                     r.id as room_id,
-                    SUM(cp.price) as total_price_without_discount,
+                    SUM(cp.price) as total_price,
                     SUM(
                         CASE
                             WHEN cd.discount = TRUE AND cd.discount_amount IS NOT NULL THEN
@@ -164,24 +164,24 @@ class HotelFilter(FilterSet):
                 GROUP BY r.id
             )
             SELECT
-                MIN(total_price_without_discount) as min_price_without_discount,
-                MIN(total_price_with_discount) as min_price_with_discount
+                MIN(total_price) as total_price,
+                MIN(total_price_with_discount) as total_price_with_discount
             FROM room_prices
         """
         params = (start_date, end_date)
         queryset = queryset.annotate(
-            min_price_without_discount=RawSQL(
-                f"SELECT min_price_without_discount FROM ({price_sql}) AS subquery",
+            total_price=RawSQL(
+                f"SELECT total_price FROM ({price_sql}) AS subquery",
                 params,
             ),
-            min_price_with_discount=RawSQL(
-                f"SELECT min_price_with_discount FROM ({price_sql}) AS subquery",
+            total_price_with_discount=RawSQL(
+                f"SELECT total_price_with_discount FROM ({price_sql}) AS subquery",
                 params,
             ),
             date_range_after=Value(start_date),
             date_range_before=Value(end_date),
             nights=Value((end_date - start_date).days),
-        ).exclude(min_price_with_discount__isnull=True)
+        ).exclude(total_price_with_discount__isnull=True)
         return queryset
 
     def _validate_price(self, value):
@@ -203,10 +203,10 @@ class HotelFilter(FilterSet):
         price_min, price_max = self._validate_price(value)
         price_filter = Q()
         if price_min:
-            price_filter &= Q(min_price_with_discount__gte=price_min)
+            price_filter &= Q(total_price_with_discount__gte=price_min)
         if price_max:
-            price_filter &= Q(min_price_with_discount__lte=price_max)
-        queryset = queryset.filter(price_filter).order_by("min_price_with_discount")
+            price_filter &= Q(total_price_with_discount__lte=price_max)
+        queryset = queryset.filter(price_filter).order_by("total_price_with_discount")
         return queryset
 
     def _validate_date_range(self, value):

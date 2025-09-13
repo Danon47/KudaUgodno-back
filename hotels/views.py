@@ -532,25 +532,19 @@ class HotelWarpUpViewSet(viewsets.ModelViewSet):
         Возвращает случайную подборку отелей с минимальными ценами,
         начиная с текущей даты, с учетом скидок
         """
-        # today = timezone.now().date()
         all_ids = list(HotelWhatAbout.objects.values_list("id", flat=True))
         if not all_ids:
             return HotelWhatAbout.objects.none()
 
         # Выбираем случайную подборку
-        random_id = choice(all_ids)
+        random_id = str(choice(all_ids))
 
-        # Находим минимальную цену, начиная с текущей даты
-        # Без ограничения по конечной дате
-        # hotels_with_prices = Hotel.objects.annotate(
-        #     min_price_without_discount=Min(
-        #         "calendar_dates__calendar_prices__price",
-        #         filter=Q(calendar_dates__start_date__gte=today, calendar_dates__calendar_prices__price__gt=0),
-        #     ),
-        # )
         total_price_subquery = (
             CalendarPrice.objects.filter(
+                # calendar_date__discount=True,
+                calendar_date__available_for_booking=True,
                 room__hotel=OuterRef("pk"),
+                price__isnull=False,
             )
             .annotate(
                 total_price_with_discount=Case(
@@ -566,9 +560,9 @@ class HotelWarpUpViewSet(viewsets.ModelViewSet):
                 )
             )
             .order_by("total_price_with_discount", "price")
+            # .exclude(total_price_with_discount=None)
             .values("price", "total_price_with_discount")[:1]
         )
-
         hotels_with_prices = Hotel.objects.annotate(
             total_price=Subquery(
                 total_price_subquery.values("price"),
