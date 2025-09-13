@@ -320,6 +320,7 @@ class HotelBaseShortSerializer(HotelShortPhotoSerializer):
             "id",
             "country",
             "city",
+            "address",
             "star_category",
             "name",
             "user_rating",
@@ -342,7 +343,7 @@ class HotelShortSerializer(HotelBaseShortSerializer):
 
 
 class HotelShortWithPriceSerializer(HotelShortSerializer):
-    total_price_without_discount = DecimalField(
+    total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
         default="25000.00",
@@ -356,7 +357,7 @@ class HotelShortWithPriceSerializer(HotelShortSerializer):
     class Meta:
         model = Hotel
         fields = HotelShortSerializer.Meta.fields + (
-            "total_price_without_discount",
+            "total_price",
             "total_price_with_discount",
         )
 
@@ -444,13 +445,13 @@ class HotelFiltersRequestSerializer(Serializer):
 
 
 class HotelWithMinPriceSerializer(HotelBaseShortSerializer):
-    min_price_without_discount = DecimalField(
+    total_price = DecimalField(
         max_digits=10,
         decimal_places=2,
         read_only=True,
         default="5000.00",
     )
-    min_price_with_discount = DecimalField(
+    total_price_with_discount = DecimalField(
         max_digits=10,
         decimal_places=2,
         read_only=True,
@@ -460,8 +461,8 @@ class HotelWithMinPriceSerializer(HotelBaseShortSerializer):
     class Meta:
         model = Hotel
         fields = HotelBaseShortSerializer.Meta.fields + (
-            "min_price_without_discount",
-            "min_price_with_discount",
+            "total_price",
+            "total_price_with_discount",
         )
 
 

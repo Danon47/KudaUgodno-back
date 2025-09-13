@@ -201,7 +201,7 @@ class TourHotView(viewsets.ModelViewSet):
             .annotate(
                 number_of_adults=Subquery(guests_subquery.values("number_of_adults")),
                 number_of_children=Subquery(guests_subquery.values("number_of_children")),
-                total_price_whith_discount=Case(
+                total_price_with_discount=Case(
                     When(discount_amount__gt=1, then=F("total_price") - F("discount_amount")),
                     When(discount_amount__gt=0, then=F("total_price") * (1 - F("discount_amount"))),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
@@ -209,7 +209,7 @@ class TourHotView(viewsets.ModelViewSet):
                 country_rank=Window(
                     expression=RowNumber(),
                     partition_by=[F("arrival_country")],
-                    order_by=F("total_price_whith_discount").asc(),
+                    order_by=F("total_price_with_discount").asc(),
                 ),
             )
             .filter(country_rank=1)
