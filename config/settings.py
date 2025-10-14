@@ -3,6 +3,12 @@ import sys
 import tempfile
 from datetime import timedelta
 from pathlib import Path
+import dj_database_url
+
+DATABASES = {
+    "default": dj_database_url.config(default=os.getenv("DATABASE_URL"))
+}
+
 
 from dotenv import load_dotenv
 
@@ -41,12 +47,11 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", ".onrender.com,localhost,127.0.0.1").split(",")
+
 
 INSTALLED_APPS = [
     # Стандартные Django-приложения
-    "dal",
-    "dal_select2",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -91,6 +96,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -171,7 +177,8 @@ USE_TZ = True
 USE_L10N = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "static", "media")
@@ -328,22 +335,12 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CORS_ALLOW_CREDENTIALS = True
 # Разрешенные домены для CORS (кросс-доменных запросов)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
+    "https://yourproject.onrender.com",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://yourproject.onrender.com",
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
-]
 
 # Безопасность куки и CSRF (важно при работе с куками и кросс-доменом)
 CSRF_COOKIE_HTTPONLY = False
