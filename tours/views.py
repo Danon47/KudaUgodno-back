@@ -1,4 +1,4 @@
-from dal import autocomplete
+
 from django.db.models import Case, Count, DecimalField, F, OuterRef, Subquery, When, Window
 from django.db.models.functions import RowNumber
 from django_filters.rest_framework import DjangoFilterBackend
@@ -270,37 +270,28 @@ class TourPopularView(viewsets.ModelViewSet):
         return queryset
 
 
-class ToursAutocompleteHotel(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        qs = Hotel.objects.all()
-        if self.q:
-            qs = qs.filter(name__icontains=self.q)
-        return qs
+def get_hotels_queryset(q=None):
+    qs = Hotel.objects.all()
+    if q:
+        qs = qs.filter(name__icontains=q)
+    return qs
 
+def get_rooms_queryset(hotel=None, selected=None, q=None):
+    qs = Room.objects.all()
+    if hotel:
+        qs = qs.filter(hotel_id=hotel)
+    if selected:
+        qs = qs.exclude(id__in=selected)
+    if q:
+        qs = qs.filter(category__icontains=q)
+    return qs
 
-class ToursAutocompleteRoom(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        qs = Room.objects.all()
-        hotel = self.forwarded.get("hotel", None)
-        if hotel:
-            qs = qs.filter(hotel_id=hotel)
-        selected = self.forwarded.get("rooms", [])
-        if selected:
-            qs = qs.exclude(id__in=selected)
-        if self.q:
-            qs = qs.filter(category__icontains=self.q)
-        return qs
-
-
-class ToursAutocompleteTypeOfMeal(autocomplete.Select2QuerySetView):
-    def get_queryset(self):
-        qs = TypeOfMeal.objects.all()
-        hotel = self.forwarded.get("hotel", None)
-        if hotel:
-            qs = qs.filter(hotel_id=hotel)
-        selected = self.forwarded.get("type_of_meals", [])
-        if selected:
-            qs = qs.exclude(id__in=selected)
-        if self.q:
-            qs = qs.filter(name__icontains=self.q)
-        return qs.order_by("price")
+def get_type_of_meal_queryset(hotel=None, selected=None, q=None):
+    qs = TypeOfMeal.objects.all()
+    if hotel:
+        qs = qs.filter(hotel_id=hotel)
+    if selected:
+        qs = qs.exclude(id__in=selected)
+    if q:
+        qs = qs.filter(name__icontains=q)
+    return qs.order_by("price")
